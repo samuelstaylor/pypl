@@ -63,7 +63,7 @@ so F_ij is the same in either orientation (`check_1d_ccd.py` checks fd = hermite
 | every other fit (splines, Morse, polyN) | all 33 (q = −1.00 … +2.00) | all 30 (q = −1.00 … +1.50) |
 
 The one image never used is `sf/Image_+2.00`, which was not a spin-flip run, so its root 4 is not 1A1. With
-these parabolas the harmonic wells are 3E 60.83 meV (S = 69.8) and 1A1 31.55 meV (S = 36.2). `testing/run_all_nv_mgo.toml` holds the settings the MgO
+these parabolas the harmonic wells are 3E 60.83 meV (S = 69.8) and 1A1 31.55 meV (S = 36.2). `validation/run_all_nv_mgo.toml` holds the settings the MgO
 Huang-Rhys factors need: basis, a −0.5 … 10 eV axis, constant σ, and `hermite` as the reference.
 
 ### What a "method" is
@@ -72,7 +72,7 @@ Huang-Rhys factors need: basis, a −0.5 … 10 eV axis, constant σ, and `hermi
 `config_coord_1d_solver.bulid_fc_lsp`, which also places every line at the harmonic energies
 E_ij = j ħω_f − i ħω_i. So when two methods give different VOFs, the difference is entirely in F_ij.
 
-The methods run on `config_coord_1d_vof_solver` (`testing/pypl_ext/`). It is a subclass of PyPL's solver that
+The methods run on `config_coord_1d_vof_solver` (`pypl/config_coord_1d_vof_solver.py`). It is a subclass of PyPL's solver that
 only *adds* methods, so all of PyPL's own functions behave exactly as before; `check_1d_ccd.py` verifies this
 bit for bit.
 
@@ -84,25 +84,25 @@ swaps them to (60, 50). The thermal weights at 5 K put essentially all the popul
 ### Running and comparing methods
 
 The simplest way is the master suite, which runs every method and fit with one parameter set and writes a
-method-comparison table to `testing/outputs/suite/<name>/index.md`. Edit `testing/run_all.toml` (or pass
+method-comparison table to `validation/outputs/suite/<name>/index.md`. Edit `validation/run_all.toml` (or pass
 `--set section.key=value`) to choose the methods, the fd grid and stencil, the fits and spline options, and the
 cubic variants:
 
 ```bash
-python testing/run_all.py
+python validation/run_all.py
 ```
 
 Or run single scripts:
 
 ```bash
-python testing/compare_vof.py                       # quick PASS/FAIL: pypl vs hermite and fd
-python testing/compare_vof.py --test cubic          # any method(s) against the reference
-python testing/plot_ccd_wavefunctions.py --wf-method fd --vof-method pypl hermite fd
-python testing/vof_report.py                        # everything, in seven sections (~8 min)
-python testing/check_1d_ccd.py                      # 59 regression checks (~5 s)
+python validation/compare_vof.py                       # quick PASS/FAIL: pypl vs hermite and fd
+python validation/compare_vof.py --test cubic          # any method(s) against the reference
+python validation/plot_ccd_wavefunctions.py --wf-method fd --vof-method pypl hermite fd
+python validation/vof_report.py                        # everything, in seven sections (~8 min)
+python validation/check_1d_ccd.py                      # 59 regression checks (~5 s)
 ```
 
-Each run writes `testing/outputs/<script>/<run>/`. Start with its `index.md`; every method's full settings
+Each run writes `validation/outputs/<script>/<run>/`. Start with its `index.md`; every method's full settings
 are in `log.txt`.
 
 ---
@@ -150,8 +150,8 @@ forms Hₙ or 2ⁿ n! separately. The explicit product overflows float64 above n
 1e-11 up to n = 400 (both pinned in `check_1d_ccd.py`). It then integrates F_ij = ∫ χ_i(Q + ΔQ) χ_j(Q) dQ with the composite Simpson rule on a 100001-point grid. It
 answers the same question as `pypl` by a completely independent route, so it checks the recurrences.
 
-**Run it.** `python testing/compare_vof.py --test hermite`, or
-`python testing/plot_ccd_wavefunctions.py --wf-method hermite` to see the wavefunctions on the CCD.
+**Run it.** `python validation/compare_vof.py --test hermite`, or
+`python validation/plot_ccd_wavefunctions.py --wf-method hermite` to see the wavefunctions on the CCD.
 
 **Accuracy.**
 - VOF vs `pypl`: 7e-16 of the peak, i.e. machine precision.
@@ -193,9 +193,9 @@ Emission is solved in a mirrored coordinate so that it uses the same sign conven
 **Run it.**
 
 ```bash
-python testing/compare_vof.py --test fd                     # parabola wells: must match pypl
-python testing/compare_vof.py --test fd --fd-fit spline     # anharmonic wells
-python testing/plot_ccd_wavefunctions.py --wf-method fd --fd-fit spline --vof-method pypl fd
+python validation/compare_vof.py --test fd                     # parabola wells: must match pypl
+python validation/compare_vof.py --test fd --fd-fit spline     # anharmonic wells
+python validation/plot_ccd_wavefunctions.py --wf-method fd --fd-fit spline --vof-method pypl fd
 ```
 
 Flags: `--fd-npts`, `--fd-stencil {3,5}`, `--fd-margin`, `--fd-fit`.
@@ -311,9 +311,9 @@ positive:
 **Run it.** Any spline can take smooth tails, except `-clamped`:
 
 ```bash
-python testing/plot_ccd_wavefunctions.py --dataset nv_mgo --wf-method fd --vof-method hermite fd \
+python validation/plot_ccd_wavefunctions.py --dataset nv_mgo --wf-method fd --vof-method hermite fd \
     --fd-fit spline3-notaknot-smooth                              # the spec suffix -smooth
-python testing/compare_vof.py --dataset nv_mgo --reference hermite --test fd \
+python validation/compare_vof.py --dataset nv_mgo --reference hermite --test fd \
     --fd-fit spline --spline-bc not-a-knot --spline-tails smooth  # the same fit from flags
 ```
 
@@ -464,9 +464,9 @@ because the intensity sits in low levels:
 ### 6.7 Run it
 
 ```bash
-python testing/compare_vof.py --test cubic                                  # vs harmonic pypl
-python testing/compare_vof.py --reference fd --fd-fit cubic --test cubic    # vs the exact cubic
-python testing/plot_ccd_wavefunctions.py --wf-method cubic --vof-method pypl cubic
+python validation/compare_vof.py --test cubic                                  # vs harmonic pypl
+python validation/compare_vof.py --reference fd --fd-fit cubic --test cubic    # vs the exact cubic
+python validation/plot_ccd_wavefunctions.py --wf-method cubic --vof-method pypl cubic
 ```
 
 Flags: `--cubic-points {all,parabola}`, `--cubic-free-a`, `--cubic-normalize`. Report section

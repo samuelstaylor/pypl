@@ -404,7 +404,7 @@ if __name__ == "__main__":
     ax.tick_params(direction="in")
     ax.xaxis.set_ticks_position("both")
     ax.yaxis.set_ticks_position("both")
-    ax.set_xlabel("$\hbar\omega$ (eV)")
+    ax.set_xlabel(r"$\hbar\omega$ (eV)")
     ax.set_ylabel("PL/Abs (arb. unit.)")
 
     plt.show()

@@ -2,7 +2,7 @@
 """End-to-end 1D CCD run: NV center in diamond, PL and absorption spectra.
 
 Reproduces doc/tutorials/pypl_002.ipynb as a plain script with PyPL's own, unmodified
-``config_coord_1d_solver``, and writes every result to ``testing/outputs/run_1d_ccd/<tag or default>/``:
+``config_coord_1d_solver``, and writes every result to ``validation/outputs/run_1d_ccd/<tag or default>/``:
 
     data/ccd_summary.csv      delta_q, frequencies, Huang-Rhys factors and the run parameters
     data/pl_spectrum.csv      PL spectrum (normalized)
@@ -10,10 +10,10 @@ Reproduces doc/tutorials/pypl_002.ipynb as a plain script with PyPL's own, unmod
     figures/ccd_diagram.png   the DFT images with their parabola fits
     figures/spectra.png       PL and absorption
 
-    python testing/run_1d_ccd.py                       # defaults = tutorial 002
-    python testing/run_1d_ccd.py --temp 300 --tag 300K
-    python testing/run_1d_ccd.py --order-es 80 --order-gs 90 --tag hiorder
-    python testing/run_1d_ccd.py --show                # also open the plots
+    python validation/run_1d_ccd.py                       # defaults = tutorial 002
+    python validation/run_1d_ccd.py --temp 300 --tag 300K
+    python validation/run_1d_ccd.py --order-es 80 --order-gs 90 --tag hiorder
+    python validation/run_1d_ccd.py --show                # also open the plots
 """
 
 import argparse

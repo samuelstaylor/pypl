@@ -76,6 +76,32 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
         return omega * 1e-3 * constants.eV / constants.hbar**2 * 1e-20 * AMU
 
     @staticmethod
+    def huang_rhys(omega, delta_q):
+        r"""
+        Single-mode Huang-Rhys factor of a harmonic potential.
+
+        .. math::
+
+            $S = \frac{\omega \, \Delta Q^2}{2\hbar}$
+
+        Same expression as tutorial 002, so the values match it bit for bit.
+
+        Parameters
+        ----------
+        omega : float
+            Phonon energy :math:`\hbar\omega` (in meV).
+        delta_q : float
+            Displacement along the configuration coordinate (in Å·amu^{1/2}).
+
+        Returns
+        -------
+        float
+            :math:`S`, dimensionless.
+        """
+
+        return delta_q**2 * 1e-10**2 * AMU * omega * 1e-3 * constants.eV / constants.hbar / (2 * constants.hbar)
+
+    @staticmethod
     def harmonic_wavefunction(q, n, omega, center=0.0):
         r"""
         Normalized harmonic oscillator eigenfunction.

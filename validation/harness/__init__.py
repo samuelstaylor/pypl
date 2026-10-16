@@ -1,4 +1,4 @@
-"""Test-harness helpers for the 1D CCD scripts in ``testing/``. Not part of PyPL and never moved into it.
+"""Helpers for the 1D CCD validation scripts in ``validation/``. Not part of the installed package.
 
     ccd_data   the NV-center 1D CCD from tutorial 002's Quantum ESPRESSO output
     fits       the registry of potential fits used by the finite-difference method
@@ -7,14 +7,14 @@
     plots      shared plot style and figure builders
 
 Importing the package puts the repository root on ``sys.path`` so ``import pypl`` picks up the
-working tree without ``pip install``, and ``testing/`` so ``import pypl_ext`` resolves.
+working tree without ``pip install``, and ``validation/`` so ``import harness`` resolves from any script.
 """
 
 import os
 import sys
 
-TESTING_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-REPO_ROOT = os.path.dirname(TESTING_DIR)
-for _path in (REPO_ROOT, TESTING_DIR):
+VALIDATION_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO_ROOT = os.path.dirname(VALIDATION_DIR)
+for _path in (REPO_ROOT, VALIDATION_DIR):
     if _path not in sys.path:
         sys.path.insert(0, _path)

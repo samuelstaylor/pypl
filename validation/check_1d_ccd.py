@@ -4,8 +4,8 @@
 Run this after touching pypl/config_coord_1d_solver.py (or the parsers it depends
 on) to confirm nothing moved:
 
-    python testing/check_1d_ccd.py            # quiet unless something fails
-    python testing/check_1d_ccd.py -v         # print every check
+    python validation/check_1d_ccd.py            # quiet unless something fails
+    python validation/check_1d_ccd.py -v         # print every check
 
 Exit code is 0 if all checks pass, 1 otherwise. Reference values come from
 doc/tutorials/pypl_002.ipynb; update REFERENCE below only when a change to the
@@ -21,7 +21,7 @@ import numpy as np
 
 from harness import ccd_data, fits
 from pypl.config_coord_1d_solver import config_coord_1d_solver
-from pypl_ext.config_coord_1d_vof_solver import config_coord_1d_vof_solver
+from pypl.config_coord_1d_vof_solver import config_coord_1d_vof_solver
 
 # Values produced by tutorial 002 for the NV center in diamond.
 REFERENCE = {
@@ -87,7 +87,7 @@ def main():
     p.add_argument("-v", "--verbose", action="store_true", help="print passing checks too")
     args = p.parse_args()
     c = Checker(args.verbose)
-    # The reference numbers are tutorial 002's, whatever PYPL_TESTING_DATASET says.
+    # The reference numbers are tutorial 002's, whatever PYPL_VALIDATION_DATASET says.
     ccd_data.use_dataset("nv_diamond")
 
     # -------------------------------------------------- CCD construction
@@ -328,10 +328,10 @@ def check_datasets(c):
 
 
 def check_extension(c, ccd):
-    """pypl_ext must only add to PyPL: nothing overridden, inherited results bit-identical."""
+    """The 1D CCD extension classes must only add to PyPL: nothing overridden, inherited results bit-identical."""
 
     print()
-    print("Extension (pypl_ext) leaves PyPL unchanged")
+    print("Extension (config_coord_1d_vof_solver) leaves PyPL unchanged")
     base, sub = config_coord_1d_solver, config_coord_1d_vof_solver
     overridden = [k for k in vars(sub) if k in vars(base) and not k.startswith("__")]
     c.check("vof solver overrides no config_coord_1d_solver attribute", not overridden, "overridden: %s" % overridden)

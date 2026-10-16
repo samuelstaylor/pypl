@@ -12,7 +12,9 @@ sys.path.insert(0, os.path.abspath('../'))
 project = 'PyPL'
 author = 'Yu Jin'
 copyright = f'{datetime.now().year}, {author}'
-version = '1.0'
+from pypl import __version__
+
+version = __version__
 release = version
 
 # -- General configuration ---------------------------------------------------

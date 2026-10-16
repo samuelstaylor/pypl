@@ -143,7 +143,7 @@ class lineshape:
         .. math::
 
             $S(t) &= \sum_k S_k \exp\!\left(-\frac{\sigma_k^2t^2}{2\hbar^2}\right) e^{i \omega_k t},$
-            
+
             $C(t) &= \sum_k n_k S_k \exp\!\left(-\frac{\sigma_k^2t^2}{2\hbar^2}\right) \cos(\omega_k t).$
 
 

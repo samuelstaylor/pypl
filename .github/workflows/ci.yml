@@ -16,7 +16,30 @@ jobs:
     - name: Lint
       run: |
         conda install black
-        black --check --diff --color --line-length 120 pypl
+        black --check --diff --color --line-length 120 pypl tests validation
     - name: Build
       run: |
         pip install .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v5
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install
+      run: |
+        python -m pip install -U pip
+        python -m pip install ".[test]"
+    - name: Test
+      run: |
+        python -m pytest -W error::SyntaxWarning
+    - name: Validation checks
+      run: |
+        python validation/check_1d_ccd.py

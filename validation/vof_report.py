@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Thorough, sectioned comparison of every route to the 1D CCD vibrational overlap function (VOF).
 
-    python testing/vof_report.py                          # everything, ~4 min
-    python testing/vof_report.py --skip-convergence       # without the grid-convergence scan, ~2.5 min
-    python testing/vof_report.py --fits parabola spline morse --tag three-fits
-    python testing/vof_report.py --temp 300 --tag 300K
+    python validation/vof_report.py                          # everything, ~4 min
+    python validation/vof_report.py --skip-convergence       # without the grid-convergence scan, ~2.5 min
+    python validation/vof_report.py --fits parabola spline morse --tag three-fits
+    python validation/vof_report.py --temp 300 --tag 300K
 
-Writes ``testing/outputs/vof_report/<tag or default>/``. Open ``index.md`` first: it lists the
+Writes ``validation/outputs/vof_report/<tag or default>/``. Open ``index.md`` first: it lists the
 headline numbers and every file with a one-line description. The sections are:
 
     01_potential_fits   each fit of the DFT images: residuals, implied hbar*omega, and how far it
@@ -38,7 +38,7 @@ from harness.ccd_data import STATE_LABELS, STATE_NAMES, STATES
 from harness.methods import COMPARISON_COLUMNS, CSV_KEYS, DIRECTIONS, METHODS, add_vof_args, compare_results
 from harness.methods import compute_vof, direction_states, fd_q_range, params_from_args
 from harness.output import OutputDir, markdown_table, text_table
-from pypl_ext.config_coord_1d_vof_solver import FD_STENCILS, KINETIC, config_coord_1d_vof_solver, grid_spacing
+from pypl.config_coord_1d_vof_solver import FD_STENCILS, KINETIC, config_coord_1d_vof_solver, grid_spacing
 
 SECTIONS = {
     "01_potential_fits": "Each fit of the DFT images: residuals, implied hbar*omega, and how far it departs from "

@@ -1,19 +1,28 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pypl"
 authors = [
     {name = "Yu Jin", email = "jinyuchem@uchicago.edu"},
+    {name = "Samuel S. Taylor", email = "sstaylor@uchicago.edu"},
     {name = "Victor Yu", email = "yuw@anl.gov"},
     {name = "Marco Govoni", email = "mgovoni@unimore.it"},
     {name = "Giulia Galli", email = "gagalli@uchicago.edu"},
 ]
-description = "Python code to compute vibrationally resolved optical spectra"
+description = "Python code to compute vibrationally resolved optical spectra and nonradiative transitions of point defects"
 readme = "README.md"
-requires-python = ">=3.6, <4"
+requires-python = ">=3.8"
 license = "MIT"
+keywords = ["photoluminescence", "Huang-Rhys", "Franck-Condon", "configuration coordinate", "point defects", "intersystem crossing"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Chemistry",
+]
 dependencies = [
     "numpy",
     "scipy",
@@ -23,7 +32,12 @@ dependencies = [
     "sphinx",
     "sphinx_rtd_theme",
 ]
-version = "1.0"
+dynamic = ["version"]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+docs = ["nbsphinx"]
+dev = ["pytest>=7", "black==26.1.0", "nbsphinx"]
 
 [project.scripts]
 pypl = "pypl.cli:main"
@@ -31,7 +45,19 @@ pypl = "pypl.cli:main"
 [project.urls]
 Homepage = "https://github.com/jinyuchem/pypl"
 Repository = "https://github.com/jinyuchem/pypl"
+Documentation = "https://miccompy.github.io/pypl/"
+
+[tool.setuptools.dynamic]
+version = {attr = "pypl.__version__"}
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["pypl*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.black]
+line-length = 120
+extend-exclude = "validation/data/"

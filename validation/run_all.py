@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """Master test suite: run every VOF method and fit with one set of parameters, and compare them all.
 
-    python testing/run_all.py                                   # testing/run_all.toml, every step (~15 min)
-    python testing/run_all.py --config my_params.toml           # your own copy of run_all.toml
-    python testing/run_all.py --set physics.temp=300 --name 300K
-    python testing/run_all.py --set fd.npts=40001 --set fd.stencil=3 --name fd-3pt
-    python testing/run_all.py --set 'fd.fits=["spline4", "morse"]' --only compare plots
-    python testing/run_all.py --dry-run                         # list every command, run nothing
-    python testing/run_all.py --jobs 2                          # run steps in parallel
-    python testing/run_all.py --config testing/run_all_nv_mgo.toml   # NV- in MgO, 3E -> 1A1 (its own suite dir)
+    python validation/run_all.py                                   # validation/run_all.toml, every step (~15 min)
+    python validation/run_all.py --config my_params.toml           # your own copy of run_all.toml
+    python validation/run_all.py --set physics.temp=300 --name 300K
+    python validation/run_all.py --set fd.npts=40001 --set fd.stencil=3 --name fd-3pt
+    python validation/run_all.py --set 'fd.fits=["spline4", "morse"]' --only compare plots
+    python validation/run_all.py --dry-run                         # list every command, run nothing
+    python validation/run_all.py --jobs 2                          # run steps in parallel
+    python validation/run_all.py --config validation/run_all_nv_mgo.toml   # NV- in MgO, 3E -> 1A1 (its own suite dir)
 
 Every parameter (physics, which methods, the fd grid and stencil, the fits and spline options, the cubic
-variants with a fixed or fitted, tolerances, which steps) lives in a TOML file; ``testing/run_all.toml``
+variants with a fixed or fitted, tolerances, which steps) lives in a TOML file; ``validation/run_all.toml``
 is the commented default and documents every key. ``--set section.key=value`` overrides one key (the value
 is TOML, so lists and strings work), and missing keys keep their defaults.
 
@@ -31,8 +31,8 @@ MgO suite (default name ``nv_mgo``) can never overwrite the diamond one (``defau
 
 Fits are validated first: an unknown spec stops the suite, and a fit without bound states (e.g. poly4 here)
 is skipped with the reason. Re-running a suite never deletes the previous one: it is moved to
-``testing/outputs/_archive/suite/<name>/<YYYYmmdd-HHMMSS>/`` first. Everything goes to
-``testing/outputs/suite/<name>/``, one directory per step
+``validation/outputs/_archive/suite/<name>/<YYYYmmdd-HHMMSS>/`` first. Everything goes to
+``validation/outputs/suite/<name>/``, one directory per step
 exactly as each script would write it alone, plus
 
     index.md            status, time and output link of every step, and a method-comparison table
@@ -59,12 +59,12 @@ import tomllib
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
-from harness import REPO_ROOT, TESTING_DIR, ccd_data, fits
+from harness import REPO_ROOT, VALIDATION_DIR, ccd_data, fits
 from harness.methods import METHODS, VOFParams, fd_q_range
 from harness.output import archive_previous, markdown_table
 
-DEFAULT_CONFIG = os.path.join(TESTING_DIR, "run_all.toml")
-SUITE_ROOT = os.path.join(TESTING_DIR, "outputs", "suite")
+DEFAULT_CONFIG = os.path.join(VALIDATION_DIR, "run_all.toml")
+SUITE_ROOT = os.path.join(VALIDATION_DIR, "outputs", "suite")
 STEP_GROUPS = ("checks", "tutorial", "compare", "plots", "report")
 # Rows of the method-comparison table, in this order.
 KIND_ORDER = ("like for like", "PT vs exact cubic", "anharmonic vs harmonic")
@@ -223,7 +223,7 @@ class Step:
     details: dict = field(default_factory=dict)
 
     def command(self):
-        return " ".join(["python", "testing/" + self.script] + [str(a) for a in self.args])
+        return " ".join(["python", "validation/" + self.script] + [str(a) for a in self.args])
 
 
 def vof_args(config, fd_fit="parabola", cubic=None):
@@ -376,10 +376,10 @@ OUTPUT_RE = re.compile(r"Outputs in (.+?) \(see index\.md\)")
 
 
 def run_step(step, number, total, suite_dir, dataset):
-    env = dict(os.environ, PYPL_TESTING_OUTPUT_ROOT=suite_dir, PYPL_TESTING_DATASET=dataset, MPLBACKEND="Agg")
+    env = dict(os.environ, PYPL_VALIDATION_OUTPUT_ROOT=suite_dir, PYPL_VALIDATION_DATASET=dataset, MPLBACKEND="Agg")
     start = time.perf_counter()
     proc = subprocess.run(
-        [sys.executable, "-u", os.path.join(TESTING_DIR, step.script)] + [str(a) for a in step.args],
+        [sys.executable, "-u", os.path.join(VALIDATION_DIR, step.script)] + [str(a) for a in step.args],
         cwd=REPO_ROOT,
         env=env,
         capture_output=True,
@@ -525,7 +525,7 @@ def write_index(suite_dir, config, steps, skipped, started, config_path):
             "problem; they must agree within the tolerances (max dF_ij <= %g, max dVOF / peak <= %g). **PT vs exact "
             "cubic:** the error of first-order perturbation theory, against the exact fd solution of the same cubic. "
             "**Anharmonic vs harmonic:** how much each fit or correction changes the VOF from the harmonic reference "
-            "(physics, not error), smallest first. See `testing/METHODS.md` for what each method does."
+            "(physics, not error), smallest first. See `validation/METHODS.md` for what each method does."
             % (config["tolerances"]["fc"], config["tolerances"]["vof"]),
             "",
         ]
@@ -551,8 +551,8 @@ def write_index(suite_dir, config, steps, skipped, started, config_path):
             "",
             "## Commands",
             "",
-            "Each step was run as (from the repository root, with `PYPL_TESTING_OUTPUT_ROOT` "
-            "pointing at this directory and `PYPL_TESTING_DATASET=%s`):" % config["suite"]["dataset"],
+            "Each step was run as (from the repository root, with `PYPL_VALIDATION_OUTPUT_ROOT` "
+            "pointing at this directory and `PYPL_VALIDATION_DATASET=%s`):" % config["suite"]["dataset"],
             "",
             "```bash",
         ]
@@ -578,9 +578,9 @@ def existing_dataset(suite_dir):
 
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--config", default=DEFAULT_CONFIG, help="TOML configuration (default: testing/run_all.toml)")
+    p.add_argument("--config", default=DEFAULT_CONFIG, help="TOML configuration (default: validation/run_all.toml)")
     p.add_argument("--set", action="append", metavar="SECTION.KEY=VALUE", help="override one key (repeatable)")
-    p.add_argument("--name", help="suite name, i.e. the directory testing/outputs/suite/<name>/")
+    p.add_argument("--name", help="suite name, i.e. the directory validation/outputs/suite/<name>/")
     p.add_argument("--only", nargs="+", choices=STEP_GROUPS, help="run only these step groups")
     p.add_argument("--jobs", type=int, help="steps run in parallel (default: suite.jobs)")
     p.add_argument("--dry-run", action="store_true", help="print every step's command and exit")
@@ -620,7 +620,7 @@ def main():
             "%s holds a suite run on dataset %s; refusing to replace it with a %s run. Choose another --name."
             % (os.path.relpath(suite_dir, REPO_ROOT), previous, dataset.name)
         )
-    # Never delete a previous suite: move it to testing/outputs/_archive/suite/<name>/<stamp>/.
+    # Never delete a previous suite: move it to validation/outputs/_archive/suite/<name>/<stamp>/.
     archived = archive_previous(suite_dir)
     if archived:
         print("Previous '%s' suite moved to %s" % (name, os.path.relpath(archived, REPO_ROOT)))

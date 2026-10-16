@@ -36,7 +36,7 @@ add a ``config_coord_1d_potential.fit_*`` method and a branch here, plus an entr
 import re
 
 from harness import ccd_data
-from pypl_ext.config_coord_1d_potential import SPLINE_ORDER_NAMES, config_coord_1d_potential
+from pypl.config_coord_1d_potential import SPLINE_ORDER_NAMES, config_coord_1d_potential
 
 DEFAULT_FIT = "parabola"
 # Fits compared by vof_report.py. poly4 and poly8 are included on purpose: they are unbounded here.

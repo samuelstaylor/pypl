@@ -2,13 +2,44 @@
 
 PyPL is a Python package for computing vibrationally resolved optical spectra of point defects, using atomic geometries and phonons obtained from density functional theory (DFT) calculations.
 
+## Features
+
+- **Full-phonon lineshapes** (`hr_solver`): partial Huang-Rhys factors from displacements or forces, spectral densities, and temperature-dependent photoluminescence / absorption lineshapes by the generating-function method.
+- **1D configuration-coordinate model** (`config_coord_1d_solver`): Franck-Condon integrals of two displaced harmonic oscillators by the Ruhoff recurrences and the broadened Franck-Condon lineshape.
+- **Anharmonic 1D CCD** (`config_coord_1d_vof_solver`, a subclass of `config_coord_1d_solver` that only adds methods):
+  - Franck-Condon integrals by quadrature of harmonic eigenfunctions (stable for hundreds of levels, i.e. large Huang-Rhys factors);
+  - finite-difference eigenstates of any potential, e.g. a fit of the DFT images;
+  - a first-order cubic anharmonic correction;
+  - a lineshape with lines at the actual vibrational level energies (`build_fc_lsp_from_levels`).
+- **Potential fits** (`config_coord_1d_potential`): parabola, polynomial, Morse, cubic, and splines of degree 2-5 (natural, not-a-knot or clamped ends; harmonic or smooth C² tails).
+- **Intersystem crossing** (`pypl.isc`): golden-rule ISC rate Γ(Δ) = 4π/ħ |λ⊥|² F(Δ) and lifetime from any vibrational overlap function.
+- **Parsers** (`pypl.utils`): Quantum ESPRESSO XML (structure, forces, total energy), Phonopy (HDF5, YAML) and WEST TDDFT `summary.json`.
+
 ## Documentation
 
-The tutorial and documentation are hosted on [GitHub Pages](https://miccompy.github.io/pypl/).
+The tutorial and documentation are hosted on [GitHub Pages](https://miccompy.github.io/pypl/). The tutorials are in `doc/tutorials/`:
+
+| Notebook | Content |
+| --- | --- |
+| `pypl_001.ipynb` | PL and absorption of NV⁻ in diamond from full phonons (displacement and force routes) |
+| `pypl_002.ipynb` | PL and absorption of NV⁻ in diamond in the 1D CCD model |
+| `pypl_003.ipynb` | 3E → 1A1 intersystem crossing of NV⁻ in MgO: harmonic vs anharmonic (smooth spline) vibrational overlap and ISC rate, from WEST TDDFT data |
 
 ## Installation
 
-Run `pip install .` in the main folder.
+Run `pip install .` in the main folder. For development, `pip install -e ".[dev]"` adds pytest, black and nbsphinx.
+
+## Testing
+
+```bash
+pytest                          # the test suite in tests/ (~1 min)
+pytest -m "not slow"            # skip the slowest end-to-end test
+python validation/check_1d_ccd.py   # the 1D CCD regression checks of the validation suite
+```
+
+`tests/test_legacy_tutorials.py` guarantees that the original API is unchanged: it reruns the computations of tutorials 001 and 002 and compares every array with a reference generated from the original code (branch `pypl-original`), and checks the numbers printed in the notebooks. `validation/` holds the method-comparison suite for the 1D CCD (`validation/README.md`, `validation/METHODS.md`).
+
+Formatting is checked with `black --check --line-length 120 pypl tests validation`.
 
 ## Authors
 

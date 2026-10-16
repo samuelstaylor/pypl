@@ -23,6 +23,13 @@ To install **PyPL** and its dependencies, execute:
     $ cd pypl
     $ pip install .
 
+To run the test suite (``pytest``, about a minute), install the test extras and call ``pytest`` from the repository:
+
+.. code:: bash
+
+    $ pip install ".[test]"
+    $ pytest
+
 If using **pip** is not possible, one can manually install the above dependencies, then add the directory of **PyPL** to the ``PYTHONPATH`` environment variable by, e.g.,
 
 .. code:: bash

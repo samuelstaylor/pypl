@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """Quick PASS/FAIL comparison of the Franck-Condon lineshape (VOF) from different F_ij methods.
 
-    python testing/compare_vof.py                         # PyPL (Ruhoff) vs every other method
-    python testing/compare_vof.py --test fd               # PyPL vs finite differences only
-    python testing/compare_vof.py --reference hermite --test fd pypl
-    python testing/compare_vof.py --test fd --fd-fit spline   # anharmonic wells: FAIL by design
-    python testing/compare_vof.py --test cubic                # cubic perturbation (anharmonic: FAIL by design)
-    python testing/compare_vof.py --reference fd --fd-fit cubic --test cubic   # perturbation vs exact on the cubic
-    python testing/compare_vof.py --temp 300 --tag 300K -v
+    python validation/compare_vof.py                         # PyPL (Ruhoff) vs every other method
+    python validation/compare_vof.py --test fd               # PyPL vs finite differences only
+    python validation/compare_vof.py --reference hermite --test fd pypl
+    python validation/compare_vof.py --test fd --fd-fit spline   # anharmonic wells: FAIL by design
+    python validation/compare_vof.py --test cubic                # cubic perturbation (anharmonic: FAIL by design)
+    python validation/compare_vof.py --reference fd --fd-fit cubic --test cubic   # perturbation vs exact on the cubic
+    python validation/compare_vof.py --temp 300 --tag 300K -v
 
 Every lineshape comes from the same ``bulid_fc_lsp``; the methods (``harness.methods.METHODS``)
 differ only in where F_ij comes from, so any disagreement is a disagreement in F_ij. For the
 thorough, sectioned comparison (fits, grid, wavefunctions, F_ij, VOF), run ``vof_report.py``.
 
-Output, in ``testing/outputs/compare_vof/<reference>_vs_<tests>[_fit-<fit>][_<tag>]/``:
+Output, in ``validation/outputs/compare_vof/<reference>_vs_<tests>[_fit-<fit>][_<tag>]/``:
 
     figures/vof_comparison.png   per direction: VOFs overlaid, signed error, log error, settings
     figures/fc_error_maps.png    log10 |F_ij(test) - F_ij(reference)|

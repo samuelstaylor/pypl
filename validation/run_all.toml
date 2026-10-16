@@ -1,17 +1,17 @@
-# Configuration of the master test suite, testing/run_all.py.
+# Configuration of the master test suite, validation/run_all.py.
 #
-#   python testing/run_all.py                         # this file, all steps
-#   python testing/run_all.py --config my.toml        # your own copy of this file
-#   python testing/run_all.py --set physics.temp=300 --set fd.npts=40001 --name 300K-fine
-#   python testing/run_all.py --only compare plots    # a subset of the steps
-#   python testing/run_all.py --dry-run               # print every command without running it
+#   python validation/run_all.py                         # this file, all steps
+#   python validation/run_all.py --config my.toml        # your own copy of this file
+#   python validation/run_all.py --set physics.temp=300 --set fd.npts=40001 --name 300K-fine
+#   python validation/run_all.py --only compare plots    # a subset of the steps
+#   python validation/run_all.py --dry-run               # print every command without running it
 #
-# Every result goes to testing/outputs/suite/<name>/ ; open its index.md first. Copy this file to try a
+# Every result goes to validation/outputs/suite/<name>/ ; open its index.md first. Copy this file to try a
 # different set of parameters: every key below is optional, and a missing key keeps the value shown here.
-# See testing/METHODS.md for what each method and fit does.
+# See validation/METHODS.md for what each method and fit does.
 
 [suite]
-name = "default"          # the suite directory: testing/outputs/suite/<name>/ (a previous one is moved to outputs/_archive/)
+name = "default"          # the suite directory: validation/outputs/suite/<name>/ (a previous one is moved to outputs/_archive/)
 jobs = 1                  # steps run in parallel; each step can use ~1 GB, so raise this with care
 # Steps to run (false = skip). "checks" is the 81 regression checks, "tutorial" is tutorial 002 as a
 # script, "compare" the PASS/FAIL method comparisons, "plots" the CCD + wavefunction figures, "report" the

@@ -66,7 +66,7 @@ It does the same as option A, deterministically, and prints the archive's size, 
 From Git Bash on the workstation (replace the user and host):
 
 ```bash
-cd /c/Users/sammy/Research/Galli/programs/pypl/testing/data
+cd /c/Users/sammy/Research/Galli/programs/pypl/validation/data
 scp USER@HPC_HOST:~/nv_mgo_west.tar.gz .
 sha256sum nv_mgo_west.tar.gz                      # compare with the value printed on the HPC
 tar -xzf nv_mgo_west.tar.gz                       # fills nv_mgo_west/ (this README is kept)
@@ -77,7 +77,7 @@ remote host.
 
 ## Status
 
-Waiting for the data. The harness's loader (`testing/harness/ccd_data.py`) reads the tutorial-002 QE layout,
+Waiting for the data. The harness's loader (`validation/harness/ccd_data.py`) reads the tutorial-002 QE layout,
 so this dataset will need its own loader. It must handle `Image_<q>` coordinates, E_DFT + VEE per state, the
 Mg / O / N masses, and the energy zero at the ³A₂ minimum. It also needs a choice of which pair of states forms
 the transition (³E at Q = 0 and ¹A₁ at Q = ΔQ in the reference script).

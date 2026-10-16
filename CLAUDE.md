@@ -9,15 +9,36 @@ PyPL computes vibrationally resolved optical spectra (photoluminescence and abso
 ## Commands
 
 ```bash
-pip install .                                    # install (editable work: pip install -e .)
-black --check --diff --color --line-length 120 pypl   # lint exactly as CI does
-black --line-length 120 pypl                     # apply formatting
-cd doc && make html                              # build Sphinx docs into doc/_build
+pip install -e ".[dev]"                          # editable install + pytest, black, nbsphinx (installed locally 2026-10-16)
+pytest                                           # tests/, ~70 s; -m "not slow" skips the tutorial-003 end-to-end test
+python validation/check_1d_ccd.py                # 81 1D CCD checks
+black --check --diff --color --line-length 120 pypl tests validation   # lint exactly as CI does
+cd doc && make html                              # build Sphinx docs into doc/_build (needs nbsphinx + pandoc)
 ```
 
-CI (`.github/workflows/ci.yml`) runs only the black check and `pip install .` — there is no packaged test suite and no pytest. Black with `--line-length 120` is mandatory; the CI lint job fails on any deviation. `black` 26.10.1 is installed locally (CI uses 26.1), so `python -m black --check --line-length 120 pypl` reproduces the lint step.
+CI (`.github/workflows/ci.yml`): job `build` = black check on `pypl tests validation` + `pip install .`; job `test` =
+`pip install ".[test]"`, `pytest -W error::SyntaxWarning` and `validation/check_1d_ccd.py` on Python 3.9 / 3.11 / 3.12.
+Black with `--line-length 120` is mandatory (`[tool.black]` in pyproject.toml also sets it and excludes
+`validation/data/`). `black` 26.10.1 is installed locally (CI's conda black is newer than the 26.1 pin in `[dev]`).
 
-Local checks live in `testing/` — see the dedicated section below. For the multi-mode path there is still no automated check: verify by re-running `doc/tutorials/pypl_001.ipynb` and comparing spectra. `pypl/config_coord_1d_solver.py` also has an `if __name__ == "__main__"` block that reproduces an NV-center PL/Abs plot.
+**Branches (2026-10-16):** `main` and `pypl-original` = the original package (upstream 50bd02a), never modified.
+`vof-extensions` = this work: commit 7ed4613 is the raw snapshot (testing/ + pypl_ext), later commits integrate it into
+the package. A worktree of `pypl-original` was made at `../pypl_original_wt` to generate the legacy reference.
+
+**`tests/` (pytest)** — the package's test suite:
+- `test_legacy_tutorials.py`: `legacy_cases.py` reruns tutorials 001 / 002 (35 arrays: HR factors, spectral densities,
+  FFT and time-integration lineshapes, spectra at 4/150/300 K, 1D CCD F_ij, lineshapes, spectra, a 300 K Gaussian-ZPL
+  lineshape) and compares them with `tests/data/legacy_reference.npz`, generated FROM THE ORIGINAL CODE by
+  `tests/tools/make_legacy_reference.py --pypl-root ../pypl_original_wt` (records the source commit). Locally all 35 are
+  bit-identical; the test allows rtol 1e-10 for other platforms. Also checks the numbers printed in the notebooks
+  (they were run with other numpy/scipy versions: total HRF 2.985289200067 vs 2.985289195896 now, both codes).
+  **Never regenerate the reference from modified code.**
+- `test_config_coord_1d_solver.py`, `test_config_coord_1d_vof_solver.py` (contract, harmonic functions, hermite / fd /
+  cubic routes, orientation, levels lineshape), `test_config_coord_1d_potential.py`, `test_isc.py`, `test_nv_mgo.py`
+  (WEST parser, MgO CCD, Ruhoff row-0 at large S, tutorial-003 numbers, marked slow). Fixtures `diamond` / `mgo` in
+  `conftest.py` build both CCDs with the package API. 103 tests, all pass.
+
+For the multi-mode path the legacy test pins every tutorial-001 array. `pypl/config_coord_1d_solver.py` also has an `if __name__ == "__main__"` block that reproduces an NV-center PL/Abs plot.
 
 ## Architecture
 
@@ -43,10 +64,10 @@ Typical call chain: `compute_hrf_dis`/`compute_hrf_forces` → `hrf_dict` → `c
 - **Broadening.** `sigma` is always a two-element `[σ_at_min_ω, σ_at_max_ω]` in meV, linearly interpolated across the phonon range (`f_sigma`, duplicated in both `hr_solver` and `lineshape`).
 - Docstrings are NumPy-style with LaTeX math and are rendered by `doc/documentation.rst` via `sphinx.ext.autodoc` + `napoleon`; new public functions should follow the same format and be added to that file.
 
-## Local testing (`testing/`)
+## Validation suite (`validation/`, formerly `testing/`)
 
-> **Rule: whenever a VOF method or fit is added or changed, update `testing/METHODS.md`** (its section for that
-> method and the comparison table in section 7), as well as this file and `testing/README.md`. `METHODS.md` is
+> **Rule: whenever a VOF method or fit is added or changed, update `validation/METHODS.md`** (its section for that
+> method and the comparison table in section 7), as well as this file and `validation/README.md`. `METHODS.md` is
 > the tutorial-style explanation of every method: physics and derivation, how to run it, how to read its
 > output, measured accuracy and when to use it.
 
@@ -54,22 +75,20 @@ A local harness for the **1D CCD** path on the NV-center data in `doc/tutorials/
 It compares three independent routes to the Franck-Condon matrix `F_ij` and the VOF (`bulid_fc_lsp`
 lineshape) built from it: `pypl` (PyPL's Ruhoff recurrences), `hermite` (quadrature of analytic
 harmonic eigenfunctions) and `fd` (finite-difference Schrödinger solve on fitted CCD wells). Not
-imported by the package, not run by CI, and **git-ignored** (see Environment notes). `testing/README.md`
+installed; CI runs `check_1d_ccd.py`. Renamed from `testing/` on 2026-10-16 (env var now `PYPL_VALIDATION_OUTPUT_ROOT`,
+`harness.VALIDATION_DIR`); old outputs keep their old paths in their index.md / logs. `validation/README.md`
 is the user-facing description; this section is the working memory.
 
 ```
-testing/
-├── pypl_ext/                         PACKAGE-READY extension, written exactly like pypl/
-│   ├── config_coord_1d_potential.py    class config_coord_1d_potential
-│   └── config_coord_1d_vof_solver.py   class config_coord_1d_vof_solver(config_coord_1d_solver)
-├── harness/                          test-only helpers, never moved into pypl/
-│   ├── __init__.py                     puts the repo root and testing/ on sys.path
+validation/
+├── harness/                          validation-only helpers, never moved into pypl/
+│   ├── __init__.py                     puts the repo root and validation/ on sys.path
 │   ├── ccd_data.py                     build_ccd(): the tutorial-002 CCD; samples(), center(), normalize()
 │   ├── fits.py                         fit specs parabola | polyN | spline | morse -> make_potential()
 │   ├── methods.py                      VOFParams, add_vof_args, METHODS, compute_vof, compare_results
 │   ├── output.py                       OutputDir, text_table, markdown_table
 │   └── plots.py                        style, colours, vof_comparison_figure, fc_error_figure
-├── check_1d_ccd.py                   75 regression + physics checks (diamond + MgO loader), ~12 s
+├── check_1d_ccd.py                   81 regression + physics checks (diamond + MgO), ~12 s
 ├── run_1d_ccd.py                     tutorial 002 as a script (unmodified config_coord_1d_solver)
 ├── compare_vof.py                    quick PASS/FAIL method comparison, ~30 s
 ├── plot_ccd_wavefunctions.py         CCD + wavefunctions (--wf-method) + VOF panel (--vof-method)
@@ -80,13 +99,13 @@ testing/
 ├── data/nv_mgo_west/             how the MgO data was collected on the HPC (README, collector); the data is doc/nv_mgo_west/
 ├── README.md
 ├── METHODS.md                        tutorial overview of every VOF method (update with every method change)
-└── outputs/<script>/<run>/           every run's results (git-ignored); _legacy_flat/ = old flat files
+└── outputs/<script>/<run>/           every run's results (committed on vof-extensions); _archive/ = replaced runs; _legacy_flat/ = old flat files
 ```
 
-### `pypl_ext/`: the extension contract
+### The package extension (`pypl/config_coord_1d_vof_solver.py`, `config_coord_1d_potential.py`, `isc.py`)
 
-The user's requirement: these classes will be merged into `pypl/`, and **no existing PyPL function or
-name may change behaviour; every tutorial must work exactly as before.** So:
+Merged from `testing/pypl_ext/` on 2026-10-16. The user's requirement: **no existing PyPL function or
+name may change behaviour; every tutorial must work exactly as before** (pinned by `tests/test_legacy_tutorials.py`). So:
 
 - `config_coord_1d_vof_solver` *subclasses* `config_coord_1d_solver` and only **adds** methods. It has
   no `__init__` and overrides nothing; the new methods fill the same `fc_ints` / `ni` / `nf`, so the
@@ -95,9 +114,12 @@ name may change behaviour; every tutorial must work exactly as before.** So:
   `compute_spectrum` are **bit-identical** (`np.array_equal`) on subclass and parent.
 - PyPL style throughout: lowercase class names, NumPy docstrings with `$...$` LaTeX, user units (meV,
   Å·amu^½, eV), attributes set by `compute_*` methods. They import only `pypl`, numpy and scipy.
-- **To merge:** move both files into `pypl/`, change `from pypl.config_coord_1d_solver import` (already
-  correct) and the harness's `from pypl_ext.` imports to `from pypl.`, add both classes to
-  `doc/documentation.rst`, run black on `pypl/`.
+- Also added on the merge: `config_coord_1d_vof_solver.huang_rhys(omega, delta_q)` (tutorial-002 expression),
+  `pypl/isc.py` (`compute_isc_rate(soc, vof, soc_unit="GHz"|"meV"|"ueV"|"cm-1")` = 4 pi / hbar |soc|^2 F in Hz,
+  `compute_isc_lifetime`), `utils.parse_west_summary(fileName)` (plep/eigenval x ry2ev, eV), `pypl/__init__.py`
+  (`__version__ = "1.1.0"`, read by pyproject and doc/conf.py). All in `doc/documentation.rst`; docs build without
+  warnings. Only edits to old modules: raw strings for two printed `\Delta` / `\hbar` labels (same text; Python 3.12
+  SyntaxWarning) and a stray `w` line removed from the `compute_spectral_density` docstring.
 
 `config_coord_1d_vof_solver` adds: `harmonic_alpha(omega)`, `harmonic_wavefunctions(q, nmax, omega, center)`
 (all levels by the stable normalized three-term recurrence; the old explicit 2^n n! form overflowed above n ~ 170),
@@ -233,7 +255,7 @@ an axis from -200 to 1200 meV with 1401 points.
 
 ### Master suite (`run_all.py` + `run_all.toml`)
 
-`run_all.py` reads a TOML config (default `testing/run_all.toml`, with comments on every key). It deep-merges the
+`run_all.py` reads a TOML config (default `validation/run_all.toml`, with comments on every key). It deep-merges the
 config over `DEFAULTS`, rejecting unknown keys and invalid fits; `--set section.key=value` overrides a single key
 (the value is TOML), `--name`, `--only`, `--jobs` and `--dry-run` are flags. From the config it builds `Step`s,
 each one run as a separate subprocess of an existing script:
@@ -245,7 +267,7 @@ each one run as a separate subprocess of an existing script:
 - report.
 
 fd fits are canonicalized and bound-checked first (`resolve_fits`, using `fd_q_range`); unbounded ones are
-skipped with the reason. Subprocesses get `PYPL_TESTING_OUTPUT_ROOT=outputs/suite/<name>/`, which
+skipped with the reason. Subprocesses get `PYPL_VALIDATION_OUTPUT_ROOT=outputs/suite/<name>/`, which
 `harness.output.OUTPUT_ROOT` honours, so every script writes `suite/<name>/<script>/<run>/`. The runner parses
 each step's "Outputs in ... (see index.md)" line for its directory and `data/summary.csv` for the comparison
 table. Status is PASS / OK / DIFFERS (expected) (an `expect="differ"` step with a FAIL verdict) / FAIL / ERROR
@@ -369,8 +391,8 @@ this layout (qe/ XMLs, local summary.json, script-relative paths, UTF-8 stdout, 
   **The spline VOF is a single narrow peak: 92.5 % of |F_0j|^2 goes to 1A1 j = 18, 19, states with much of their weight in
   a 37 meV pocket of the sf root 4 near q ~ 0 (local min Q = -0.13, barrier Q = +0.25).** So the spline rate hinges on
   whether that shoulder is the true 1A1 PES; the notebook says so. 0-0 lines with ZPE: harmonic 579.3, spline 571.4 meV
-  (F is evaluated from each VOF's own 0-0 line, as in the user's ISC script). Not added to `doc/tutorial.rst` (it needs
-  the untracked data and the unmerged pypl_ext).
+  (F is evaluated from each VOF's own 0-0 line, as in the user's ISC script). Since the merge it uses only the package API
+  (needs `pip install -e .`), is in `doc/tutorial.rst`, and was re-executed with identical results.
 - **Recommended spline for MgO: `spline3-notaknot-smooth`** (user asked for smooth PESs, 2026-10-16). Clamped is
   wrong here: forcing the harmonic tail slope at the end images (3E Q = 6.2: +5.49 vs data +1.65) opens a 0.26-0.60 eV
   well with no data in the 3E gap Q = 4.65-6.20 and moves the 3E -> 1A1 VOF by 38-51 % of the peak. Smooth tails are
@@ -395,20 +417,17 @@ this layout (qe/ XMLs, local summary.json, script-relative paths, UTF-8 stdout, 
    flags to override them per run are still to do.
 3. Fix solver finding 2 in `pypl/` (needs the user's approval because it changes PyPL behaviour), then pin
    it in `check_1d_ccd.py`.
-4. When merging `pypl_ext` into `pypl/`, follow "To merge" above.
+4. DONE (2026-10-16): pypl_ext merged into `pypl/`.
 
 ### Environment notes
 
 - Local interpreter is `C:\Python312\python.exe` (3.12.6). `numpy`, `scipy`, `matplotlib` and `h5py`
   were already present. **`pyyaml` was installed** because `pypl/utils.py` imports it, and **`black`
   26.10.1 was installed** on 2026-10-15; CI pins black 26.1.
-- **Black skips `testing/`** because black honours `.gitignore`. Pass the files explicitly:
-  `python -m black --line-length 120 testing/*.py testing/harness/*.py testing/pypl_ext/*.py`.
-- **`testing/` and `CLAUDE.md` are git-ignored**, via `testing/` + `testing/*` + `CLAUDE.md` at the end of
-  the root `.gitignore`, which has uncommitted modifications adding those rules. So all of this is
-  local-only: it cannot be committed without `git add -f`, and `git clean -fdx` would destroy it.
-- `git status` shows docstring-only modifications (`$...$` around math) in `pypl/config_coord_1d_solver.py`,
-  `hr_factors.py`, `hr_solver.py` and `lineshape.py`. These predate this work.
+- `pytest`, `sphinx`, `sphinx_rtd_theme` installed 2026-10-16, and pypl itself as an editable install
+  (`pip install -e . --no-deps`), which the tutorials need.
+- Everything (validation/, its outputs, doc/nv_mgo_west, CLAUDE.md) is tracked on `vof-extensions`; the user removed
+  the testing ignore rules. `CLAUDE.md` is still listed in `.gitignore` but is tracked (added with -f).
 - Heredocs in the Bash tool turn `\\n` into a real newline inside Python strings. For Python edits with
   backslashes, use the Edit / Write tools.
 

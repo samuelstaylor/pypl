@@ -172,7 +172,7 @@ class hr_solver:
         .. math::
 
             $S(\hbar\omega) = \sum_k S_k \, G(\hbar\omega; \hbar\omega_k, \sigma(\omega_k))$
-w
+
         where :math:`S_k` is the partial Huang–Rhys factor and
         :math:`G` is a normalized Gaussian.
 
@@ -291,7 +291,7 @@ w
         .. math::
 
             $A(\hbar\omega, T) = \frac{1}{2\pi\hbar} \int dt \, \exp\!\left(i \omega t - \frac{|t|\gamma_\mathrm{ZPL}}{\hbar}\right) G(t, T)$
-            
+
 
         Parameters
         ----------

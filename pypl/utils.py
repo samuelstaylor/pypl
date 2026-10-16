@@ -215,3 +215,41 @@ def parse_phonopy_yaml(fileName="band.yaml", real_tol=1e-10):
                 modes[i, a, d] = float(real)
 
     return freqs, modes
+
+
+def parse_west_summary(fileName):
+    """
+    Parse the excitation energies of a WEST TDDFT (``wbse``) calculation from its ``summary.json``.
+
+    WEST writes the eigenvalues of the Liouville (pseudo-Lanczos / Davidson) problem to
+    ``<prefix>.wbse.save/summary.json`` under ``plep/eigenval``, in Rydberg. Each one is the vertical
+    excitation energy of a root relative to the reference (ground-state) determinant, so the total
+    energy of root ``k`` at a geometry is the reference total energy (e.g. from
+    ``parse_total_energy_qexml``) plus ``energies[k]``.
+
+    Parameters
+    ----------
+    fileName : str
+        Path to ``summary.json``.
+
+    Returns
+    -------
+    energies : ndarray of shape (n_roots,)
+        Excitation energies in eV, in the order written by WEST (root 1 first).
+
+    Raises
+    ------
+    ValueError
+        If the file has no ``plep/eigenval`` entry.
+    """
+
+    import json
+
+    with open(fileName, encoding="utf-8") as f:
+        data = json.load(f)
+    try:
+        eigenval = data["plep"]["eigenval"]
+    except (KeyError, TypeError):
+        raise ValueError("Could not find plep/eigenval in %s." % fileName)
+
+    return np.asarray(eigenval, dtype=np.float64) * ry2ev

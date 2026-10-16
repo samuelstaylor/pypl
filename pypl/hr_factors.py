@@ -220,7 +220,7 @@ class hr_factors:
         deltaq = deltaq / self.freqs[self.nom_translational + self.nom_imag_freq :] ** 2
 
         print(
-            "Total \Delta Q is % .12e amu^{0.5} \AA"
+            r"Total \Delta Q is % .12e amu^{0.5} \AA"
             % (np.linalg.norm(deltaq) / constants.physical_constants["atomic mass constant"][0] ** 0.5 * 1e10)
         )
 
@@ -276,7 +276,7 @@ class hr_factors:
         deltaq = np.dot(modes[self.nom_translational + self.nom_imag_freq :, :], mass_dis)
 
         print(
-            "Total \Delta Q is % .12e amu^{0.5} \AA"
+            r"Total \Delta Q is % .12e amu^{0.5} \AA"
             % (np.linalg.norm(deltaq) / constants.physical_constants["atomic mass constant"][0] ** 0.5 * 1e10)
         )
 

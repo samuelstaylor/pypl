@@ -31,7 +31,7 @@ from scipy import constants
 
 from harness import REPO_ROOT
 from pypl.utils import parse_atoms_qexml, parse_total_energy_qexml
-from pypl_ext.config_coord_1d_potential import config_coord_1d_potential
+from pypl.config_coord_1d_potential import config_coord_1d_potential
 
 STATES = ("gs", "es")
 AMU = constants.physical_constants["atomic mass constant"][0]

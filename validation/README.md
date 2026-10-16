@@ -1,4 +1,4 @@
-# testing/
+# validation/
 
 Local test harness for PyPL's **1D configuration-coordinate (1D CCD)** path. It runs on two datasets
 (`--dataset`): NV⁻ in diamond, 3E → 3A2, from `doc/tutorials/002_nv_diamond_1d_ccd/` (the default), and
@@ -12,7 +12,9 @@ Franck–Condon matrix `F_ij` and the vibrational overlap function (VOF) built f
 | `fd` | finite-difference solution of the Schrödinger equation on fitted CCD wells (`parabola`, `polyN`, `spline`, `morse`, `cubic`) |
 | `cubic` | **optional, anharmonic:** harmonic eigenfunctions corrected to first order for a cubic term b Q³ of each well (same frequencies and HR factors) |
 
-Nothing here is imported by the package or run by CI.
+The classes it tests live in the package (`pypl/config_coord_1d_vof_solver.py`, `pypl/config_coord_1d_potential.py`);
+the harness and scripts here are not installed. CI runs `check_1d_ccd.py`; the fast unit and regression tests of the
+package are in `tests/` (`pytest`).
 
 **[METHODS.md](METHODS.md)** is a tutorial-style overview of every method: the physics and derivations,
 how to run it, how to read its output, measured accuracy, and when to use it.
@@ -20,17 +22,14 @@ how to run it, how to read its output, measured accuracy, and when to use it.
 ## Layout
 
 ```
-testing/
-├── pypl_ext/                         package-ready extension: will move into pypl/ unchanged
-│   ├── config_coord_1d_potential.py    class config_coord_1d_potential: fits of one CCD well
-│   └── config_coord_1d_vof_solver.py   class config_coord_1d_vof_solver(config_coord_1d_solver)
-├── harness/                          test-only helpers (never moved into pypl/)
+validation/
+├── harness/                          validation-only helpers (not installed)
 │   ├── ccd_data.py                     the datasets: nv_diamond (tutorial 002) and nv_mgo (doc/nv_mgo_west)
 │   ├── fits.py                         fit specs: parabola, polyN, spline, morse
 │   ├── methods.py                      VOFParams, shared CLI flags, METHODS, compute_vof, compare_results
 │   ├── output.py                       OutputDir: one organized directory per run
 │   └── plots.py                        shared style and comparison figures
-├── check_1d_ccd.py                   regression + physics checks (69), exit 0 on success
+├── check_1d_ccd.py                   regression + physics checks (81), exit 0 on success
 ├── run_1d_ccd.py                     tutorial 002 as a script (unmodified PyPL solver)
 ├── compare_vof.py                    quick PASS/FAIL comparison of F_ij methods
 ├── plot_ccd_wavefunctions.py         CCD + wavefunctions + VOF panel
@@ -39,27 +38,26 @@ testing/
 ├── run_all.toml                      its commented configuration (every parameter and choice), NV⁻ in diamond
 ├── run_all_nv_mgo.toml               the same for NV⁻ in MgO, 3E -> 1A1 (suite name nv_mgo)
 ├── data/nv_mgo_west/                 how the MgO data was collected on the HPC (README, collector); data: doc/nv_mgo_west/
-└── outputs/                          everything the scripts write (git-ignored)
+└── outputs/                          everything the scripts write; reruns archive to outputs/_archive/
 ```
 
 ## The extension never changes PyPL
 
-`config_coord_1d_vof_solver` is a **subclass** of PyPL's `config_coord_1d_solver` that only *adds*
+`config_coord_1d_vof_solver` (in `pypl/`) is a **subclass** of PyPL's `config_coord_1d_solver` that only *adds*
 methods (`compute_franck_condon_integrals_hermite`, `compute_franck_condon_integrals_fd`,
-`solve_schrodinger_fd`, `harmonic_wavefunction`, ...). Every inherited method keeps its name and
-behaviour, and the new methods fill the same attributes (`fc_ints`, `ni`, `nf`), so `bulid_fc_lsp`
-and `compute_spectrum` work on their result unchanged. `check_1d_ccd.py` enforces this: no
+`solve_schrodinger_fd`, `harmonic_wavefunction`, `build_fc_lsp_from_levels`, ...). Every inherited method keeps its
+name and behaviour, and the new methods fill the same attributes (`fc_ints`, `ni`, `nf`), so `bulid_fc_lsp`
+and `compute_spectrum` work on their result unchanged. `check_1d_ccd.py` and `tests/` enforce this: no
 inherited attribute is overridden, and `compute_franck_condon_integrals`, `bulid_fc_lsp` and
-`compute_spectrum` give **bit-identical** results on the subclass and on the parent. Nothing under
-`pypl/` is edited, so every tutorial runs exactly as before.
+`compute_spectrum` give **bit-identical** results on the subclass and on the parent. `tests/test_legacy_tutorials.py`
+also compares tutorials 001 and 002 with a reference generated from the original code.
 
 Both classes follow PyPL's conventions: lowercase class names, NumPy docstrings with LaTeX, user units
-(meV, Å·amu^½, eV). They depend only on `pypl`, so merging them into the package is a file move plus
-changing `from pypl_ext.` imports to `from pypl.`.
+(meV, Å·amu^½, eV).
 
 ```python
-from pypl_ext.config_coord_1d_potential import config_coord_1d_potential
-from pypl_ext.config_coord_1d_vof_solver import config_coord_1d_vof_solver
+from pypl.config_coord_1d_potential import config_coord_1d_potential
+from pypl.config_coord_1d_vof_solver import config_coord_1d_vof_solver
 
 gs = config_coord_1d_potential(q_gs, e_gs, q0=0.0)        # DFT images: Q (amu^0.5 A), E (eV)
 gs.fit_parabola(slice(0, 5))                              # or fit_polynomial(6), fit_spline(), fit_morse()
@@ -73,7 +71,7 @@ energy, vof = solver.bulid_fc_lsp(eneaxis, temp=5, sigma=[8, 25], gamma=0.3)    
 
 ## Running
 
-No `pip install .` needed: `harness` puts the repository root and `testing/` on `sys.path`.
+No `pip install .` needed: `harness` puts the repository root and `validation/` on `sys.path`.
 
 ### The master suite (start here)
 
@@ -85,19 +83,19 @@ steps:
 - every CCD/wavefunction figure;
 - the full report.
 
-Everything goes to `testing/outputs/suite/<name>/`, one directory per step, exactly as each script would write
+Everything goes to `validation/outputs/suite/<name>/`, one directory per step, exactly as each script would write
 it alone. The suite's `index.md` gives the status, time and link of every step, plus a **method-comparison
 table** for choosing a method.
 
 ```bash
-python testing/run_all.py                                     # testing/run_all.toml, ~20 min
-python testing/run_all.py --config my_params.toml             # a copy of run_all.toml with your choices
-python testing/run_all.py --set physics.temp=300 --name 300K  # override any key from the command line
-python testing/run_all.py --set fd.npts=40001 --set fd.stencil=3 --name fd-3pt
-python testing/run_all.py --set 'fd.fits=["spline4", "morse"]' --only compare plots
-python testing/run_all.py --dry-run                           # list every command without running
-python testing/run_all.py --jobs 2                            # two steps in parallel (~1 GB each)
-python testing/run_all.py --config testing/run_all_nv_mgo.toml   # NV- in MgO, 3E -> 1A1 -> outputs/suite/nv_mgo/
+python validation/run_all.py                                     # validation/run_all.toml, ~20 min
+python validation/run_all.py --config my_params.toml             # a copy of run_all.toml with your choices
+python validation/run_all.py --set physics.temp=300 --name 300K  # override any key from the command line
+python validation/run_all.py --set fd.npts=40001 --set fd.stencil=3 --name fd-3pt
+python validation/run_all.py --set 'fd.fits=["spline4", "morse"]' --only compare plots
+python validation/run_all.py --dry-run                           # list every command without running
+python validation/run_all.py --jobs 2                            # two steps in parallel (~1 GB each)
+python validation/run_all.py --config validation/run_all_nv_mgo.toml   # NV- in MgO, 3E -> 1A1 -> outputs/suite/nv_mgo/
 ```
 
 **NV⁻ in MgO.** `run_all_nv_mgo.toml` sets `suite.dataset = "nv_mgo"` and the suite name `nv_mgo`, so it writes
@@ -106,8 +104,8 @@ records its dataset, and `run_all.py` refuses to replace one made from a differe
 factors (50 and 85) need 160 × 100 levels, a −0.5 … 10 eV axis and `hermite` as the reference, because PyPL's
 recurrence is unstable there (see METHODS.md §2). The tutorial step does not apply (3E → 1A1 has no PL).
 `doc/tutorials/pypl_003.ipynb` is the MgO tutorial: harmonic (PyPL, Ruhoff) vs smooth not-a-knot spline VOFs
-of 3E → 1A1 and the ISC rate Γ(Δ) from each (λ⊥ from QDET). It imports `pypl_ext` from `testing/`, so it is not in
-`doc/tutorial.rst` until the merge. The MgO CCD follows `doc/nv_mgo_west/reference/ccd_nv_mgo.py`: 3E (red) at Q = 0, 1A1 (blue) at Q = ΔQ. Image
+of 3E → 1A1 and the ISC rate Γ(Δ) from each (λ⊥ from QDET). It uses only the package API
+(`pypl.config_coord_1d_*`, `pypl.isc`, `pypl.utils.parse_west_summary`). The MgO CCD follows `doc/nv_mgo_west/reference/ccd_nv_mgo.py`: 3E (red) at Q = 0, 1A1 (blue) at Q = ΔQ. Image
 windows (q of `Image_<q>`): parabola 3E −0.10 … +0.45 and 1A1 +0.60 … +1.15; cubic (perturbative correction)
 −0.10 … +1.15; every other fit all images. Every legend, note and `index.md` names the images each fit used.
 
@@ -132,16 +130,16 @@ status is 0 when nothing errored and every like-for-like step passed.
 ### Individual scripts
 
 ```bash
-python testing/check_1d_ccd.py                  # 59 checks, ~5 s, quiet unless something fails (-v: all)
-python testing/vof_report.py                    # the full report, ~8 min (--skip-convergence / --skip-cubic for less)
-python testing/compare_vof.py                   # quick PASS/FAIL: pypl vs hermite and fd, ~30 s
-python testing/compare_vof.py --test fd --fd-fit spline        # anharmonic wells (FAIL by design)
-python testing/compare_vof.py --test fd --fd-fit spline --spline-order 5 --spline-bc clamped
-python testing/compare_vof.py --test cubic                      # cubic perturbation vs harmonic (FAIL by design)
-python testing/compare_vof.py --reference fd --fd-fit cubic --test cubic   # PT vs the exact cubic solution
-python testing/plot_ccd_wavefunctions.py --wf-method cubic --vof-method pypl cubic
-python testing/plot_ccd_wavefunctions.py --wf-method fd --vof-method pypl hermite fd
-python testing/run_1d_ccd.py                    # tutorial 002 as a script
+python validation/check_1d_ccd.py                  # 59 checks, ~5 s, quiet unless something fails (-v: all)
+python validation/vof_report.py                    # the full report, ~8 min (--skip-convergence / --skip-cubic for less)
+python validation/compare_vof.py                   # quick PASS/FAIL: pypl vs hermite and fd, ~30 s
+python validation/compare_vof.py --test fd --fd-fit spline        # anharmonic wells (FAIL by design)
+python validation/compare_vof.py --test fd --fd-fit spline --spline-order 5 --spline-bc clamped
+python validation/compare_vof.py --test cubic                      # cubic perturbation vs harmonic (FAIL by design)
+python validation/compare_vof.py --reference fd --fd-fit cubic --test cubic   # PT vs the exact cubic solution
+python validation/plot_ccd_wavefunctions.py --wf-method cubic --vof-method pypl cubic
+python validation/plot_ccd_wavefunctions.py --wf-method fd --vof-method pypl hermite fd
+python validation/run_1d_ccd.py                    # tutorial 002 as a script
 ```
 
 Every script takes `--tag NAME` (the run directory's name) and `-v` (print every method's settings,
@@ -248,8 +246,8 @@ the harmonic methods only know the parabola near each minimum.
 
 ## Formatting
 
-`black` respects `.gitignore`, which ignores `testing/`, so pass the files explicitly:
+Black at line length 120, as CI checks it (`validation/data/` is excluded in `pyproject.toml`):
 
 ```bash
-python -m black --line-length 120 testing/*.py testing/harness/*.py testing/pypl_ext/*.py
+python -m black --check --line-length 120 pypl tests validation
 ```

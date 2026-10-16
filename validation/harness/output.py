@@ -2,7 +2,7 @@
 
 Every run of a script writes into its own directory,
 
-    testing/outputs/<script>/<run>/
+    validation/outputs/<script>/<run>/
         index.md        what was run, the headline results, and every file with a one-line description
         log.txt         the full console output, including every method's settings
         settings.json   every parameter of the run
@@ -11,11 +11,11 @@ Every run of a script writes into its own directory,
 so runs never clobber each other unless they share a run name. A re-run with the same name starts from
 an empty directory (nothing stale is left behind), but the previous run is never deleted: it is moved to
 
-    testing/outputs/_archive/<same path>/<YYYYmmdd-HHMMSS of the previous run>/
+    validation/outputs/_archive/<same path>/<YYYYmmdd-HHMMSS of the previous run>/
 
 by ``archive_previous``, which run_all.py uses for whole suites too.
 
-Runs on a dataset other than the default (``--dataset nv_mgo``) go to ``testing/outputs/<dataset>/<script>/<run>/``
+Runs on a dataset other than the default (``--dataset nv_mgo``) go to ``validation/outputs/<dataset>/<script>/<run>/``
 instead, so they can never replace a diamond run; their index.md and log.txt open with the dataset.
 """
 
@@ -28,20 +28,20 @@ import sys
 
 import numpy as np
 
-from harness import REPO_ROOT, TESTING_DIR, ccd_data
+from harness import REPO_ROOT, VALIDATION_DIR, ccd_data
 
 # run_all.py points this at its suite directory so every script of a suite writes beneath it.
-OUTPUT_ROOT = os.environ.get("PYPL_TESTING_OUTPUT_ROOT") or os.path.join(TESTING_DIR, "outputs")
+OUTPUT_ROOT = os.environ.get("PYPL_VALIDATION_OUTPUT_ROOT") or os.path.join(VALIDATION_DIR, "outputs")
 
 
-ARCHIVE_ROOT = os.path.join(TESTING_DIR, "outputs", "_archive")
+ARCHIVE_ROOT = os.path.join(VALIDATION_DIR, "outputs", "_archive")
 
 
 def archive_previous(path):
     """Move an existing run directory ``path`` out of the way instead of deleting it; return where it went.
 
-    Under ``testing/outputs/`` it goes to ``testing/outputs/_archive/<path relative to outputs>/<stamp>/``;
-    elsewhere (a custom ``PYPL_TESTING_OUTPUT_ROOT``) to ``<parent>/_archive/<name>/<stamp>/``. The stamp is
+    Under ``validation/outputs/`` it goes to ``validation/outputs/_archive/<path relative to outputs>/<stamp>/``;
+    elsewhere (a custom ``PYPL_VALIDATION_OUTPUT_ROOT``) to ``<parent>/_archive/<name>/<stamp>/``. The stamp is
     the time the previous run last wrote a file, so archived runs sort chronologically. Returns None if
     ``path`` does not exist.
     """
@@ -53,7 +53,7 @@ def archive_previous(path):
         + [os.path.getmtime(os.path.join(d, f)) for d, _, files in os.walk(path) for f in files]
     )
     stamp = datetime.datetime.fromtimestamp(newest).strftime("%Y%m%d-%H%M%S")
-    outputs = os.path.join(TESTING_DIR, "outputs")
+    outputs = os.path.join(VALIDATION_DIR, "outputs")
     rel = os.path.relpath(os.path.abspath(path), outputs)
     if rel.startswith("..") or rel.split(os.sep)[0] == "_archive":
         base = os.path.join(os.path.dirname(os.path.abspath(path)), "_archive", os.path.basename(path))
@@ -71,7 +71,7 @@ def archive_previous(path):
 def output_root():
     """Where run directories go: the suite directory if set, else outputs/ (default dataset) or outputs/<dataset>/."""
 
-    if os.environ.get("PYPL_TESTING_OUTPUT_ROOT"):
+    if os.environ.get("PYPL_VALIDATION_OUTPUT_ROOT"):
         return OUTPUT_ROOT
     if ccd_data.ACTIVE == ccd_data.DEFAULT_DATASET:
         return OUTPUT_ROOT

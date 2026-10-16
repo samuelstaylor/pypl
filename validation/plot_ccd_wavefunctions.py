@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """The 1D CCD with its vibrational wavefunctions, and the Franck-Condon lineshape (VOF) on a side panel.
 
-    python testing/plot_ccd_wavefunctions.py                                  # Hermite wavefunctions, PyPL VOF
-    python testing/plot_ccd_wavefunctions.py --vof-method pypl hermite fd     # three VOFs overlaid, labelled
-    python testing/plot_ccd_wavefunctions.py --wf-method fd --vof-method fd   # finite differences throughout
-    python testing/plot_ccd_wavefunctions.py --wf-method fd --fd-fit spline --vof-method pypl fd
-    python testing/plot_ccd_wavefunctions.py --n-levels 5 --well gs --density
+    python validation/plot_ccd_wavefunctions.py                                  # Hermite wavefunctions, PyPL VOF
+    python validation/plot_ccd_wavefunctions.py --vof-method pypl hermite fd     # three VOFs overlaid, labelled
+    python validation/plot_ccd_wavefunctions.py --wf-method fd --vof-method fd   # finite differences throughout
+    python validation/plot_ccd_wavefunctions.py --wf-method fd --fd-fit spline --vof-method pypl fd
+    python validation/plot_ccd_wavefunctions.py --n-levels 5 --well gs --density
 
 Left panel: the DFT images, the fitted wells and the lowest ``--n-levels`` wavefunctions of each well,
 each on its own energy line, drawn as a dimgray fill behind the curves (the yujin_isc_fig1.py style).
@@ -24,7 +24,7 @@ there the mismatch is reported and the plot is drawn anyway.
 Right panel: ``bulid_fc_lsp`` with F_ij from each ``--vof-method`` (the first filled, with the
 discrete p_i |F_ij|^2 as ticks; the others dashed), on the CCD's total-energy axis.
 
-Output: ``testing/outputs/plot_ccd_wavefunctions/<run>/ccd_wavefunctions.png`` with log.txt and index.md,
+Output: ``validation/outputs/plot_ccd_wavefunctions/<run>/ccd_wavefunctions.png`` with log.txt and index.md,
 where <run> names the choices, e.g. ``wf-hermite_vof-pypl`` or ``wf-fd_vof-pypl-fd_fit-spline``.
 """
 
@@ -49,7 +49,7 @@ from harness.methods import (
     params_from_args,
 )
 from harness.output import OutputDir
-from pypl_ext.config_coord_1d_vof_solver import config_coord_1d_vof_solver, grid_spacing
+from pypl.config_coord_1d_vof_solver import config_coord_1d_vof_solver, grid_spacing
 
 WF_COLOR = "dimgray"
 # The reference VOF of each direction is a solid, filled line in the direction's colour. Every further method

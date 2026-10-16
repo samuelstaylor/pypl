@@ -21,7 +21,7 @@ from typing import Callable
 import numpy as np
 
 from harness import ccd_data, fits
-from pypl_ext.config_coord_1d_vof_solver import FD_STENCIL_NAMES, FD_STENCILS, KINETIC, config_coord_1d_vof_solver
+from pypl.config_coord_1d_vof_solver import FD_STENCIL_NAMES, FD_STENCILS, KINETIC, config_coord_1d_vof_solver
 
 DIRECTIONS = ("emission", "absorption")
 # Follows the active dataset: "ES -> GS" for diamond, "3E -> 1A1" for MgO.
