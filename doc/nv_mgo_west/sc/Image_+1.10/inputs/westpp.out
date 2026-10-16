@@ -1,0 +1,334 @@
+
+     --------------------------------------------------------------------------------------------
+     I/O Summary : input_west
+     --------------------------------------------------------------------------------------------
+     qe_prefix : pwscf
+     west_prefix : west
+     outdir : ./
+     --------------------------------------------------------------------------------------------
+
+     --------------------------------------------------------------------------------------------
+     I/O Summary : wstat_control
+     --------------------------------------------------------------------------------------------
+     wstat_calculation : S
+     n_pdep_eigen : 1724
+     n_pdep_times : 4
+     n_pdep_maxiter : 100
+     n_dfpt_maxiter : 250
+     n_pdep_read_from_file : 0
+     n_steps_write_restart : 1
+     trev_pdep : 0.001
+     trev_pdep_rel : 0.1
+     tr2_dfpt : 1e-16
+     l_kinetic_only : False
+     l_minimize_exx_if_active : False
+     n_exx_lowrank : 900
+     l_use_ecutrho : False
+     qlist : [1]
+     --------------------------------------------------------------------------------------------
+
+     --------------------------------------------------------------------------------------------
+     I/O Summary : westpp_control
+     --------------------------------------------------------------------------------------------
+     westpp_calculation : CM
+     westpp_range : [1, 6]
+     westpp_format : C
+     westpp_sign : True
+     westpp_n_pdep_eigen_to_use : 1
+     westpp_r0 : [0.0, 0.0, 0.0]
+     westpp_nr : 100
+     westpp_rmax : 1.0
+     westpp_epsinfty : 1.0
+     westpp_box : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+     westpp_n_liouville_to_use : 6
+     westpp_l_spin_flip : False
+     westpp_l_compute_tdm : False
+     westpp_wannier_tr_rel : 1e-06
+     westpp_l_dipole_realspace : False
+     --------------------------------------------------------------------------------------------
+
+     Program WESTPP v. 6.3.0 git rev. v6.3.0 starts on 13May2026 at  3:50:41 
+
+     This program is part of the open-source West suite
+     for massively parallel calculations of excited states in materials; please cite
+         "M. Govoni et al., J. Chem. Theory Comput. 11, 2680 (2015);
+          URL https://west-code.org",
+     in publications or presentations arising from this work.
+
+     Based on the Quantum ESPRESSO v. 7.5
+
+     I/O is Little Endian
+ 
+     --------------------------------------------------------------------------------------------
+     **MPI** Parallelization Status
+     --------------------------------------------------------------------------------------------
+                    16                   1             1             1            16
+     --------------------------------------------------------------------------------------------
+                     N         =         I      X      P      X      B      X      Z
+                     ^                   ^             ^             ^             ^
+                     |                   |             |             |             |
+                   #rnk                  |             |             |             |
+                                      #image           |             |             |
+                                                     #pool           |             |
+                                                                   #bgrp           |
+                                                                                 #R&G
+     --------------------------------------------------------------------------------------------
+     #prc =           16
+     --------------------------------------------------------------------------------------------
+
+     GPU acceleration enabled
+
+     Reading xml data from directory:
+
+     ./pwscf.save/
+     EXX fraction changed:   0.34
+     EXX Screening parameter changed:    0.0000000
+
+     IMPORTANT: XC functional enforced from input :
+     Exchange-correlation= PBE0
+                           (   6   4   8   4   0   0   0)
+     EXX-fraction              =        0.34
+     Any further DFT definition will be discarded
+     Please, verify this is what you really want
+
+ 
+     Parallelization info
+     --------------------
+     sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
+     Min         672     672    168                52632    52632    6584
+     Max         675     675    170                52638    52638    6594
+     Sum       10773   10773   2709               842161   842161  105399
+ 
+     Using Slab Decomposition
+ 
+       ** WARNING : EXX use_ace          = T
+       ** WARNING : EXX alpha            =       0.340000
+       ** WARNING : EXX erfc_scrlen      =       0.000000
+       ** WARNING : EXX gau_scrlen       =       0.000000
+       ** WARNING : EXX ecutfock         =     240.000000
+       ** WARNING : EXX exxdiv_treatment = gb
+     EXX: q-point mesh:     1    1    1
+     EXX: grid of k+q points same as grid of k-points
+       ** WARNING : EXX-exxdiv           =   -2744.456602
+ 
+     --------------------------------------------------------------------------------------------
+     System Overview
+     --------------------------------------------------------------------------------------------
+     gamma_only           =              T
+     ecutwfc [Ry]         =      60.000000
+     ecutrho [Ry]         =     240.000000
+     omega [au^3]         =   1.340301E+04
+     nbnd                 =            900
+     nkstot               =              2
+     nspin                =              2
+     nelec                =    1724.000000
+     nelup                =     863.000000
+     neldw                =     861.000000
+     npol                 =              1
+     lsda                 =              T
+     noncolin             =              F
+     lspinorb             =              F
+     --------------------------------------------------------------------------------------------
+
+     3DFFT grid
+        s : ( 120, 120, 120)
+        p : ( 120, 120, 120)
+
+     Direct Lattice Cell [a.u.]
+        a1 = (    23.7538574     0.0000000     0.0000000)
+        a2 = (     0.0000000    23.7538574     0.0000000)
+        a3 = (     0.0000000     0.0000000    23.7538574)
+
+     Reciprocal Lattice Cell [a.u.]
+        b1 = (     0.2645122     0.0000000     0.0000000)
+        b2 = (     0.0000000     0.2645122     0.0000000)
+        b3 = (     0.0000000     0.0000000     0.2645122)
+ 
+
+     Brillouin Zone sampling [cryst. coord.]
+ 
+        k(000001) = (     0.0000000     0.0000000     0.0000000)
+ 
+     --------------------------------------------------------------------------------------------
+     Parallelization for nvec
+     --------------------------------------------------------------------------------------------
+     nglob                =              6
+     nlevel               =              1
+     Min nglob/nlevel     =              6
+     Max nglob/nlevel     =              6
+     --------------------------------------------------------------------------------------------
+ 
+     --------------------------------------------------------------------------------------------
+     SAVE read in 32.2s
+     In location : ./west.wbse.save
+     Eigen. found :            6
+     --------------------------------------------------------------------------------------------
+ 
+     --------------------------------------------------------------------------------------------
+     BSE/TDDFT Excited State De(C)omposition
+     --------------------------------------------------------------------------------------------
+     in progress... |#                   | 005% :               00.1s (E)               02.0s (X)
+     in progress... |###                 | 015% :               00.1s (E)               00.8s (X)
+     in progress... |#####               | 025% :               00.1s (E)               00.6s (X)
+     in progress... |######              | 030% :               00.1s (E)               00.6s (X)
+     in progress... |########            | 040% :               00.2s (E)               00.5s (X)
+     in progress... |##########          | 050% :               00.2s (E)               00.4s (X)
+     in progress... |###########         | 055% :               00.2s (E)               00.4s (X)
+     in progress... |#############       | 065% :               00.2s (E)               00.4s (X)
+     in progress... |###############     | 075% :               00.3s (E)               00.4s (X)
+     in progress... |################    | 080% :               00.3s (E)               00.4s (X)
+     in progress... |##################  | 090% :               00.3s (E)               00.4s (X)
+     in progress... |####################| 100% :               00.4s (E)               00.4s (X)
+     --------------------------------------------------------------------------------------------
+
+     *-------------* THE PRINCIPLE PROJECTED COMPONENTS *-------------*
+
+     #     Exciton :          1 |   Excitation energy :       0.346366
+     #     Transition_from      |   Transition_to       |    Coefficient
+           2         540        |   2         862       |     0.163261
+           2         665        |   2         862       |    -0.137260
+           2         737        |   2         862       |     0.101679
+           2         818        |   2         862       |     0.136608
+           2         841        |   2         862       |    -0.164206
+           2         856        |   2         862       |    -0.281247
+           2         857        |   2         862       |     0.306187
+           2         858        |   2         862       |    -0.213106
+           2         861        |   2         862       |     0.780711
+
+     #     Exciton :          2 |   Excitation energy :       0.348988
+     #     Transition_from      |   Transition_to       |    Coefficient
+           2         540        |   2         863       |    -0.161569
+           2         665        |   2         863       |     0.136488
+           2         737        |   2         863       |    -0.101213
+           2         818        |   2         863       |    -0.136185
+           2         841        |   2         863       |     0.164165
+           2         856        |   2         863       |     0.275784
+           2         857        |   2         863       |    -0.259795
+           2         858        |   2         863       |     0.236920
+           2         861        |   2         863       |    -0.795677
+
+     #     Exciton :          3 |   Excitation energy :       0.384094
+     #     Transition_from      |   Transition_to       |    Coefficient
+           2         811        |   2         862       |    -0.123536
+           2         814        |   2         862       |    -0.107448
+           2         833        |   2         862       |     0.130360
+           2         857        |   2         862       |    -0.347716
+           2         858        |   2         862       |    -0.305127
+           2         860        |   2         862       |    -0.826331
+           2         861        |   2         862       |     0.116256
+
+     #     Exciton :          4 |   Excitation energy :       0.387015
+     #     Transition_from      |   Transition_to       |    Coefficient
+           2         811        |   2         863       |    -0.117033
+           2         814        |   2         863       |    -0.111864
+           2         833        |   2         863       |     0.128900
+           2         857        |   2         863       |    -0.385761
+           2         858        |   2         863       |    -0.194735
+           2         860        |   2         863       |    -0.842540
+
+     #     Exciton :          5 |   Excitation energy :       0.402203
+     #     Transition_from      |   Transition_to       |    Coefficient
+           2         834        |   2         862       |     0.119778
+           2         846        |   2         862       |     0.110255
+           2         852        |   2         862       |    -0.254971
+           2         853        |   2         862       |     0.133207
+           2         855        |   2         862       |     0.476356
+           2         859        |   2         862       |     0.742517
+
+     #     Exciton :          6 |   Excitation energy :       0.404406
+     #     Transition_from      |   Transition_to       |    Coefficient
+           2         816        |   2         862       |     0.130806
+           2         817        |   2         863       |     0.122178
+           2         834        |   2         863       |     0.105257
+           2         835        |   2         862       |     0.100118
+           2         847        |   2         862       |     0.162550
+           2         848        |   2         863       |     0.128259
+           2         851        |   2         862       |    -0.171612
+           2         852        |   2         863       |    -0.171853
+           2         853        |   2         863       |     0.139946
+           2         854        |   2         862       |    -0.303404
+           2         855        |   2         863       |     0.320427
+           2         857        |   2         862       |    -0.359801
+           2         858        |   2         862       |    -0.251270
+           2         859        |   2         863       |     0.517767
+           2         860        |   2         862       |     0.214876
+
+      Ground State n_alpha :   863.000000     n_beta  861.000000
+
+      Ground State <S^2> :     2.012883
+ 
+     --------------------------------------------------------------------------------------------
+     Parallelization for nvec
+     --------------------------------------------------------------------------------------------
+     nglob                =              6
+     nlevel               =              1
+     Min nglob/nlevel     =              6
+     Max nglob/nlevel     =              6
+     --------------------------------------------------------------------------------------------
+ 
+     --------------------------------------------------------------------------------------------
+     SAVE read in 31.1s
+     In location : ./west.wbse.save
+     Eigen. found :            6
+     --------------------------------------------------------------------------------------------
+ 
+     --------------------------------------------------------------------------------------------
+     BSE/TDDFT Excited State Spin (M)ultiplicity
+     --------------------------------------------------------------------------------------------
+     in progress... |###                 | 015% :               03.1s (E)               21.0s (X)
+     in progress... |######              | 030% :               06.3s (E)               21.0s (X)
+     in progress... |##########          | 050% :               09.4s (E)               18.8s (X)
+     in progress... |#############       | 065% :               12.5s (E)               19.3s (X)
+     in progress... |################    | 080% :               15.7s (E)               19.6s (X)
+     in progress... |####################| 100% :               18.8s (E)               18.8s (X)
+     --------------------------------------------------------------------------------------------
+
+      # Exciton : |            1 |   spin flip : |   F
+      Ex Energy : |     0.346366 | Delta <S^2> : |     0.023428
+
+      # Exciton : |            2 |   spin flip : |   F
+      Ex Energy : |     0.348988 | Delta <S^2> : |     0.024759
+
+      # Exciton : |            3 |   spin flip : |   F
+      Ex Energy : |     0.384094 | Delta <S^2> : |     0.038082
+
+      # Exciton : |            4 |   spin flip : |   F
+      Ex Energy : |     0.387015 | Delta <S^2> : |     0.038469
+
+      # Exciton : |            5 |   spin flip : |   F
+      Ex Energy : |     0.402203 | Delta <S^2> : |     0.035375
+
+      # Exciton : |            6 |   spin flip : |   F
+      Ex Energy : |     0.404406 | Delta <S^2> : |     0.044791
+ 
+     WESTPP       :     44.41s CPU   1m35.88s WALL
+
+     west_readin  :      0.63s CPU      1.26s WALL (       1 calls)
+     fetch_input  :      0.01s CPU      0.03s WALL (       2 calls)
+     fft          :      0.00s CPU      0.09s WALL (      14 calls)
+                                        0.09s GPU  (      14 calls)
+     a2a_fw       :      0.00s CPU      0.03s WALL (      10 calls)
+     init_vloc    :      0.01s CPU      0.01s WALL (       2 calls)
+     init_us_1    :      0.00s CPU      0.00s WALL (       2 calls)
+     v_of_rho     :      0.03s CPU      0.04s WALL (       1 calls)
+     v_xc         :      0.03s CPU      0.03s WALL (       1 calls)
+     a2a_bw       :      0.00s CPU      0.00s WALL (       4 calls)
+     v_h          :      0.00s CPU      0.00s WALL (       1 calls)
+     do_setup     :      1.92s CPU      6.37s WALL (       1 calls)
+     init_pw_ar   :      1.92s CPU      6.35s WALL (       1 calls)
+     hinit0       :      0.03s CPU      0.03s WALL (       1 calls)
+     davcio       :      0.02s CPU      0.43s WALL (      16 calls)
+     exx_grid     :      0.00s CPU      0.00s WALL (       1 calls)
+     exx_div      :      0.00s CPU      0.00s WALL (       1 calls)
+     plep_db      :     19.41s CPU     63.38s WALL (       2 calls)
+     plep_read    :     19.32s CPU     63.24s WALL (      12 calls)
+     westpp       :     19.32s CPU     19.75s WALL (       2 calls)
+ 
+     WESTPP       :     45.15s CPU   1m37.01s WALL
+
+ 
+   This run was terminated on:   3:52:18  13May2026            
+
+=------------------------------------------------------------------------------=
+   JOB DONE.
+=------------------------------------------------------------------------------=

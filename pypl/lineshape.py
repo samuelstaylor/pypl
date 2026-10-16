@@ -27,7 +27,7 @@ class lineshape:
 
         .. math::
 
-            \sigma(\omega_k) = \sigma_0 - \frac{\sigma_0 - \sigma_1}{\max(\omega_k) - \min(\omega_k)} \, (\omega_k - \min(\omega_k))
+            $\sigma(\omega_k) = \sigma_0 - \frac{\sigma_0 - \sigma_1}{\max(\omega_k) - \min(\omega_k)} \, (\omega_k - \min(\omega_k))$
 
         Notes
         -----
@@ -47,7 +47,7 @@ class lineshape:
 
         .. math::
 
-            A(\hbar\omega, T) = \int dt \, G(t, T) \, e^{i \omega t},
+            $A(\hbar\omega, T) = \int dt \, G(t, T) \, e^{i \omega t},$
 
         where the generating function :math:`G(t, T)` is constructed from
         Huang-Rhys factors, phonon occupations, and broadening terms.
@@ -136,20 +136,22 @@ class lineshape:
 
         .. math::
 
-            G(t) = \exp \Big[ S(t) - S(0) + 2C(t) - 2C(0) \Big],
+            $G(t) = \exp \Big[ S(t) - S(0) + 2C(t) - 2C(0) \Big],$
 
         where
 
         .. math::
 
-            S(t) &= \sum_k S_k \exp\!\left(-\frac{\sigma_k^2t^2}{2\hbar^2}\right) e^{i \omega_k t}, \\\\
-            C(t) &= \sum_k n_k S_k \exp\!\left(-\frac{\sigma_k^2t^2}{2\hbar^2}\right) \cos(\omega_k t).
+            $S(t) &= \sum_k S_k \exp\!\left(-\frac{\sigma_k^2t^2}{2\hbar^2}\right) e^{i \omega_k t},$
+            
+            $C(t) &= \sum_k n_k S_k \exp\!\left(-\frac{\sigma_k^2t^2}{2\hbar^2}\right) \cos(\omega_k t).$
+
 
         The frequency-domain lineshape is then obtained as
 
         .. math::
 
-            A(\hbar\omega) = \frac{1}{2\pi\hbar} \!\int dt \exp \left(i \omega t - \frac{|t| \gamma_\mathrm{ZPL}}{\hbar} \right) G(t).
+            $A(\hbar\omega) = \frac{1}{2\pi\hbar} \!\int dt \exp \left(i \omega t - \frac{|t| \gamma_\mathrm{ZPL}}{\hbar} \right) G(t).$
 
         Parameters
         ----------

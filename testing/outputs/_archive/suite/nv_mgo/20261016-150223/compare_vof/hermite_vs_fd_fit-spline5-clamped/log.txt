@@ -1,0 +1,67 @@
+# VOF method comparison: hermite_vs_fd_fit-spline5-clamped [NV- in MgO], started 2026-10-16T15:00:51
+# command: python.exe C:\Users\sammy\Research\Galli\programs\pypl\testing\compare_vof.py --reference hermite --test fd --dataset nv_mgo --temp 5.0 --sigma 20.0 --gamma 0.3 --no-zpl --order-es 160 --order-gs 100 --ene-range -500.0 10000.0 --resol 2101 --npts 100001 --fd-npts 40001 --fd-stencil 5 --fd-margin 2.0 --fd-fit spline5-clamped --tol-fc 1e-07 --tol-vof 1e-08
+# dataset: nv_mgo (NV- in MgO), 3E -> 1A1 (WEST TDDFT-DDH)
+# data: doc/nv_mgo_west
+# roles: 'ES' = 3E (upper state, minimum at Q = 0), 'GS' = 1A1 (lower state, minimum at Q = delta_q); emission = ES -> GS = 3E -> 1A1
+# Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
+# E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
+# every fit except the parabola uses ALL images of each PES: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 (not a spin-flip run, so not 1A1)
+# parabolas only: the five images nearest each minimum, 3E q = -0.10..+0.10, 1A1 q = +0.90..+1.10
+  wrote testing\outputs\suite\nv_mgo\compare_vof\hermite_vs_fd_fit-spline5-clamped\settings.json
+Comparing VOFs: Hermite (quadrature) (reference) vs Finite difference [quintic spline (clamped)]
+  bulid_fc_lsp: T = 5 K, sigma = [20.0, 20.0] meV, ZPL Gaussian (no Lorentzian ZPL)
+  lineshape axis: -500..10000 meV from the ZPL, 2101 points, step 5 meV
+  basis: 160 ES x 100 GS levels (emission ni x nf = 160 x 100, absorption 100 x 160)
+
+====================================================================================================
+  [3E -> 1A1, Hermite (quadrature)] method: compute_franck_condon_integrals_hermite, <chi_i(Q + dQ) | chi_j(Q)> of harmonic eigenfunctions
+  [3E -> 1A1, Hermite (quadrature)] grid: 100001 points, Q = -13.4571..13.4571 amu^0.5 A, h = 2.691e-04 amu^0.5 A; composite Simpson
+  [3E -> 1A1, Hermite (quadrature)] omega_i = hbar sqrt(2a / amu) = 74.06847 meV, 3E well: parabola a (Q - 0.000000)^2 + c, a = 0.656212 eV/(amu A^2), c = 3.139404 eV; fitted to samples 4-8 of 33 (Q = -0.310..0.310); rms residual 3.26e-03 eV
+  [3E -> 1A1, Hermite (quadrature)] omega_f = hbar sqrt(2a / amu) = 43.77466 meV, 1A1 well: parabola a (Q - 3.097879)^2 + c, a = 0.229204 eV/(amu A^2), c = 2.582917 eV; fitted to samples 24-28 of 30 (Q = 2.788..3.408); rms residual 2.21e-03 eV
+  [3E -> 1A1, Hermite (quadrature)] F_ij built in 1.32 s
+  [3E -> 1A1, Hermite (quadrature)] Integral check: 0.9999999999999996
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] fit: spline5-clamped (quintic spline (clamped))
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] potential (initial, 3E): quintic spline (degree 5, clamped ends, 33 knots), harmonic tails a = 0.656212 eV/(amu A^2), C2 junction (slope jumps 5.33e-15 / 1.78e-15 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 6.37e-16 eV
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] potential (final, 1A1): quintic spline (degree 5, clamped ends, 30 knots), harmonic tails a = 0.229204 eV/(amu A^2), C2 junction (slope jumps 7.11e-15 / 3.33e-16 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.44e-16 eV
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] grid: 40001 points, frame x = Q - Q_f, x = -9.3409..6.3592 (Q = -6.2430..9.4571 amu^0.5 A), h = 3.9250e-04 amu^0.5 A
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.2430) and v = 99 (4.3592)
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] checks: |psi| at walls / peak = 6.74e-16, orthonormality = 3.00e-15, ladder |E_v - E_0 - v hbar w| = 4.64e+03 (i) / 5.14e+02 (f) meV
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] F_ij built in 19.08 s
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] Integral check: 0.9999999999999942
+  wrote testing\outputs\suite\nv_mgo\compare_vof\hermite_vs_fd_fit-spline5-clamped\data\vof_emission.csv
+
+====================================================================================================
+  [1A1 -> 3E, Hermite (quadrature)] method: compute_franck_condon_integrals_hermite, <chi_i(Q + dQ) | chi_j(Q)> of harmonic eigenfunctions
+  [1A1 -> 3E, Hermite (quadrature)] grid: 100001 points, Q = -13.4571..13.4571 amu^0.5 A, h = 2.691e-04 amu^0.5 A; composite Simpson
+  [1A1 -> 3E, Hermite (quadrature)] omega_i = hbar sqrt(2a / amu) = 43.77466 meV, 1A1 well: parabola a (Q - 3.097879)^2 + c, a = 0.229204 eV/(amu A^2), c = 2.582917 eV; fitted to samples 24-28 of 30 (Q = 2.788..3.408); rms residual 2.21e-03 eV
+  [1A1 -> 3E, Hermite (quadrature)] omega_f = hbar sqrt(2a / amu) = 74.06847 meV, 3E well: parabola a (Q - 0.000000)^2 + c, a = 0.656212 eV/(amu A^2), c = 3.139404 eV; fitted to samples 4-8 of 33 (Q = -0.310..0.310); rms residual 3.26e-03 eV
+  [1A1 -> 3E, Hermite (quadrature)] F_ij built in 1.14 s
+  [1A1 -> 3E, Hermite (quadrature)] Integral check: 0.9999143794734036
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] fit: spline5-clamped (quintic spline (clamped))
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] potential (initial, 1A1): quintic spline (degree 5, clamped ends, 30 knots), harmonic tails a = 0.229204 eV/(amu A^2), C2 junction (slope jumps 7.11e-15 / 3.33e-16 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.44e-16 eV
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] potential (final, 3E): quintic spline (degree 5, clamped ends, 33 knots), harmonic tails a = 0.656212 eV/(amu A^2), C2 junction (slope jumps 5.33e-15 / 1.78e-15 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 6.37e-16 eV
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] grid: 40001 points, frame x = -(Q - Q_f), x = -9.4571..6.2430 (Q = -6.2430..9.4571 amu^0.5 A), h = 3.9250e-04 amu^0.5 A
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (4.3592) and v = 159 (4.2430)
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] checks: |psi| at walls / peak = 6.01e-16, orthonormality = 3.11e-15, ladder |E_v - E_0 - v hbar w| = 5.14e+02 (i) / 4.64e+03 (f) meV
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] F_ij built in 15.39 s
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] Integral check: 0.9999999999999947
+  wrote testing\outputs\suite\nv_mgo\compare_vof\hermite_vs_fd_fit-spline5-clamped\data\vof_absorption.csv
+  wrote testing\outputs\suite\nv_mgo\compare_vof\hermite_vs_fd_fit-spline5-clamped\figures\vof_comparison.png
+  wrote testing\outputs\suite\nv_mgo\compare_vof\hermite_vs_fd_fit-spline5-clamped\figures\fc_error_maps.png
+  wrote testing\outputs\suite\nv_mgo\compare_vof\hermite_vs_fd_fit-spline5-clamped\data\summary.csv
+
+direction   test                                          reference             max dF_ij  at (i, j)  max dF_ij (i,j<30)  max dVOF / peak  rms dVOF / peak  F_ij time (s)  verdict
+----------  --------------------------------------------  --------------------  ---------  ---------  ------------------  ---------------  ---------------  -------------  -------
+emission    Finite difference [quintic spline (clamped)]  Hermite (quadrature)  8.79e-01   (0, 18)    8.79e-01            9.16e+00         6.02e-01         19.08          FAIL   
+absorption  Finite difference [quintic spline (clamped)]  Hermite (quadrature)  8.79e-01   (18, 0)    8.79e-01            1.02e+01         9.09e-01         15.39          FAIL   
+
+FAIL: the lineshapes differ.
+NOTE: Finite difference [quintic spline (clamped)] solve(s) an anharmonic problem, not the harmonic wells pypl / hermite use; differences from them are the anharmonicity, not an error. For a like-for-like test use the default methods and --fd-fit parabola.
+
+Outputs in testing\outputs\suite\nv_mgo\compare_vof\hermite_vs_fd_fit-spline5-clamped (see index.md)

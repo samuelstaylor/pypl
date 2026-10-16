@@ -1,0 +1,30 @@
+$ python testing/plot_ccd_wavefunctions.py --wf-method cubic --vof-method pypl cubic --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --npts 100001 --fd-npts 20001 --fd-stencil 5 --fd-margin 2.0 --fd-fit parabola --cubic-points all --n-levels 3
+
+  GS well: cubic a (Q - 0.000000)^2 + b (Q - 0.000000)^3 + c, a = 0.417627 eV/(amu A^2) (fixed), b = +0.009164 eV/(amu^1.5 A^3), c = 0.000052 eV, turnover at Q = -30.38; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.60e-04 eV; unbounded beyond the turnover at Q = -30.38 (perturbative or in-box use only); xi = +1.032e-03
+  ES well: cubic a (Q - 0.695732)^2 + b (Q - 0.695732)^3 + c, a = 0.494721 eV/(amu A^2) (fixed), b = -0.012655 eV/(amu^1.5 A^3), c = 1.705818 eV, turnover at Q = 26.76; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 1.63e-04 eV; unbounded beyond the turnover at Q = 26.76 (perturbative or in-box use only); xi = -1.153e-03
+
+Wavefunction check: <chi_i | chi_j> of the 3 drawn levels vs the solver's F_ij
+  from the drawn first-order corrected functions (cubic (a fixed, all images)), vs the cubic method:
+     0.165170666  -0.318335174   0.429911059
+     0.304898496  -0.426739474   0.353454440
+     0.403833896  -0.356838428   0.054800196
+  solver fc_ints:
+     0.165170666  -0.318335174   0.429911059
+     0.304898496  -0.426739474   0.353454440
+     0.403833896  -0.356838428   0.054800196
+  MATCH (max deviation 2.22e-16, tolerance 1e-10)
+
+Vibrational levels (eV)
+  v = 0   GS  0.029531   ES  1.738033
+  v = 1   GS  0.088620   ES  1.802345
+  v = 2   GS  0.147709   ES  1.866657
+
+Franck-Condon lineshapes via bulid_fc_lsp
+  emission  PyPL (Ruhoff)                        closure 1.0000000000  sideband peak 0.1515 eV  centroid 200.2 meV
+  emission  Hermite + cubic PT [cubic (a fixed, all images)] closure 1.0004566621  sideband peak 0.1515 eV  centroid 204.8 meV
+    Hermite + cubic PT [cubic (a fixed, all images)] vs PyPL (Ruhoff): max |difference| / peak = 3.41e-02
+  absorption PyPL (Ruhoff)                        closure 1.0000000000  sideband peak 1.8700 eV  centroid 237.2 meV
+  absorption Hermite + cubic PT [cubic (a fixed, all images)] closure 1.0005591082  sideband peak 1.9390 eV  centroid 243.4 meV
+    Hermite + cubic PT [cubic (a fixed, all images)] vs PyPL (Ruhoff): max |difference| / peak = 3.41e-02
+
+Outputs in testing\outputs\suite\default\plot_ccd_wavefunctions\wf-cubic_vof-pypl-cubic_cubicfit-cubic (see index.md)

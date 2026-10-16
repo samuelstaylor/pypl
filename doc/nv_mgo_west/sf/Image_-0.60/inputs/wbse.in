@@ -1,0 +1,25 @@
+input_west:
+ qe_prefix: pwscf
+ west_prefix: west
+ outdir: ./
+
+wbse_init_control:
+ wbse_init_calculation: S
+ solver: TDDFT
+ localization: W
+ overlap_thr: 0.001
+
+wbse_control:
+ wbse_calculation: d  # D = Diagonalize Liouville super-operator w/ Davidson. Set to 'd' to restart interrupted run 
+ n_liouville_eigen: 10
+ n_liouville_times: 4
+ n_liouville_maxiter: 1000
+ trev_liouville: 0.000001
+ trev_liouville_rel: 0.0001
+ l_preconditioning: True
+ l_pre_shift: False
+ n_steps_write_restart: 50
+ n_exx_lowrank: 1294
+ l_spin_flip: True
+ l_spin_flip_kernel: True
+ l_spin_flip_alda0: False

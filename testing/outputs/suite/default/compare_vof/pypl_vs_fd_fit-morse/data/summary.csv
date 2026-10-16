@@ -1,0 +1,3 @@
+direction,reference,test,fc_max,fc_at_text,fc_rms,fc_low,vof_max,vof_rms,zpl_weight_ref,zpl_weight,centroid_shift_mev,closure,integral,seconds,verdict
+emission,PyPL (Ruhoff),Finite difference [Morse],0.4007150002,"(39, 59)",0.1075675814,0.1869063071,0.0194607736,0.00083655665,0.0282459247,0.02769623689,2.402495309,1,1.009900795,2.9005115,FAIL
+absorption,PyPL (Ruhoff),Finite difference [Morse],0.4007150002,"(59, 39)",0.1075675814,0.186906307,0.0194608054,0.0009607959308,0.0282459247,0.02769623689,3.98419018,1,1.009898009,3.3782258,FAIL

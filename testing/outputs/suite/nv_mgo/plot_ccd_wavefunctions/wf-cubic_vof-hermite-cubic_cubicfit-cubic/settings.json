@@ -1,0 +1,64 @@
+{
+  "wf_method": "cubic",
+  "n_levels": 3,
+  "density": false,
+  "wf_scale": 0.375,
+  "alpha": 0.3,
+  "well": "both",
+  "no_vof": false,
+  "vof_method": [
+    "hermite",
+    "cubic"
+  ],
+  "dataset": "nv_mgo",
+  "temp": 5.0,
+  "sigma": [
+    20.0
+  ],
+  "gamma": 0.3,
+  "no_zpl": true,
+  "order_es": 160,
+  "order_gs": 100,
+  "ene_range": [
+    -500.0,
+    10000.0
+  ],
+  "resol": 2101,
+  "npts": 100001,
+  "fd_npts": 40001,
+  "fd_stencil": 5,
+  "fd_margin": 2.0,
+  "fd_fit": "parabola",
+  "spline_order": null,
+  "spline_bc": null,
+  "spline_smoothing": null,
+  "cubic_points": "all",
+  "cubic_free_a": false,
+  "cubic_normalize": false,
+  "tag": "",
+  "verbose": false,
+  "show": false,
+  "params": {
+    "temp": 5.0,
+    "sigma": [
+      20.0,
+      20.0
+    ],
+    "gamma": 0.3,
+    "zpl_lorentzian": false,
+    "order_es": 160,
+    "order_gs": 100,
+    "ene_range": [
+      -500.0,
+      10000.0
+    ],
+    "resol": 2101,
+    "npts": 100001,
+    "fd_npts": 40001,
+    "fd_stencil": 5,
+    "fd_margin": 2.0,
+    "fd_fit": "parabola",
+    "cubic_fit": "cubic",
+    "cubic_normalize": false
+  }
+}

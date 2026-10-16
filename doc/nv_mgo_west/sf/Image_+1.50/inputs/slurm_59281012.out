@@ -1,0 +1,113 @@
+================================================================================
+SLURM JOB INFORMATION
+================================================================================
+Job Name            : ccd-sf-im+1.50
+Job ID              : 59281012
+Cluster             : perlmutter
+Account             : m4382_g
+Partition           : gpu_ss11
+QOS                 : gpu_regular
+
+Resources Requested
+-------------------
+Nodes               : 4
+Node List           : nid[002940,002944,003277,003353]
+Tasks per Node      : 4
+Total Tasks (calc)  : 16
+CPUs per Task       : 32
+GPUs per Node       : 4
+Total GPUs (calc)   : 16
+Memory per Node     : N/A
+Memory per CPU      : N/A
+
+Timing
+------
+Submit Directory    : /global/cfs/cdirs/m4382/sstaylor/projects/nv_mgo/tddft-ddh/phonons/ccd-extend-neg2-to-2-9pt/Image_+1.50
+Submit Host         : login29
+Working Directory   : /global/cfs/cdirs/m4382/sstaylor/projects/nv_mgo/tddft-ddh/phonons/ccd-extend-neg2-to-2-9pt/Image_+1.50
+Start Time          : 2026-10-04 22:04:11 PDT
+Requested Walltime  : 10:00:00
+
+Environment
+-----------
+User                : sstaylor
+Hostname            : nid002940
+SLURM Version       : slurm 25.11.8
+================================================================================
+
+
+Queue Information
+-----------------
+59281012     2026-10-03T12:54:20 2026-10-03T12:54:20 2026-10-04T22:04:03    RUNNING 
+59281012.ba+ 2026-10-04T22:04:03 2026-10-04T22:04:03 2026-10-04T22:04:03    RUNNING 
+59281012.ex+ 2026-10-04T22:04:03 2026-10-04T22:04:03 2026-10-04T22:04:03    RUNNING 
+========================================
+Job ID: 59281012
+Start Time: Sun Oct  4 10:04:13 PM PDT 2026
+Submit Dir: /global/cfs/cdirs/m4382/sstaylor/projects/nv_mgo/tddft-ddh/phonons/ccd-extend-neg2-to-2-9pt/Image_+1.50
+========================================
+----------------------------------------
+Running:
+srun /global/homes/s/sstaylor/software/QEdir_elpa/bin/pw.x -nk 2 -i pw.in > pw.out
+Start: Sun Oct  4 10:04:13 PM PDT 2026
+End: Sun Oct  4 10:22:07 PM PDT 2026
+Elapsed: 00:17:54
+----------------------------------------
+Running:
+cp -r pwscf.save pwscf_copy.save
+Start: Sun Oct  4 10:22:07 PM PDT 2026
+End: Sun Oct  4 10:22:23 PM PDT 2026
+Elapsed: 00:00:16
+----------------------------------------
+Running:
+srun /global/homes/s/sstaylor/software/QEdir_elpa/bin/pw.x -nk 2 -i nscf.in > nscf.out
+Start: Sun Oct  4 10:22:23 PM PDT 2026
+End: Sun Oct  4 10:26:08 PM PDT 2026
+Elapsed: 00:03:45
+----------------------------------------
+Running:
+cp pwscf.save/ace* pwscf_copy.save/
+Start: Sun Oct  4 10:26:08 PM PDT 2026
+End: Sun Oct  4 10:26:18 PM PDT 2026
+Elapsed: 00:00:10
+----------------------------------------
+Running:
+rm -rf pwscf.save pwscf.wfc*
+Start: Sun Oct  4 10:26:18 PM PDT 2026
+End: Sun Oct  4 10:26:18 PM PDT 2026
+Elapsed: 00:00:00
+----------------------------------------
+Running:
+mv pwscf_copy.save pwscf.save
+Start: Sun Oct  4 10:26:18 PM PDT 2026
+End: Sun Oct  4 10:26:18 PM PDT 2026
+Elapsed: 00:00:00
+----------------------------------------
+Running:
+srun /global/homes/s/sstaylor/software/QEdir_elpa/bin/wbse_init.x -nb 16 -i wbse_init.in > wbse_init.out
+Start: Sun Oct  4 10:26:18 PM PDT 2026
+End: Sun Oct  4 11:01:47 PM PDT 2026
+Elapsed: 00:35:29
+----------------------------------------
+Running:
+srun /global/homes/s/sstaylor/software/QEdir_elpa/bin/wbse.x -nb 16 -i wbse.in > wbse.out
+Start: Sun Oct  4 11:01:47 PM PDT 2026
+End: Mon Oct  5 06:02:17 AM PDT 2026
+Elapsed: 07:00:30
+========================================
+All steps completed successfully
+End Time: Mon Oct  5 06:02:17 AM PDT 2026
+========================================
+
+================================================================================
+FINAL JOB SUMMARY
+================================================================================
+JobID|JobName|Partition|QOS|Account|AllocNodes|NTasks|State|ExitCode|Elapsed|TotalCPU|CPUTime|MaxRSS|NodeList
+59281012|ccd-sf-im+1.50|gpu_ss11|gpu_regular|m4382_g|4||RUNNING|0:0|07:58:24|4-03:05:41|170-02:20:48||nid[002940,002944,003277,003353]
+59281012.batch|batch|||m4382_g|1|1|RUNNING|0:0|07:58:24|00:00:00|42-12:35:12||nid002940
+59281012.extern|extern|||m4382_g|4|4|RUNNING|0:0|07:58:24|00:00:00|170-02:20:48||nid[002940,002944,003277,003353]
+59281012.0|pw.x|||m4382_g|4|16|COMPLETED|0:0|00:17:53|04:44:33|6-08:36:16|1847812K|nid[002940,002944,003277,003353]
+59281012.1|pw.x|||m4382_g|4|16|COMPLETED|0:0|00:03:45|58:39.765|1-08:00:00|2011408K|nid[002940,002944,003277,003353]
+59281012.2|wbse_init.x|||m4382_g|4|16|COMPLETED|0:0|00:35:29|02:51:12|12-14:47:28|3274636K|nid[002940,002944,003277,003353]
+59281012.3|wbse.x|||m4382_g|4|16|COMPLETED|0:0|07:00:30|3-18:31:16|149-12:16:00|20901920K|nid[002940,002944,003277,003353]
+================================================================================

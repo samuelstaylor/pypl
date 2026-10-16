@@ -1,0 +1,66 @@
+# 1D CCD with wavefunctions: wf-fd_vof-pypl-fd_fit-poly6, started 2026-10-15T16:07:00
+# command: python.exe plot_ccd_wavefunctions.py --wf-method fd --vof-method pypl fd --fd-fit poly6
+  wrote testing\outputs\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-poly6\settings.json
+Finite differences on fit poly6 (polynomial deg. 6):
+  GS well: degree-6 polynomial in (Q - 0.000000), coefficients (highest first) [0.1337, -0.2934, 0.2023, -0.0296, 0.4127, 0.001382, 5.824e-06]; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 2.37e-05 eV
+  ES well: degree-6 polynomial in (Q - 0.695732), coefficients (highest first) [0.2858, 0.5198, 0.2939, 0.03818, 0.4955, 0.0007426, 1.706]; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 6.13e-06 eV
+
+Wavefunction check: <chi_i | chi_j> of the 3 drawn levels vs the solver's F_ij
+  from the drawn finite-difference eigenstates (polynomial deg. 6):
+     0.173815426  -0.344325466   0.469851470
+     0.330871277  -0.456989688   0.338363473
+     0.444582512  -0.345953111  -0.049165431
+  solver fc_ints:
+     0.168065239  -0.324014740   0.436679418
+     0.310578933  -0.430853756   0.349153528
+     0.410866469  -0.353282444   0.038843891
+  MISMATCH (max deviation 8.80e-02, tolerance 1e-08)
+  fit poly6 is anharmonic: a mismatch with the harmonic solver is expected; plotting anyway
+
+Vibrational levels (eV)
+  v = 0   GS  0.030138   ES  1.738934
+  v = 1   GS  0.091724   ES  1.806684
+  v = 2   GS  0.155709   ES  1.877248
+  [ES -> GS, PyPL (Ruhoff)] method: inherited config_coord_1d_solver.compute_franck_condon_integrals, Ruhoff recurrences (Chem. Phys. 186, 355 (1994)), float64; no grid
+  [ES -> GS, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 64.31191 meV, ES well: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
+  [ES -> GS, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 59.08890 meV, GS well: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
+  [ES -> GS, PyPL (Ruhoff)] F_ij built in 0.01 s
+  [ES -> GS, PyPL (Ruhoff)] Integral check: 1.0100972996226194
+  [ES -> GS, Finite difference [polynomial deg. 6]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [ES -> GS, Finite difference [polynomial deg. 6]] fit: poly6 (polynomial deg. 6)
+  [ES -> GS, Finite difference [polynomial deg. 6]] potential (initial, ES): degree-6 polynomial in (Q - 0.695732), coefficients (highest first) [0.2858, 0.5198, 0.2939, 0.03818, 0.4955, 0.0007426, 1.706]; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 6.13e-06 eV
+  [ES -> GS, Finite difference [polynomial deg. 6]] potential (final, GS): degree-6 polynomial in (Q - 0.000000), coefficients (highest first) [0.1337, -0.2934, 0.2023, -0.0296, 0.4127, 0.001382, 5.824e-06]; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 2.37e-05 eV
+  [ES -> GS, Finite difference [polynomial deg. 6]] grid: 20001 points, frame x = -(Q - Q_f), x = -5.2324..4.9015 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5 A
+  [ES -> GS, Finite difference [polynomial deg. 6]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 49 (2.5367) and v = 59 (2.9015)
+  [ES -> GS, Finite difference [polynomial deg. 6]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [ES -> GS, Finite difference [polynomial deg. 6]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 50 and 60 states
+  [ES -> GS, Finite difference [polynomial deg. 6]] checks: |psi| at walls / peak = 4.05e-16, orthonormality = 2.00e-15, ladder |E_v - E_0 - v hbar w| = 2.87e+03 (i) / 3.10e+03 (f) meV
+  [ES -> GS, Finite difference [polynomial deg. 6]] F_ij built in 6.31 s
+  [ES -> GS, Finite difference [polynomial deg. 6]] Integral check: 1.0108000594884836
+  [GS -> ES, PyPL (Ruhoff)] method: inherited config_coord_1d_solver.compute_franck_condon_integrals, Ruhoff recurrences (Chem. Phys. 186, 355 (1994)), float64; no grid
+  [GS -> ES, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 59.08890 meV, GS well: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
+  [GS -> ES, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 64.31191 meV, ES well: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
+  [GS -> ES, PyPL (Ruhoff)] F_ij built in 0.05 s
+  [GS -> ES, PyPL (Ruhoff)] Integral check: 1.010095819227892
+  [GS -> ES, Finite difference [polynomial deg. 6]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [GS -> ES, Finite difference [polynomial deg. 6]] fit: poly6 (polynomial deg. 6)
+  [GS -> ES, Finite difference [polynomial deg. 6]] potential (initial, GS): degree-6 polynomial in (Q - 0.000000), coefficients (highest first) [0.1337, -0.2934, 0.2023, -0.0296, 0.4127, 0.001382, 5.824e-06]; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 2.37e-05 eV
+  [GS -> ES, Finite difference [polynomial deg. 6]] potential (final, ES): degree-6 polynomial in (Q - 0.695732), coefficients (highest first) [0.2858, 0.5198, 0.2939, 0.03818, 0.4955, 0.0007426, 1.706]; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 6.13e-06 eV
+  [GS -> ES, Finite difference [polynomial deg. 6]] grid: 20001 points, frame x = Q - Q_f, x = -5.5972..4.5367 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5 A
+  [GS -> ES, Finite difference [polynomial deg. 6]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 59 (2.9015) and v = 49 (2.5367)
+  [GS -> ES, Finite difference [polynomial deg. 6]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [GS -> ES, Finite difference [polynomial deg. 6]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 60 and 50 states
+  [GS -> ES, Finite difference [polynomial deg. 6]] checks: |psi| at walls / peak = 3.45e-16, orthonormality = 3.77e-15, ladder |E_v - E_0 - v hbar w| = 3.10e+03 (i) / 2.87e+03 (f) meV
+  [GS -> ES, Finite difference [polynomial deg. 6]] F_ij built in 6.21 s
+  [GS -> ES, Finite difference [polynomial deg. 6]] Integral check: 1.0107986750326536
+
+Franck-Condon lineshapes via bulid_fc_lsp
+  emission  PyPL (Ruhoff)                        closure 1.0000000000  sideband peak 0.1515 eV  centroid 200.2 meV
+  emission  Finite difference [polynomial deg. 6] closure 1.0000000000  sideband peak 0.1515 eV  centroid 180.9 meV
+    Finite difference [polynomial deg. 6] vs PyPL (Ruhoff): max |difference| / peak = 6.96e-02
+  absorption PyPL (Ruhoff)                        closure 1.0000000000  sideband peak 1.8700 eV  centroid 237.2 meV
+  absorption Finite difference [polynomial deg. 6] closure 1.0000000000  sideband peak 1.8700 eV  centroid 212.9 meV
+    Finite difference [polynomial deg. 6] vs PyPL (Ruhoff): max |difference| / peak = 6.96e-02
+  wrote testing\outputs\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-poly6\ccd_wavefunctions.png
+
+Outputs in testing\outputs\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-poly6 (see index.md)

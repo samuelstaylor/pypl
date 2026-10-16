@@ -1,0 +1,3 @@
+direction,reference,test,fc_max,fc_at_text,fc_rms,fc_low,vof_max,vof_rms,zpl_weight_ref,zpl_weight,centroid_shift_mev,closure,integral,seconds,verdict
+emission,Hermite (quadrature),Finite difference [cubic smoothing spline (rms 0.05 meV)],0.7790325096,"(0, 18)",0.09935041255,0.7790325096,5.105604656,0.3757947323,1.829540887e-21,2.90305209e-21,-566.0143232,1,1,10.6188992,FAIL
+absorption,Hermite (quadrature),Finite difference [cubic smoothing spline (rms 0.05 meV)],0.7790325096,"(18, 0)",0.09938683936,0.7790325096,9.582521677,0.8627771999,1.829540887e-21,2.90303114e-21,-2382.16737,1,1,9.571477,FAIL

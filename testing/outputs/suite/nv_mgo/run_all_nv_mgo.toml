@@ -1,0 +1,98 @@
+# Master test suite on NV- in MgO, 3E -> 1A1, from WEST TDDFT-DDH (doc/nv_mgo_west).
+#
+#   python testing/run_all.py --config testing/run_all_nv_mgo.toml
+#   python testing/run_all.py --config testing/run_all_nv_mgo.toml --dry-run
+#
+# Results go to testing/outputs/suite/nv_mgo/ (open its index.md first). The diamond suite is
+# testing/outputs/suite/default/; a suite refuses to replace a directory made from another dataset.
+# Every key is documented in testing/run_all.toml; only the values that differ from it are explained here.
+#
+# The dataset (harness/ccd_data.py, DATASETS["nv_mgo"]), laid out as doc/nv_mgo_west/reference/ccd_nv_mgo.py:
+#   'ES' = 3E  (sc root 1), the upper state, minimum at Q = 0 (Image_+0.00), drawn red (circles)
+#   'GS' = 1A1 (sf root 4), the lower state, minimum at Q = delta_q = 3.0979 amu^0.5 A (Image_+1.00), blue (diamonds)
+#   Q = q delta_q; energies relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py.
+#   "Emission" = ES -> GS = 3E -> 1A1, the transition of interest (higher -> lower; ZPL 0.556 eV).
+#   Images (q of Image_<q>, inclusive) used by each fit, printed in every legend, note and index.md:
+#     parabola (harmonic wells of pypl / hermite / fd-parabola):  3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15 (12 each)
+#     cubic a Q^2 + b Q^3 + c (the perturbative correction):       q = -0.10..+1.15 for both (26 each)
+#     every other fit (splines, Morse, polyN):                     ALL images, 3E 33 (q = -1.00..+2.00),
+#       1A1 30 (sf Image_+2.00 is not a spin-flip run, so not a 1A1 point, and is the one image left out)
+#   Harmonic: 3E 60.83 meV (S = 69.8), 1A1 31.55 meV (S = 36.2).
+
+[suite]
+name = "nv_mgo"
+dataset = "nv_mgo"
+jobs = 1                  # the 160 x 100 x 2101 lineshape tensor needs ~0.8 GB per step
+# checks: the regression checks run on diamond, plus the large-n Hermite and MgO loader checks.
+# tutorial: tutorial 002 is diamond PL / Abs; 3E -> 1A1 has no PL spectrum, so it is off (and must be).
+steps = { checks = true, tutorial = false, compare = true, plots = true, report = true }
+
+[physics]
+temp = 5.0
+# Constant broadening. PyPL widens sigma linearly with |E| (sigma_max at 160 meV), which would reach
+# ~650 meV at the ~6 eV harmonic absorption sideband; a constant width keeps every line alike.
+sigma = [20.0]
+gamma = 0.3
+# The ZPL weight is F_00^2 ~ 1e-22..1e-28 here; a 0.3 meV Lorentzian would need 1 meV steps for nothing.
+zpl_lorentzian = false
+# HR factors are ~10-20x diamond's. sum_j F_0j^2 reaches 1 - 1e-6 at j = 55 (1A1, emission) and
+# j = 135 (3E, absorption), measured with the Hermite route.
+order_es = 160
+order_gs = 100
+# Harmonic sidebands are centred at S hbar w ~ 1.1 eV (emission) and ~4.3 eV (absorption).
+ene_range = [-500.0, 10000.0]
+resol = 2101              # 5 meV steps (sigma = 20 meV)
+ezpl = 556.5              # meV, 3E - 1A1 parabola minima (unused: the tutorial step is off)
+tdm = 1.0
+
+[methods]
+# PyPL's Ruhoff recurrence is unstable at these HR factors: rows i >~ 10 of F_ij are wrong (|F| up to
+# 1e31; row 0 is exact, so the 5 K VOF is still right). The stable Hermite quadrature is the reference,
+# and pypl is tested like for like against it: it is expected to FAIL on F_ij (a finding, not a bug here).
+reference = "hermite"
+harmonic = ["pypl", "fd"]
+
+[hermite]
+npts = 100001
+
+[fd]
+npts = 40001              # h = 3.9e-4 over the wider grid (-6.4..9.3); fd vs hermite dF ~1e-8
+stencil = 5
+margin = 2.0
+# Fits on all images (cubic: q = -0.10..+1.15). Unbounded ones are skipped with the reason in index.md: here
+# poly6 and poly8 (1A1) and cubic (it turns over inside the grid); the cubic PT method below still runs, but
+# its check against the exact fd solution of the same cubic is skipped for the same reason.
+fits = ["spline", "spline5-clamped", "morse", "poly2", "poly4", "poly6", "poly8", "cubic"]
+
+[[fd.splines]]
+order = 4
+bc = "not-a-knot"
+
+[[fd.splines]]
+order = 3
+smoothing = 0.05
+
+[cubic]
+enabled = true
+
+[[cubic.variants]]
+points = "all"
+free_a = false
+normalize = false
+
+[[cubic.variants]]
+points = "all"
+free_a = true
+normalize = false
+
+[plots]
+n_levels = 3
+
+[report]
+convergence = true
+cubic = true
+fits = []
+
+[tolerances]
+fc = 1e-7
+vof = 1e-8

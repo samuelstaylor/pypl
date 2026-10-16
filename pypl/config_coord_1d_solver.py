@@ -97,13 +97,13 @@ class config_coord_1d_solver:
 
         .. math::
 
-            G(x; \mu, \sigma) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\!\left( - \frac{(x - \mu)^2}{2\sigma^2} \right)
+            $G(x; \mu, \sigma) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\!\left( - \frac{(x - \mu)^2}{2\sigma^2} \right)$
 
         where
 
         .. math::
 
-            \sigma = ( \sigma_r[1] - \sigma_r[0] ) \cdot \frac{|\mu|}{\text{sigma\_factor}} + \sigma_r[0]
+            $\sigma = ( \sigma_r[1] - \sigma_r[0] ) \cdot \frac{|\mu|}{\text{sigma\_factor}} + \sigma_r[0]$
 
         Parameters
         ----------
@@ -135,7 +135,7 @@ class config_coord_1d_solver:
 
         .. math::
 
-            L(x; \mu, \gamma) = \frac{1}{\pi \gamma} \frac{\gamma^2}{(x - \mu)^2 + \gamma^2}
+            $L(x; \mu, \gamma) = \frac{1}{\pi \gamma} \frac{\gamma^2}{(x - \mu)^2 + \gamma^2}$
 
         Parameters
         ----------
@@ -164,7 +164,7 @@ class config_coord_1d_solver:
 
         .. math::
 
-            BZ(E, T) = \exp\!\left( -\frac{E}{k_B T} \right)
+            $BZ(E, T) = \exp\!\left( -\frac{E}{k_B T} \right)$
 
         Parameters
         ----------
@@ -190,7 +190,7 @@ class config_coord_1d_solver:
 
         .. math::
 
-            I(E) = \sum_{i, j} p_i \, |F_{ij}|^2 \, G(E; E_{ij}, \sigma)
+            $I(E) = \sum_{i, j} p_i \, |F_{ij}|^2 \, G(E; E_{ij}, \sigma)$
 
         where :math:`p_i` is the Boltzmann prefactor, :math:`F_{ij}` are
         Franck-Condon integrals, and :math:`G` is a Gaussian (or Lorentzian
@@ -257,13 +257,13 @@ class config_coord_1d_solver:
 
         .. math::
 
-            I_\text{PL}(E) \propto \text{linshape}(E) \cdot \mu^2 \cdot (E_\text{ZPL} - E)^3
+            $I_\text{PL}(E) \propto \text{linshape}(E) \cdot \mu^2 \cdot (E_\text{ZPL} - E)^3$
 
         For absorption (ABS):
 
         .. math::
 
-            I_\text{ABS}(E) \propto \text{linshape}(E) \cdot \mu^2 \cdot (E_\text{ZPL} + E)
+            $I_\text{ABS}(E) \propto \text{linshape}(E) \cdot \mu^2 \cdot (E_\text{ZPL} + E)$
 
         Parameters
         ----------

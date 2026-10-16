@@ -1,0 +1,208 @@
+
+     --------------------------------------------------------------------------------------------
+     I/O Summary : input_west
+     --------------------------------------------------------------------------------------------
+     qe_prefix : pwscf
+     west_prefix : west
+     outdir : ./
+     --------------------------------------------------------------------------------------------
+
+     --------------------------------------------------------------------------------------------
+     I/O Summary : wstat_control
+     --------------------------------------------------------------------------------------------
+     wstat_calculation : S
+     n_pdep_eigen : 1724
+     n_pdep_times : 4
+     n_pdep_maxiter : 100
+     n_dfpt_maxiter : 250
+     n_pdep_read_from_file : 0
+     n_steps_write_restart : 1
+     trev_pdep : 0.001
+     trev_pdep_rel : 0.1
+     tr2_dfpt : 1e-16
+     l_kinetic_only : False
+     l_minimize_exx_if_active : False
+     n_exx_lowrank : 900
+     l_use_ecutrho : False
+     qlist : [1]
+     --------------------------------------------------------------------------------------------
+
+     --------------------------------------------------------------------------------------------
+     I/O Summary : westpp_control
+     --------------------------------------------------------------------------------------------
+     westpp_calculation : U
+     westpp_range : [1, 4]
+     westpp_format : C
+     westpp_sign : True
+     westpp_n_pdep_eigen_to_use : 1
+     westpp_r0 : [0.0, 0.0, 0.0]
+     westpp_nr : 100
+     westpp_rmax : 1.0
+     westpp_epsinfty : 1.0
+     westpp_box : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+     westpp_n_liouville_to_use : 4
+     westpp_l_spin_flip : False
+     westpp_l_compute_tdm : False
+     westpp_wannier_tr_rel : 1e-06
+     westpp_l_dipole_realspace : False
+     --------------------------------------------------------------------------------------------
+
+     Program WESTPP v. 6.3.0 git rev. v6.3.0 starts on 22Sep2026 at  2:45:53 
+
+     This program is part of the open-source West suite
+     for massively parallel calculations of excited states in materials; please cite
+         "M. Govoni et al., J. Chem. Theory Comput. 11, 2680 (2015);
+          URL https://west-code.org",
+     in publications or presentations arising from this work.
+
+     Based on the Quantum ESPRESSO v. 7.5
+
+     I/O is Little Endian
+ 
+     --------------------------------------------------------------------------------------------
+     **MPI** Parallelization Status
+     --------------------------------------------------------------------------------------------
+                     1                   1             1             1             1
+     --------------------------------------------------------------------------------------------
+                     N         =         I      X      P      X      B      X      Z
+                     ^                   ^             ^             ^             ^
+                     |                   |             |             |             |
+                   #rnk                  |             |             |             |
+                                      #image           |             |             |
+                                                     #pool           |             |
+                                                                   #bgrp           |
+                                                                                 #R&G
+     --------------------------------------------------------------------------------------------
+     #prc =            1
+     --------------------------------------------------------------------------------------------
+
+     GPU acceleration enabled
+
+     Reading xml data from directory:
+
+     ./pwscf.save/
+     EXX fraction changed:   0.34
+     EXX Screening parameter changed:    0.0000000
+
+     IMPORTANT: XC functional enforced from input :
+     Exchange-correlation= PBE0
+                           (   6   4   8   4   0   0   0)
+     EXX-fraction              =        0.34
+     Any further DFT definition will be discarded
+     Please, verify this is what you really want
+
+ 
+     G-vector sticks info
+     --------------------
+     sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
+     Sum       10773   10773   2709               842161   842161  105399
+ 
+     Using Slab Decomposition
+ 
+       ** WARNING : EXX use_ace          = T
+       ** WARNING : EXX alpha            =       0.340000
+       ** WARNING : EXX erfc_scrlen      =       0.000000
+       ** WARNING : EXX gau_scrlen       =       0.000000
+       ** WARNING : EXX ecutfock         =     240.000000
+       ** WARNING : EXX exxdiv_treatment = gb
+     EXX: q-point mesh:     1    1    1
+     EXX: grid of k+q points same as grid of k-points
+       ** WARNING : EXX-exxdiv           =   -2744.456602
+ 
+     --------------------------------------------------------------------------------------------
+     System Overview
+     --------------------------------------------------------------------------------------------
+     gamma_only           =              T
+     ecutwfc [Ry]         =      60.000000
+     ecutrho [Ry]         =     240.000000
+     omega [au^3]         =   1.340301E+04
+     nbnd                 =            900
+     nkstot               =              2
+     nspin                =              2
+     nelec                =    1724.000000
+     nelup                =     863.000000
+     neldw                =     861.000000
+     npol                 =              1
+     lsda                 =              T
+     noncolin             =              F
+     lspinorb             =              F
+     --------------------------------------------------------------------------------------------
+
+     3DFFT grid
+        s : ( 120, 120, 120)
+        p : ( 120, 120, 120)
+
+     Direct Lattice Cell [a.u.]
+        a1 = (    23.7538574     0.0000000     0.0000000)
+        a2 = (     0.0000000    23.7538574     0.0000000)
+        a3 = (     0.0000000     0.0000000    23.7538574)
+
+     Reciprocal Lattice Cell [a.u.]
+        b1 = (     0.2645122     0.0000000     0.0000000)
+        b2 = (     0.0000000     0.2645122     0.0000000)
+        b3 = (     0.0000000     0.0000000     0.2645122)
+ 
+
+     Brillouin Zone sampling [cryst. coord.]
+ 
+        k(000001) = (     0.0000000     0.0000000     0.0000000)
+ 
+     --------------------------------------------------------------------------------------------
+     Parallelization for nvec
+     --------------------------------------------------------------------------------------------
+     nglob                =              4
+     nlevel               =              1
+     Min nglob/nlevel     =              4
+     Max nglob/nlevel     =              4
+     --------------------------------------------------------------------------------------------
+ 
+     --------------------------------------------------------------------------------------------
+     SAVE read in 15.7s
+     In location : ./west.wbse.save
+     Eigen. found :            4
+     --------------------------------------------------------------------------------------------
+ 
+     --------------------------------------------------------------------------------------------
+     (U)nrelaxed Differential Density
+     --------------------------------------------------------------------------------------------
+     in progress... |##                  | 010% :           01m-15.7s (E)           12m-37.3s (X)
+     in progress... |#####               | 025% :           02m-31.2s (E)           10m-05.1s (X)
+     in progress... |#######             | 035% :           03m-46.9s (E)           10m-48.5s (X)
+     in progress... |##########          | 050% :           05m-02.5s (E)           10m-05.0s (X)
+     in progress... |############        | 060% :           06m-18.5s (E)           10m-30.9s (X)
+     in progress... |###############     | 075% :           07m-34.1s (E)           10m-05.4s (X)
+     in progress... |#################   | 085% :           08m-50.0s (E)           10m-23.5s (X)
+     in progress... |####################| 100% :           10m-05.5s (E)           10m-05.5s (X)
+     --------------------------------------------------------------------------------------------
+     WESTPP       :   9m53.92s CPU  10m28.87s WALL
+
+     west_readin  :      0.76s CPU      2.52s WALL (       1 calls)
+     fetch_input  :      0.00s CPU      0.02s WALL (       2 calls)
+     fft          :      0.00s CPU      0.07s WALL (      14 calls)
+                                        0.07s GPU  (      14 calls)
+     init_vloc    :      0.07s CPU      0.07s WALL (       2 calls)
+     init_us_1    :      0.00s CPU      0.00s WALL (       2 calls)
+     v_of_rho     :      0.04s CPU      0.07s WALL (       1 calls)
+     v_xc         :      0.03s CPU      0.06s WALL (       1 calls)
+     v_h          :      0.01s CPU      0.01s WALL (       1 calls)
+     do_setup     :      0.61s CPU      4.98s WALL (       1 calls)
+     init_pw_ar   :      0.61s CPU      4.97s WALL (       1 calls)
+     hinit0       :      0.37s CPU      0.38s WALL (       1 calls)
+     davcio       :      0.05s CPU      5.77s WALL (      10 calls)
+     exx_grid     :      0.00s CPU      0.00s WALL (       1 calls)
+     exx_div      :      0.01s CPU      0.01s WALL (       1 calls)
+     plep_db      :      0.94s CPU     15.73s WALL (       1 calls)
+     plep_read    :      0.64s CPU     15.05s WALL (       4 calls)
+     westpp       :    591.60s CPU    605.56s WALL (       1 calls)
+     fftw         :     21.32s CPU    254.72s WALL ( 2985976 calls)
+                                      238.45s GPU  ( 2985976 calls)
+     rgather_grid :      0.02s CPU      0.02s WALL (       8 calls)
+ 
+     WESTPP       :   9m53.92s CPU  10m28.87s WALL
+
+ 
+   This run was terminated on:   2:56:22  22Sep2026            
+
+=------------------------------------------------------------------------------=
+   JOB DONE.
+=------------------------------------------------------------------------------=

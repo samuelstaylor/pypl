@@ -1,0 +1,459 @@
+# 1D CCD VOF report [NV- in MgO], started 2026-10-16T15:25:29
+# command: python.exe C:\Users\sammy\Research\Galli\programs\pypl\testing\vof_report.py --reference hermite --dataset nv_mgo --temp 5.0 --sigma 20.0 --gamma 0.3 --no-zpl --order-es 160 --order-gs 100 --ene-range -500.0 10000.0 --resol 2101 --npts 100001 --fd-npts 40001 --fd-stencil 5 --fd-margin 2.0 --fd-fit parabola --cubic-points all --tol-fc 1e-07 --tol-vof 1e-08
+# dataset: nv_mgo (NV- in MgO), 3E -> 1A1 (WEST TDDFT-DDH)
+# data: doc/nv_mgo_west
+# roles: 'ES' = 3E (upper state, minimum at Q = 0), 'GS' = 1A1 (lower state, minimum at Q = delta_q); emission = ES -> GS = 3E -> 1A1
+# Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
+# E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
+# image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit (splines, Morse, polyN) ALL images
+# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 (not a spin-flip run, so not a 1A1 point)
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\settings.json
+1D CCD VOF report: delta_q = 3.097879 amu^0.5 A, GS 31.55114 meV, ES 60.83324 meV
+  bulid_fc_lsp: T = 5 K, sigma = [20.0, 20.0] meV, ZPL Gaussian (no Lorentzian ZPL)
+  lineshape axis: -500..10000 meV from the ZPL, 2101 points, step 5 meV
+  basis: 160 ES x 100 GS levels (emission ni x nf = 160 x 100, absorption 100 x 160)
+  unbounded fits (01 only, no bound states for 02-06): poly6, poly8
+
+[01_potential_fits] 12 fits of the DFT images
+  1A1 parabola   parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  1A1 poly2      degree-2 polynomial in (Q - 3.097879), coefficients (highest first) [0.25, 0.4436, 2.63]; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.51e-01 eV
+  1A1 poly4      degree-4 polynomial in (Q - 3.097879), coefficients (highest first) [0.009277, 0.04862, 0.1579, 0.06138, 2.633]; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 1.37e-01 eV
+  1A1 poly6      degree-6 polynomial in (Q - 3.097879), coefficients (highest first) [-0.001825, -0.02173, -0.05884, 0.06404, 0.3992, 0.1359, 2.56]; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 5.83e-02 eV; UNBOUNDED: leading coefficient p_6 = -0.00182 < 0, so V -> -inf as |Q| -> inf
+  1A1 poly8      degree-8 polynomial in (Q - 3.097879), coefficients (highest first) [-0.0001022, -0.0008933, 0.0008298, 0.02173, 0.04825, 0.02966, 0.104, 0.0004844, 2.598]; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.60e-02 eV; UNBOUNDED: leading coefficient p_8 = -0.000102 < 0, so V -> -inf as |Q| -> inf
+  1A1 morse      Morse D (1 - exp(-b (Q - Q_m)))^2 + c, D = 2.25616 eV, b = 0.196291, Q_m = 2.221639, c = 2.687448 eV; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 1.74e-01 eV
+  1A1 spline     cubic spline (degree 3, natural ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.86e+00 / -5.45e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 2.69e-16 eV
+  1A1 spline3-notaknot cubic spline (degree 3, not-a-knot ends, 28 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.92e+00 / -7.91e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 2.56e-16 eV
+  1A1 spline3-clamped cubic spline (degree 3, clamped ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C1 junction (slope jumps 8.88e-16 / 4.44e-16 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 2.29e-16 eV
+  1A1 spline4-notaknot quartic spline (degree 4, not-a-knot ends, 27 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 4.54e+00 / -8.05e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 7.90e-16 eV
+  1A1 spline5-clamped quintic spline (degree 5, clamped ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C2 junction (slope jumps 5.11e-15 / 4.44e-16 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.63e-16 eV
+  1A1 spline3-s0.05 cubic spline (degree 3, smoothing to rms <= 5e-05 eV, 26 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.92e+00 / -7.86e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 5.00e-05 eV
+  3E parabola   parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
+  3E poly2      degree-2 polynomial in (Q - 0.000000), coefficients (highest first) [0.1622, -0.4672, 4.109]; fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 7.64e-01 eV
+  3E poly4      degree-4 polynomial in (Q - 0.000000), coefficients (highest first) [0.01143, -0.1145, 0.297, 0.3031, 3.268]; fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 1.90e-01 eV
+  3E poly6      degree-6 polynomial in (Q - 0.000000), coefficients (highest first) [-0.0002595, 0.00479, -0.009277, -0.1405, 0.5257, 0.1687, 3.133]; fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 5.53e-02 eV; UNBOUNDED: leading coefficient p_6 = -0.000259 < 0, so V -> -inf as |Q| -> inf
+  3E poly8      degree-8 polynomial in (Q - 0.000000), coefficients (highest first) [7.935e-06, -0.0003645, 0.002746, 0.002387, -0.04864, -0.06478, 0.6188, -0.01902, 3.14]; fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 5.97e-03 eV
+  3E morse      Morse D (1 - exp(-b (Q - Q_m)))^2 + c, D = 3.26191 eV, b = 0.305804, Q_m = -0.268821, c = 3.360306 eV; fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 2.94e-01 eV
+  3E spline     cubic spline (degree 3, natural ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.04e+00 / 4.16e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 5.19e-16 eV
+  3E spline3-notaknot cubic spline (degree 3, not-a-knot ends, 31 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.76e+00 / 3.83e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 4.23e-16 eV
+  3E spline3-clamped cubic spline (degree 3, clamped ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C1 junction (slope jumps -8.88e-16 / 8.88e-16 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 2.79e-16 eV
+  3E spline4-notaknot quartic spline (degree 4, not-a-knot ends, 30 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 2.03e+00 / 4.22e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 8.92e-16 eV
+  3E spline5-clamped quintic spline (degree 5, clamped ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C2 junction (slope jumps 4.44e-16 / 1.78e-15 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 7.81e-16 eV
+  3E spline3-s0.05 cubic spline (degree 3, smoothing to rms <= 5e-05 eV, 30 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.76e+00 / 3.83e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 5.00e-05 eV
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\01_potential_fits\fits_overview.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\01_potential_fits\fit_residual_rms.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\01_potential_fits\residuals_gs.csv
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\01_potential_fits\residuals_es.csv
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\01_potential_fits\fit_summary.csv
+  well  fit                                    images       rms (meV)  max |res| (meV)  hbar w at min (meV)  dV at right turning pt (meV)  bounded
+  ----  -------------------------------------  -----------  ---------  ---------------  -------------------  ----------------------------  -------
+  1A1   parabola (near min.)                   18-29 of 30  649.989    3130.185         31.551               0                             True   
+  1A1   polynomial deg. 2                      1-30 of 30   351.233    822.661          45.715               5.76e+03                      True   
+  1A1   polynomial deg. 4                      1-30 of 30   137.435    485.585          32.863               1.44e+04                      True   
+  1A1   polynomial deg. 6                      1-30 of 30   58.335     126.697          54.448               -1.35e+05                     False  
+  1A1   polynomial deg. 8                      1-30 of 30   35.961     92.829           29.457               -3.52e+03                     False  
+  1A1   Morse                                  1-30 of 30   174.164    407.489          26.959               -1.96e+03                     True   
+  1A1   cubic spline (natural)                 1-30 of 30   0.000      0.000            40.696               537                           True   
+  1A1   cubic spline (not-a-knot)              1-30 of 30   0.000      0.000            40.852               537                           True   
+  1A1   cubic spline (clamped)                 1-30 of 30   0.000      0.000            40.441               537                           True   
+  1A1   quartic spline (not-a-knot)            1-30 of 30   0.000      0.000            41.658               537                           True   
+  1A1   quintic spline (clamped)               1-30 of 30   0.000      0.000            42.045               537                           True   
+  1A1   cubic smoothing spline (rms 0.05 meV)  1-30 of 30   0.050      0.132            40.708               537                           True   
+  3E    parabola (near min.)                   4-15 of 33   3474.907   13840.022        60.833               0                             True   
+  3E    polynomial deg. 2                      1-33 of 33   763.899    2281.609         36.829               -7.39e+03                     True   
+  3E    polynomial deg. 4                      1-33 of 33   189.518    635.517          61.253               -7.92e+03                     True   
+  3E    polynomial deg. 6                      1-33 of 33   55.269     131.229          70.119               -8.25e+03                     False  
+  3E    polynomial deg. 8                      1-33 of 33   5.973      15.139           71.747               -8.12e+03                     True   
+  3E    Morse                                  1-33 of 33   294.319    615.828          50.500               -7.52e+03                     True   
+  3E    cubic spline (natural)                 1-33 of 33   0.000      0.000            87.696               -8.13e+03                     True   
+  3E    cubic spline (not-a-knot)              1-33 of 33   0.000      0.000            87.550               -8.13e+03                     True   
+  3E    cubic spline (clamped)                 1-33 of 33   0.000      0.000            87.867               -8.15e+03                     True   
+  3E    quartic spline (not-a-knot)            1-33 of 33   0.000      0.000            84.527               -8.13e+03                     True   
+  3E    quintic spline (clamped)               1-33 of 33   0.000      0.000            84.571               -8.15e+03                     True   
+  3E    cubic smoothing spline (rms 0.05 meV)  1-33 of 33   0.050      0.127            87.328               -8.13e+03                     True   
+
+[02_fd_grid] grid visualization and convergence scan
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\02_fd_grid\fd_grid_emission.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\02_fd_grid\fd_grid_absorption.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\02_fd_grid\grid_summary.csv
+  direction   well  points  h          pts/wavelength  |psi| at walls  ladder err (meV)
+  ----------  ----  ------  ---------  --------------  --------------  ----------------
+  emission    3E    40001   4.229e-04  218             6.4e-16         2.3e-05         
+  emission    1A1   40001   4.229e-04  383             6.4e-16         7.9e-07         
+  absorption  1A1   40001   4.229e-04  383             4.7e-16         7.9e-07         
+  absorption  3E    40001   4.229e-04  218             4.7e-16         2.3e-05         
+  convergence: stencil 3,   2001 points, max dF 4.22e-02, 0.9 s
+  convergence: stencil 3,   4001 points, max dF 1.05e-02, 1.2 s
+  convergence: stencil 3,   8001 points, max dF 2.62e-03, 4.6 s
+  convergence: stencil 3,  16001 points, max dF 6.54e-04, 4.0 s
+  convergence: stencil 3,  32001 points, max dF 1.63e-04, 8.1 s
+  convergence: stencil 5,   2001 points, max dF 1.61e-03, 0.5 s
+  convergence: stencil 5,   4001 points, max dF 1.03e-04, 0.9 s
+  convergence: stencil 5,   8001 points, max dF 6.44e-06, 1.9 s
+  convergence: stencil 5,  16001 points, max dF 4.03e-07, 3.9 s
+  convergence: stencil 5,  32001 points, max dF 2.52e-08, 9.2 s
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\02_fd_grid\fd_convergence.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\02_fd_grid\fd_convergence.csv
+
+[03_wavefunctions] Hermite vs finite differences on 10 fits
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\03_wavefunctions\wavefunctions_gs.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\03_wavefunctions\wavefunctions_es.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\03_wavefunctions\wavefunction_errors.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\03_wavefunctions\wavefunction_errors.csv
+  well  fd on fit                              max infidelity  max dpsi / max chi  max ladder dev (meV)
+  ----  -------------------------------------  --------------  ------------------  --------------------
+  1A1   parabola (near min.)                   1.33e-15        5.46e-09            3.98e-07            
+  1A1   polynomial deg. 2                      1.00e+00        1.90e+00            1.4e+03             
+  1A1   polynomial deg. 4                      1.00e+00        1.86e+00            955                 
+  1A1   Morse                                  9.99e-01        1.95e+00            886                 
+  1A1   cubic spline (natural)                 9.98e-01        1.88e+00            254                 
+  1A1   cubic spline (not-a-knot)              9.99e-01        1.87e+00            252                 
+  1A1   cubic spline (clamped)                 1.00e+00        1.90e+00            248                 
+  1A1   quartic spline (not-a-knot)            9.99e-01        1.87e+00            274                 
+  1A1   quintic spline (clamped)               9.99e-01        1.90e+00            248                 
+  1A1   cubic smoothing spline (rms 0.05 meV)  9.99e-01        1.87e+00            252                 
+  3E    parabola (near min.)                   2.66e-15        5.95e-08            9.05e-06            
+  3E    polynomial deg. 2                      9.99e-01        1.73e+00            3.61e+03            
+  3E    polynomial deg. 4                      1.00e+00        1.86e+00            2.6e+03             
+  3E    Morse                                  1.00e+00        1.77e+00            2.75e+03            
+  3E    cubic spline (natural)                 1.00e+00        1.81e+00            2.44e+03            
+  3E    cubic spline (not-a-knot)              1.00e+00        1.81e+00            2.46e+03            
+  3E    cubic spline (clamped)                 1.00e+00        1.80e+00            2.5e+03             
+  3E    quartic spline (not-a-knot)            1.00e+00        1.81e+00            2.46e+03            
+  3E    quintic spline (clamped)               1.00e+00        1.88e+00            2.52e+03            
+  3E    cubic smoothing spline (rms 0.05 meV)  1.00e+00        1.81e+00            2.46e+03            
+
+[04_fc_matrix, 05_vof_methods] every method on the parabola wells, reference hermite
+  [3E -> 1A1, Hermite (quadrature)] method: compute_franck_condon_integrals_hermite, <chi_i(Q + dQ) | chi_j(Q)> of harmonic eigenfunctions
+  [3E -> 1A1, Hermite (quadrature)] grid: 100001 points, Q = -14.2326..14.2326 amu^0.5 A, h = 2.847e-04 amu^0.5 A; composite Simpson
+  [3E -> 1A1, Hermite (quadrature)] omega_i = hbar sqrt(2a / amu) = 60.83324 meV, 3E well [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
+  [3E -> 1A1, Hermite (quadrature)] omega_f = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [3E -> 1A1, Hermite (quadrature)] F_ij built in 1.13 s
+  [3E -> 1A1, Hermite (quadrature)] Integral check: 1.0
+  [3E -> 1A1, PyPL (Ruhoff)] method: inherited config_coord_1d_solver.compute_franck_condon_integrals, Ruhoff recurrences (Chem. Phys. 186, 355 (1994)), float64; no grid
+  [3E -> 1A1, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 60.83324 meV, 3E well [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
+  [3E -> 1A1, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [3E -> 1A1, PyPL (Ruhoff)] F_ij built in 0.05 s
+  [3E -> 1A1, PyPL (Ruhoff)] Integral check: 1.0
+  [3E -> 1A1, Finite difference] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [3E -> 1A1, Finite difference] fit: parabola (parabola (near min.))
+  [3E -> 1A1, Finite difference] potential (initial, 3E) [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
+  [3E -> 1A1, Finite difference] potential (final, 1A1) [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [3E -> 1A1, Finite difference] grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [3E -> 1A1, Finite difference] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
+  [3E -> 1A1, Finite difference] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [3E -> 1A1, Finite difference] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
+  [3E -> 1A1, Finite difference] checks: |psi| at walls / peak = 7.63e-16, orthonormality = 4.22e-15, ladder |E_v - E_0 - v hbar w| = 2.32e-05 (i) / 7.86e-07 (f) meV
+  [3E -> 1A1, Finite difference] F_ij built in 13.22 s
+  [3E -> 1A1, Finite difference] Integral check: 0.9999999999999989
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\05_vof_methods\vof_emission.csv
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\04_fc_matrix\fc_hermite_emission.csv
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\04_fc_matrix\fc_pypl_emission.csv
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\04_fc_matrix\fc_fd_emission.csv
+  [1A1 -> 3E, Hermite (quadrature)] method: compute_franck_condon_integrals_hermite, <chi_i(Q + dQ) | chi_j(Q)> of harmonic eigenfunctions
+  [1A1 -> 3E, Hermite (quadrature)] grid: 100001 points, Q = -14.2326..14.2326 amu^0.5 A, h = 2.847e-04 amu^0.5 A; composite Simpson
+  [1A1 -> 3E, Hermite (quadrature)] omega_i = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [1A1 -> 3E, Hermite (quadrature)] omega_f = hbar sqrt(2a / amu) = 60.83324 meV, 3E well [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
+  [1A1 -> 3E, Hermite (quadrature)] F_ij built in 1.18 s
+  [1A1 -> 3E, Hermite (quadrature)] Integral check: 0.9999999998249766
+  [1A1 -> 3E, PyPL (Ruhoff)] method: inherited config_coord_1d_solver.compute_franck_condon_integrals, Ruhoff recurrences (Chem. Phys. 186, 355 (1994)), float64; no grid
+  [1A1 -> 3E, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [1A1 -> 3E, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 60.83324 meV, 3E well [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
+  [1A1 -> 3E, PyPL (Ruhoff)] F_ij built in 0.04 s
+  [1A1 -> 3E, PyPL (Ruhoff)] Integral check: 0.99999999982497
+  [1A1 -> 3E, Finite difference] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [1A1 -> 3E, Finite difference] fit: parabola (parabola (near min.))
+  [1A1 -> 3E, Finite difference] potential (initial, 1A1) [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [1A1 -> 3E, Finite difference] potential (final, 3E) [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
+  [1A1 -> 3E, Finite difference] grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [1A1 -> 3E, Finite difference] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
+  [1A1 -> 3E, Finite difference] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [1A1 -> 3E, Finite difference] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
+  [1A1 -> 3E, Finite difference] checks: |psi| at walls / peak = 6.60e-16, orthonormality = 3.66e-15, ladder |E_v - E_0 - v hbar w| = 7.86e-07 (i) / 2.32e-05 (f) meV
+  [1A1 -> 3E, Finite difference] F_ij built in 10.78 s
+  [1A1 -> 3E, Finite difference] Integral check: 0.9999999998249781
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\05_vof_methods\vof_absorption.csv
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\04_fc_matrix\fc_hermite_absorption.csv
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\04_fc_matrix\fc_pypl_absorption.csv
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\04_fc_matrix\fc_fd_absorption.csv
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\04_fc_matrix\fc_matrix.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\04_fc_matrix\fc_error_maps.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\04_fc_matrix\fc_error_by_level.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\05_vof_methods\vof_methods.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\04_fc_matrix\fc_errors.csv
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\05_vof_methods\summary.csv
+  direction   test               reference             max dF_ij  at (i, j)  max dF_ij (i,j<30)  max dVOF / peak  rms dVOF / peak  F_ij time (s)  verdict
+  ----------  -----------------  --------------------  ---------  ---------  ------------------  ---------------  ---------------  -------------  -------
+  emission    PyPL (Ruhoff)      Hermite (quadrature)  5.10e+26   (159, 99)  5.65e-05            1.98e-15         1.57e-16         0.05           FAIL   
+  emission    Finite difference  Hermite (quadrature)  1.03e-08   (159, 95)  1.97e-10            1.92e-10         3.36e-11         13.22          OK     
+  absorption  PyPL (Ruhoff)      Hermite (quadrature)  2.68e+27   (99, 159)  1.26e-05            9.62e-15         1.89e-15         0.04           FAIL   
+  absorption  Finite difference  Hermite (quadrature)  1.03e-08   (95, 159)  1.97e-10            1.95e-09         6.05e-10         10.78          OK     
+
+[06_vof_fits] fd on every bounded fit vs hermite (harmonic)
+  [3E -> 1A1, Hermite (quadrature)] method: compute_franck_condon_integrals_hermite, <chi_i(Q + dQ) | chi_j(Q)> of harmonic eigenfunctions
+  [3E -> 1A1, Hermite (quadrature)] grid: 100001 points, Q = -14.2326..14.2326 amu^0.5 A, h = 2.847e-04 amu^0.5 A; composite Simpson
+  [3E -> 1A1, Hermite (quadrature)] omega_i = hbar sqrt(2a / amu) = 60.83324 meV, 3E well [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
+  [3E -> 1A1, Hermite (quadrature)] omega_f = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [3E -> 1A1, Hermite (quadrature)] F_ij built in 0.78 s
+  [3E -> 1A1, Hermite (quadrature)] Integral check: 1.0
+  [3E -> 1A1, Finite difference] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [3E -> 1A1, Finite difference] fit: parabola (parabola (near min.))
+  [3E -> 1A1, Finite difference] potential (initial, 3E) [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
+  [3E -> 1A1, Finite difference] potential (final, 1A1) [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [3E -> 1A1, Finite difference] grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [3E -> 1A1, Finite difference] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
+  [3E -> 1A1, Finite difference] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [3E -> 1A1, Finite difference] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
+  [3E -> 1A1, Finite difference] checks: |psi| at walls / peak = 7.73e-16, orthonormality = 3.55e-15, ladder |E_v - E_0 - v hbar w| = 2.32e-05 (i) / 7.86e-07 (f) meV
+  [3E -> 1A1, Finite difference] F_ij built in 13.37 s
+  [3E -> 1A1, Finite difference] Integral check: 0.9999999999999976
+  [3E -> 1A1, Finite difference [polynomial deg. 2]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [3E -> 1A1, Finite difference [polynomial deg. 2]] fit: poly2 (polynomial deg. 2)
+  [3E -> 1A1, Finite difference [polynomial deg. 2]] potential (initial, 3E) [all 33 images (q = -1.00..+2.00)]: degree-2 polynomial in (Q - 0.000000), coefficients (highest first) [0.1622, -0.4672, 4.109]; fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 7.64e-01 eV
+  [3E -> 1A1, Finite difference [polynomial deg. 2]] potential (final, 1A1) [all 30 images (q = -1.00..+1.50)]: degree-2 polynomial in (Q - 3.097879), coefficients (highest first) [0.25, 0.4436, 2.63]; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.51e-01 eV
+  [3E -> 1A1, Finite difference [polynomial deg. 2]] grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [3E -> 1A1, Finite difference [polynomial deg. 2]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
+  [3E -> 1A1, Finite difference [polynomial deg. 2]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [3E -> 1A1, Finite difference [polynomial deg. 2]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
+  [3E -> 1A1, Finite difference [polynomial deg. 2]] checks: |psi| at walls / peak = 5.91e-16, orthonormality = 4.00e-15, ladder |E_v - E_0 - v hbar w| = 3.82e+03 (i) / 1.40e+03 (f) meV
+  [3E -> 1A1, Finite difference [polynomial deg. 2]] F_ij built in 13.55 s
+  [3E -> 1A1, Finite difference [polynomial deg. 2]] Integral check: 1.0000000000000013
+  [3E -> 1A1, Finite difference [polynomial deg. 4]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [3E -> 1A1, Finite difference [polynomial deg. 4]] fit: poly4 (polynomial deg. 4)
+  [3E -> 1A1, Finite difference [polynomial deg. 4]] potential (initial, 3E) [all 33 images (q = -1.00..+2.00)]: degree-4 polynomial in (Q - 0.000000), coefficients (highest first) [0.01143, -0.1145, 0.297, 0.3031, 3.268]; fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 1.90e-01 eV
+  [3E -> 1A1, Finite difference [polynomial deg. 4]] potential (final, 1A1) [all 30 images (q = -1.00..+1.50)]: degree-4 polynomial in (Q - 3.097879), coefficients (highest first) [0.009277, 0.04862, 0.1579, 0.06138, 2.633]; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 1.37e-01 eV
+  [3E -> 1A1, Finite difference [polynomial deg. 4]] grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [3E -> 1A1, Finite difference [polynomial deg. 4]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
+  [3E -> 1A1, Finite difference [polynomial deg. 4]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [3E -> 1A1, Finite difference [polynomial deg. 4]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
+  [3E -> 1A1, Finite difference [polynomial deg. 4]] checks: |psi| at walls / peak = 4.49e-16, orthonormality = 3.89e-15, ladder |E_v - E_0 - v hbar w| = 3.00e+03 (i) / 9.55e+02 (f) meV
+  [3E -> 1A1, Finite difference [polynomial deg. 4]] F_ij built in 12.26 s
+  [3E -> 1A1, Finite difference [polynomial deg. 4]] Integral check: 1.0000000000000016
+  [3E -> 1A1, Finite difference [Morse]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [3E -> 1A1, Finite difference [Morse]] fit: morse (Morse)
+  [3E -> 1A1, Finite difference [Morse]] potential (initial, 3E) [all 33 images (q = -1.00..+2.00)]: Morse D (1 - exp(-b (Q - Q_m)))^2 + c, D = 3.26191 eV, b = 0.305804, Q_m = -0.268821, c = 3.360306 eV; fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 2.94e-01 eV
+  [3E -> 1A1, Finite difference [Morse]] potential (final, 1A1) [all 30 images (q = -1.00..+1.50)]: Morse D (1 - exp(-b (Q - Q_m)))^2 + c, D = 2.25616 eV, b = 0.196291, Q_m = 2.221639, c = 2.687448 eV; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 1.74e-01 eV
+  [3E -> 1A1, Finite difference [Morse]] grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [3E -> 1A1, Finite difference [Morse]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
+  [3E -> 1A1, Finite difference [Morse]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [3E -> 1A1, Finite difference [Morse]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
+  [3E -> 1A1, Finite difference [Morse]] checks: |psi| at walls / peak = 8.34e-03, orthonormality = 2.33e-15, ladder |E_v - E_0 - v hbar w| = 4.81e+03 (i) / 8.86e+02 (f) meV
+  [3E -> 1A1, Finite difference [Morse]] WARNING: eigenstates reach the grid walls; the fit has too few bound levels for ni / nf
+  [3E -> 1A1, Finite difference [Morse]] F_ij built in 11.05 s
+  [3E -> 1A1, Finite difference [Morse]] Integral check: 0.9999999998137709
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] fit: spline (cubic spline (natural))
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] potential (initial, 3E) [all 33 images (q = -1.00..+2.00)]: cubic spline (degree 3, natural ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.04e+00 / 4.16e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 5.19e-16 eV
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] potential (final, 1A1) [all 30 images (q = -1.00..+1.50)]: cubic spline (degree 3, natural ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.86e+00 / -5.45e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 2.69e-16 eV
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] checks: |psi| at walls / peak = 6.36e-16, orthonormality = 2.44e-15, ladder |E_v - E_0 - v hbar w| = 2.52e+03 (i) / 2.54e+02 (f) meV
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] F_ij built in 14.83 s
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] Integral check: 0.9999999999816163
+  [3E -> 1A1, Finite difference [cubic spline (not-a-knot)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [3E -> 1A1, Finite difference [cubic spline (not-a-knot)]] fit: spline3-notaknot (cubic spline (not-a-knot))
+  [3E -> 1A1, Finite difference [cubic spline (not-a-knot)]] potential (initial, 3E) [all 33 images (q = -1.00..+2.00)]: cubic spline (degree 3, not-a-knot ends, 31 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.76e+00 / 3.83e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 4.23e-16 eV
+  [3E -> 1A1, Finite difference [cubic spline (not-a-knot)]] potential (final, 1A1) [all 30 images (q = -1.00..+1.50)]: cubic spline (degree 3, not-a-knot ends, 28 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.92e+00 / -7.91e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 2.56e-16 eV
+  [3E -> 1A1, Finite difference [cubic spline (not-a-knot)]] grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [3E -> 1A1, Finite difference [cubic spline (not-a-knot)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
+  [3E -> 1A1, Finite difference [cubic spline (not-a-knot)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [3E -> 1A1, Finite difference [cubic spline (not-a-knot)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
+  [3E -> 1A1, Finite difference [cubic spline (not-a-knot)]] checks: |psi| at walls / peak = 5.55e-16, orthonormality = 2.44e-15, ladder |E_v - E_0 - v hbar w| = 2.53e+03 (i) / 2.52e+02 (f) meV
+  [3E -> 1A1, Finite difference [cubic spline (not-a-knot)]] F_ij built in 10.02 s
+  [3E -> 1A1, Finite difference [cubic spline (not-a-knot)]] Integral check: 0.9999999999807327
+  [3E -> 1A1, Finite difference [cubic spline (clamped)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [3E -> 1A1, Finite difference [cubic spline (clamped)]] fit: spline3-clamped (cubic spline (clamped))
+  [3E -> 1A1, Finite difference [cubic spline (clamped)]] potential (initial, 3E) [all 33 images (q = -1.00..+2.00)]: cubic spline (degree 3, clamped ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C1 junction (slope jumps -8.88e-16 / 8.88e-16 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 2.79e-16 eV
+  [3E -> 1A1, Finite difference [cubic spline (clamped)]] potential (final, 1A1) [all 30 images (q = -1.00..+1.50)]: cubic spline (degree 3, clamped ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C1 junction (slope jumps 8.88e-16 / 4.44e-16 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 2.29e-16 eV
+  [3E -> 1A1, Finite difference [cubic spline (clamped)]] grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [3E -> 1A1, Finite difference [cubic spline (clamped)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
+  [3E -> 1A1, Finite difference [cubic spline (clamped)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [3E -> 1A1, Finite difference [cubic spline (clamped)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
+  [3E -> 1A1, Finite difference [cubic spline (clamped)]] checks: |psi| at walls / peak = 7.87e-16, orthonormality = 3.11e-15, ladder |E_v - E_0 - v hbar w| = 2.57e+03 (i) / 2.48e+02 (f) meV
+  [3E -> 1A1, Finite difference [cubic spline (clamped)]] F_ij built in 9.89 s
+  [3E -> 1A1, Finite difference [cubic spline (clamped)]] Integral check: 0.9999999999817889
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] fit: spline4-notaknot (quartic spline (not-a-knot))
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] potential (initial, 3E) [all 33 images (q = -1.00..+2.00)]: quartic spline (degree 4, not-a-knot ends, 30 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 2.03e+00 / 4.22e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 8.92e-16 eV
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] potential (final, 1A1) [all 30 images (q = -1.00..+1.50)]: quartic spline (degree 4, not-a-knot ends, 27 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 4.54e+00 / -8.05e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 7.90e-16 eV
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] checks: |psi| at walls / peak = 4.75e-16, orthonormality = 3.55e-15, ladder |E_v - E_0 - v hbar w| = 2.53e+03 (i) / 2.74e+02 (f) meV
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] F_ij built in 10.28 s
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] Integral check: 0.9999999999991572
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] fit: spline5-clamped (quintic spline (clamped))
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] potential (initial, 3E) [all 33 images (q = -1.00..+2.00)]: quintic spline (degree 5, clamped ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C2 junction (slope jumps 4.44e-16 / 1.78e-15 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 7.81e-16 eV
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] potential (final, 1A1) [all 30 images (q = -1.00..+1.50)]: quintic spline (degree 5, clamped ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C2 junction (slope jumps 5.11e-15 / 4.44e-16 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.63e-16 eV
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] checks: |psi| at walls / peak = 5.20e-16, orthonormality = 2.66e-15, ladder |E_v - E_0 - v hbar w| = 2.59e+03 (i) / 2.48e+02 (f) meV
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] F_ij built in 9.54 s
+  [3E -> 1A1, Finite difference [quintic spline (clamped)]] Integral check: 0.9999999999999597
+  [3E -> 1A1, Finite difference [cubic smoothing spline (rms 0.05 meV)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [3E -> 1A1, Finite difference [cubic smoothing spline (rms 0.05 meV)]] fit: spline3-s0.05 (cubic smoothing spline (rms 0.05 meV))
+  [3E -> 1A1, Finite difference [cubic smoothing spline (rms 0.05 meV)]] potential (initial, 3E) [all 33 images (q = -1.00..+2.00)]: cubic spline (degree 3, smoothing to rms <= 5e-05 eV, 30 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.76e+00 / 3.83e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 5.00e-05 eV
+  [3E -> 1A1, Finite difference [cubic smoothing spline (rms 0.05 meV)]] potential (final, 1A1) [all 30 images (q = -1.00..+1.50)]: cubic spline (degree 3, smoothing to rms <= 5e-05 eV, 26 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.92e+00 / -7.86e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 5.00e-05 eV
+  [3E -> 1A1, Finite difference [cubic smoothing spline (rms 0.05 meV)]] grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [3E -> 1A1, Finite difference [cubic smoothing spline (rms 0.05 meV)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
+  [3E -> 1A1, Finite difference [cubic smoothing spline (rms 0.05 meV)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [3E -> 1A1, Finite difference [cubic smoothing spline (rms 0.05 meV)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
+  [3E -> 1A1, Finite difference [cubic smoothing spline (rms 0.05 meV)]] checks: |psi| at walls / peak = 5.46e-16, orthonormality = 2.78e-15, ladder |E_v - E_0 - v hbar w| = 2.53e+03 (i) / 2.52e+02 (f) meV
+  [3E -> 1A1, Finite difference [cubic smoothing spline (rms 0.05 meV)]] F_ij built in 11.16 s
+  [3E -> 1A1, Finite difference [cubic smoothing spline (rms 0.05 meV)]] Integral check: 0.9999999999806207
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\06_vof_fits\vof_emission.csv
+  [1A1 -> 3E, Hermite (quadrature)] method: compute_franck_condon_integrals_hermite, <chi_i(Q + dQ) | chi_j(Q)> of harmonic eigenfunctions
+  [1A1 -> 3E, Hermite (quadrature)] grid: 100001 points, Q = -14.2326..14.2326 amu^0.5 A, h = 2.847e-04 amu^0.5 A; composite Simpson
+  [1A1 -> 3E, Hermite (quadrature)] omega_i = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [1A1 -> 3E, Hermite (quadrature)] omega_f = hbar sqrt(2a / amu) = 60.83324 meV, 3E well [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
+  [1A1 -> 3E, Hermite (quadrature)] F_ij built in 1.26 s
+  [1A1 -> 3E, Hermite (quadrature)] Integral check: 0.9999999998249766
+  [1A1 -> 3E, Finite difference] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [1A1 -> 3E, Finite difference] fit: parabola (parabola (near min.))
+  [1A1 -> 3E, Finite difference] potential (initial, 1A1) [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [1A1 -> 3E, Finite difference] potential (final, 3E) [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
+  [1A1 -> 3E, Finite difference] grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [1A1 -> 3E, Finite difference] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
+  [1A1 -> 3E, Finite difference] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [1A1 -> 3E, Finite difference] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
+  [1A1 -> 3E, Finite difference] checks: |psi| at walls / peak = 6.13e-16, orthonormality = 3.77e-15, ladder |E_v - E_0 - v hbar w| = 7.86e-07 (i) / 2.32e-05 (f) meV
+  [1A1 -> 3E, Finite difference] F_ij built in 10.16 s
+  [1A1 -> 3E, Finite difference] Integral check: 0.9999999998249759
+  [1A1 -> 3E, Finite difference [polynomial deg. 2]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [1A1 -> 3E, Finite difference [polynomial deg. 2]] fit: poly2 (polynomial deg. 2)
+  [1A1 -> 3E, Finite difference [polynomial deg. 2]] potential (initial, 1A1) [all 30 images (q = -1.00..+1.50)]: degree-2 polynomial in (Q - 3.097879), coefficients (highest first) [0.25, 0.4436, 2.63]; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.51e-01 eV
+  [1A1 -> 3E, Finite difference [polynomial deg. 2]] potential (final, 3E) [all 33 images (q = -1.00..+2.00)]: degree-2 polynomial in (Q - 0.000000), coefficients (highest first) [0.1622, -0.4672, 4.109]; fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 7.64e-01 eV
+  [1A1 -> 3E, Finite difference [polynomial deg. 2]] grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [1A1 -> 3E, Finite difference [polynomial deg. 2]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
+  [1A1 -> 3E, Finite difference [polynomial deg. 2]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [1A1 -> 3E, Finite difference [polynomial deg. 2]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
+  [1A1 -> 3E, Finite difference [polynomial deg. 2]] checks: |psi| at walls / peak = 7.92e-16, orthonormality = 4.22e-15, ladder |E_v - E_0 - v hbar w| = 1.40e+03 (i) / 3.82e+03 (f) meV
+  [1A1 -> 3E, Finite difference [polynomial deg. 2]] F_ij built in 11.87 s
+  [1A1 -> 3E, Finite difference [polynomial deg. 2]] Integral check: 0.9999999999999988
+  [1A1 -> 3E, Finite difference [polynomial deg. 4]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [1A1 -> 3E, Finite difference [polynomial deg. 4]] fit: poly4 (polynomial deg. 4)
+  [1A1 -> 3E, Finite difference [polynomial deg. 4]] potential (initial, 1A1) [all 30 images (q = -1.00..+1.50)]: degree-4 polynomial in (Q - 3.097879), coefficients (highest first) [0.009277, 0.04862, 0.1579, 0.06138, 2.633]; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 1.37e-01 eV
+  [1A1 -> 3E, Finite difference [polynomial deg. 4]] potential (final, 3E) [all 33 images (q = -1.00..+2.00)]: degree-4 polynomial in (Q - 0.000000), coefficients (highest first) [0.01143, -0.1145, 0.297, 0.3031, 3.268]; fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 1.90e-01 eV
+  [1A1 -> 3E, Finite difference [polynomial deg. 4]] grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [1A1 -> 3E, Finite difference [polynomial deg. 4]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
+  [1A1 -> 3E, Finite difference [polynomial deg. 4]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [1A1 -> 3E, Finite difference [polynomial deg. 4]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
+  [1A1 -> 3E, Finite difference [polynomial deg. 4]] checks: |psi| at walls / peak = 6.59e-16, orthonormality = 3.44e-15, ladder |E_v - E_0 - v hbar w| = 9.55e+02 (i) / 3.00e+03 (f) meV
+  [1A1 -> 3E, Finite difference [polynomial deg. 4]] F_ij built in 10.96 s
+  [1A1 -> 3E, Finite difference [polynomial deg. 4]] Integral check: 0.9999999999999993
+  [1A1 -> 3E, Finite difference [Morse]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [1A1 -> 3E, Finite difference [Morse]] fit: morse (Morse)
+  [1A1 -> 3E, Finite difference [Morse]] potential (initial, 1A1) [all 30 images (q = -1.00..+1.50)]: Morse D (1 - exp(-b (Q - Q_m)))^2 + c, D = 2.25616 eV, b = 0.196291, Q_m = 2.221639, c = 2.687448 eV; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 1.74e-01 eV
+  [1A1 -> 3E, Finite difference [Morse]] potential (final, 3E) [all 33 images (q = -1.00..+2.00)]: Morse D (1 - exp(-b (Q - Q_m)))^2 + c, D = 3.26191 eV, b = 0.305804, Q_m = -0.268821, c = 3.360306 eV; fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 2.94e-01 eV
+  [1A1 -> 3E, Finite difference [Morse]] grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [1A1 -> 3E, Finite difference [Morse]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
+  [1A1 -> 3E, Finite difference [Morse]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [1A1 -> 3E, Finite difference [Morse]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
+  [1A1 -> 3E, Finite difference [Morse]] checks: |psi| at walls / peak = 8.34e-03, orthonormality = 2.72e-15, ladder |E_v - E_0 - v hbar w| = 8.86e+02 (i) / 4.81e+03 (f) meV
+  [1A1 -> 3E, Finite difference [Morse]] WARNING: eigenstates reach the grid walls; the fit has too few bound levels for ni / nf
+  [1A1 -> 3E, Finite difference [Morse]] F_ij built in 11.78 s
+  [1A1 -> 3E, Finite difference [Morse]] Integral check: 0.9999999999999987
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] fit: spline (cubic spline (natural))
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] potential (initial, 1A1) [all 30 images (q = -1.00..+1.50)]: cubic spline (degree 3, natural ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.86e+00 / -5.45e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 2.69e-16 eV
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] potential (final, 3E) [all 33 images (q = -1.00..+2.00)]: cubic spline (degree 3, natural ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.04e+00 / 4.16e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 5.19e-16 eV
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] checks: |psi| at walls / peak = 5.62e-16, orthonormality = 2.89e-15, ladder |E_v - E_0 - v hbar w| = 2.54e+02 (i) / 2.52e+03 (f) meV
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] F_ij built in 13.44 s
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] Integral check: 0.9999999999993419
+  [1A1 -> 3E, Finite difference [cubic spline (not-a-knot)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [1A1 -> 3E, Finite difference [cubic spline (not-a-knot)]] fit: spline3-notaknot (cubic spline (not-a-knot))
+  [1A1 -> 3E, Finite difference [cubic spline (not-a-knot)]] potential (initial, 1A1) [all 30 images (q = -1.00..+1.50)]: cubic spline (degree 3, not-a-knot ends, 28 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.92e+00 / -7.91e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 2.56e-16 eV
+  [1A1 -> 3E, Finite difference [cubic spline (not-a-knot)]] potential (final, 3E) [all 33 images (q = -1.00..+2.00)]: cubic spline (degree 3, not-a-knot ends, 31 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.76e+00 / 3.83e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 4.23e-16 eV
+  [1A1 -> 3E, Finite difference [cubic spline (not-a-knot)]] grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [1A1 -> 3E, Finite difference [cubic spline (not-a-knot)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
+  [1A1 -> 3E, Finite difference [cubic spline (not-a-knot)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [1A1 -> 3E, Finite difference [cubic spline (not-a-knot)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
+  [1A1 -> 3E, Finite difference [cubic spline (not-a-knot)]] checks: |psi| at walls / peak = 5.41e-16, orthonormality = 3.00e-15, ladder |E_v - E_0 - v hbar w| = 2.52e+02 (i) / 2.53e+03 (f) meV
+  [1A1 -> 3E, Finite difference [cubic spline (not-a-knot)]] F_ij built in 11.46 s
+  [1A1 -> 3E, Finite difference [cubic spline (not-a-knot)]] Integral check: 0.999999999999369
+  [1A1 -> 3E, Finite difference [cubic spline (clamped)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [1A1 -> 3E, Finite difference [cubic spline (clamped)]] fit: spline3-clamped (cubic spline (clamped))
+  [1A1 -> 3E, Finite difference [cubic spline (clamped)]] potential (initial, 1A1) [all 30 images (q = -1.00..+1.50)]: cubic spline (degree 3, clamped ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C1 junction (slope jumps 8.88e-16 / 4.44e-16 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 2.29e-16 eV
+  [1A1 -> 3E, Finite difference [cubic spline (clamped)]] potential (final, 3E) [all 33 images (q = -1.00..+2.00)]: cubic spline (degree 3, clamped ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C1 junction (slope jumps -8.88e-16 / 8.88e-16 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 2.79e-16 eV
+  [1A1 -> 3E, Finite difference [cubic spline (clamped)]] grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [1A1 -> 3E, Finite difference [cubic spline (clamped)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
+  [1A1 -> 3E, Finite difference [cubic spline (clamped)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [1A1 -> 3E, Finite difference [cubic spline (clamped)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
+  [1A1 -> 3E, Finite difference [cubic spline (clamped)]] checks: |psi| at walls / peak = 4.29e-16, orthonormality = 3.33e-15, ladder |E_v - E_0 - v hbar w| = 2.48e+02 (i) / 2.57e+03 (f) meV
+  [1A1 -> 3E, Finite difference [cubic spline (clamped)]] F_ij built in 13.16 s
+  [1A1 -> 3E, Finite difference [cubic spline (clamped)]] Integral check: 0.999999999999166
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] fit: spline4-notaknot (quartic spline (not-a-knot))
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] potential (initial, 1A1) [all 30 images (q = -1.00..+1.50)]: quartic spline (degree 4, not-a-knot ends, 27 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 4.54e+00 / -8.05e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 7.90e-16 eV
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] potential (final, 3E) [all 33 images (q = -1.00..+2.00)]: quartic spline (degree 4, not-a-knot ends, 30 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 2.03e+00 / 4.22e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 8.92e-16 eV
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] checks: |psi| at walls / peak = 5.08e-16, orthonormality = 3.33e-15, ladder |E_v - E_0 - v hbar w| = 2.74e+02 (i) / 2.53e+03 (f) meV
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] F_ij built in 13.02 s
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] Integral check: 0.999999999999941
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] fit: spline5-clamped (quintic spline (clamped))
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] potential (initial, 1A1) [all 30 images (q = -1.00..+1.50)]: quintic spline (degree 5, clamped ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C2 junction (slope jumps 5.11e-15 / 4.44e-16 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.63e-16 eV
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] potential (final, 3E) [all 33 images (q = -1.00..+2.00)]: quintic spline (degree 5, clamped ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C2 junction (slope jumps 4.44e-16 / 1.78e-15 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 7.81e-16 eV
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] checks: |psi| at walls / peak = 8.85e-16, orthonormality = 3.77e-15, ladder |E_v - E_0 - v hbar w| = 2.48e+02 (i) / 2.59e+03 (f) meV
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] F_ij built in 16.46 s
+  [1A1 -> 3E, Finite difference [quintic spline (clamped)]] Integral check: 0.9999999999999963
+  [1A1 -> 3E, Finite difference [cubic smoothing spline (rms 0.05 meV)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [1A1 -> 3E, Finite difference [cubic smoothing spline (rms 0.05 meV)]] fit: spline3-s0.05 (cubic smoothing spline (rms 0.05 meV))
+  [1A1 -> 3E, Finite difference [cubic smoothing spline (rms 0.05 meV)]] potential (initial, 1A1) [all 30 images (q = -1.00..+1.50)]: cubic spline (degree 3, smoothing to rms <= 5e-05 eV, 26 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.92e+00 / -7.86e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 5.00e-05 eV
+  [1A1 -> 3E, Finite difference [cubic smoothing spline (rms 0.05 meV)]] potential (final, 3E) [all 33 images (q = -1.00..+2.00)]: cubic spline (degree 3, smoothing to rms <= 5e-05 eV, 30 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.76e+00 / 3.83e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 5.00e-05 eV
+  [1A1 -> 3E, Finite difference [cubic smoothing spline (rms 0.05 meV)]] grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
+  [1A1 -> 3E, Finite difference [cubic smoothing spline (rms 0.05 meV)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
+  [1A1 -> 3E, Finite difference [cubic smoothing spline (rms 0.05 meV)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [1A1 -> 3E, Finite difference [cubic smoothing spline (rms 0.05 meV)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
+  [1A1 -> 3E, Finite difference [cubic smoothing spline (rms 0.05 meV)]] checks: |psi| at walls / peak = 5.94e-16, orthonormality = 2.44e-15, ladder |E_v - E_0 - v hbar w| = 2.52e+02 (i) / 2.53e+03 (f) meV
+  [1A1 -> 3E, Finite difference [cubic smoothing spline (rms 0.05 meV)]] F_ij built in 13.86 s
+  [1A1 -> 3E, Finite difference [cubic smoothing spline (rms 0.05 meV)]] Integral check: 0.999999999999473
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\06_vof_fits\vof_absorption.csv
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\06_vof_fits\vof_fits.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\06_vof_fits\level_ladders.png
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\06_vof_fits\summary.csv
+  direction   fd on fit                              max dF_ij  max dVOF / peak  F_00^2   centroid shift (meV)
+  ----------  -------------------------------------  ---------  ---------------  -------  --------------------
+  emission    parabola (near min.)                   1.03e-08   1.92e-10         0.00000  0.00                
+  emission    polynomial deg. 2                      5.61e-01   2.18e+00         0.05473  -1043.35            
+  emission    polynomial deg. 4                      6.45e-01   7.46e-01         0.00000  -186.04             
+  emission    Morse                                  6.39e-01   4.95e-01         0.00000  42.37               
+  emission    cubic spline (natural)                 8.64e-01   5.70e+00         0.00000  -572.47             
+  emission    cubic spline (not-a-knot)              7.76e-01   5.09e+00         0.00000  -565.85             
+  emission    cubic spline (clamped)                 8.14e-01   5.32e+00         0.00000  -584.05             
+  emission    quartic spline (not-a-knot)            7.73e-01   5.07e+00         0.00000  -565.57             
+  emission    quintic spline (clamped)               7.03e-01   4.82e+00         0.00000  -590.54             
+  emission    cubic smoothing spline (rms 0.05 meV)  7.79e-01   5.11e+00         0.00000  -566.01             
+  absorption  parabola (near min.)                   1.03e-08   1.95e-09         0.00000  0.00                
+  absorption  polynomial deg. 2                      5.61e-01   7.62e+00         0.05473  -4094.87            
+  absorption  polynomial deg. 4                      6.45e-01   6.02e+00         0.00000  -2563.50            
+  absorption  Morse                                  6.39e-01   3.55e+00         0.00000  -3047.90            
+  absorption  cubic spline (natural)                 8.64e-01   1.05e+01         0.00000  -2379.71            
+  absorption  cubic spline (not-a-knot)              7.76e-01   9.58e+00         0.00000  -2382.17            
+  absorption  cubic spline (clamped)                 8.14e-01   9.28e+00         0.00000  -2173.41            
+  absorption  quartic spline (not-a-knot)            7.73e-01   8.95e+00         0.00000  -2385.15            
+  absorption  quintic spline (clamped)               7.03e-01   7.66e+00         0.00000  -2056.47            
+  absorption  cubic smoothing spline (rms 0.05 meV)  7.79e-01   9.58e+00         0.00000  -2382.17            
+
+07_cubic_perturbation skipped: the cubic fit has no exact solution to compare with: the 1A1 cubic turns over at Q = -1.70, inside the grid -6.68..10.23: no bound states in the box
+  wrote testing\outputs\suite\nv_mgo\vof_report\default\07_cubic_perturbation\skipped.json
+
+Method test (05): FAIL. Report finished in 474 s.
+
+Outputs in testing\outputs\suite\nv_mgo\vof_report\default (see index.md)

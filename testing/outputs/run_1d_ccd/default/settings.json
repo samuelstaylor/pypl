@@ -1,0 +1,19 @@
+{
+  "temp": 5.0,
+  "ezpl": 1945.0,
+  "order_es": 50,
+  "order_gs": 60,
+  "sigma": [
+    8.0,
+    25.0
+  ],
+  "gamma": 0.3,
+  "ene_range": [
+    -200.0,
+    1200.0
+  ],
+  "resol": 1401,
+  "tdm": 1.0,
+  "tag": "",
+  "show": false
+}

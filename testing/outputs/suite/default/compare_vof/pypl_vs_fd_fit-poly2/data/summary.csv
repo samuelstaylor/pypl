@@ -1,0 +1,3 @@
+direction,reference,test,fc_max,fc_at_text,fc_rms,fc_low,vof_max,vof_rms,zpl_weight_ref,zpl_weight,centroid_shift_mev,closure,integral,seconds,verdict
+emission,PyPL (Ruhoff),Finite difference [polynomial deg. 2],0.003358281344,"(49, 32)",0.0009439113736,0.002482031718,0.00242011588,7.099210636e-05,0.0282459247,0.02817756575,0.07076408773,1,1.010072863,2.3647919,FAIL
+absorption,PyPL (Ruhoff),Finite difference [polynomial deg. 2],0.00335828124,"(32, 49)",0.0009439113739,0.002482031716,0.002420133046,8.571013209e-05,0.0282459247,0.02817756575,0.2593920244,1,1.01007135,4.4066041,FAIL

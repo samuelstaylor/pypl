@@ -1,0 +1,64 @@
+# VOF method comparison: pypl_vs_cubic_cubicfit-cubic-free, started 2026-10-15T18:33:26
+# command: python.exe C:\Users\sammy\Research\Galli\programs\pypl\testing\compare_vof.py --reference pypl --test cubic --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --npts 100001 --fd-npts 20001 --fd-stencil 5 --fd-margin 2.0 --fd-fit parabola --cubic-points all --cubic-free-a --tol-fc 1e-07 --tol-vof 1e-08
+  wrote testing\outputs\suite\default\compare_vof\pypl_vs_cubic_cubicfit-cubic-free\settings.json
+Comparing VOFs: PyPL (Ruhoff) (reference) vs Hermite + cubic PT [cubic (a fitted, all images)]
+  bulid_fc_lsp: T = 5 K, sigma = [8.0, 25.0] meV, ZPL Lorentzian, gamma = 0.3 meV
+  lineshape axis: -200..1200 meV from the ZPL, 1401 points, step 1 meV
+  basis: 50 ES x 60 GS levels (emission ni x nf = 50 x 60, absorption 60 x 50)
+
+====================================================================================================
+  [ES -> GS, PyPL (Ruhoff)] method: inherited config_coord_1d_solver.compute_franck_condon_integrals, Ruhoff recurrences (Chem. Phys. 186, 355 (1994)), float64; no grid
+  [ES -> GS, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 64.31191 meV, ES well: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
+  [ES -> GS, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 59.08890 meV, GS well: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
+  [ES -> GS, PyPL (Ruhoff)] F_ij built in 0.02 s
+  [ES -> GS, PyPL (Ruhoff)] Integral check: 1.0100972996226194
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] method: compute_franck_condon_integrals_cubic, harmonic eigenfunctions + first-order correction for H' = b Q^3 (omega and HR factors unchanged; level energies stay harmonic)
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] cubic fit: cubic-free (cubic (a fitted, all images))
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] potential (initial, ES): cubic a (Q - 0.695732)^2 + b (Q - 0.695732)^3 + c, a = 0.492512 eV/(amu A^2) (fitted), b = -0.016648 eV/(amu^1.5 A^3), c = 1.705864 eV, turnover at Q = 20.42; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 1.59e-04 eV; unbounded beyond the turnover at Q = 20.42 (perturbative or in-box use only)
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] potential (final, GS): cubic a (Q - 0.000000)^2 + b (Q - 0.000000)^3 + c, a = 0.420755 eV/(amu A^2) (fitted), b = +0.005322 eV/(amu^1.5 A^3), c = -0.000085 eV, turnover at Q = -52.70; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.09e-04 eV; unbounded beyond the turnover at Q = -52.70 (perturbative or in-box use only)
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] solver frame: mirrored (both b change sign), so b_i = +0.016648, b_f = -0.005322 eV/(amu^1.5 A^3)
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] anharmonic strength: xi_i = +1.517e-03, xi_f = -5.992e-04; largest mixing 3|xi|(n+1)^1.5 = 1.61 (i) / 0.835 (f); below 0.1 up to n = 6 (i) / 13 (f)
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] norms <psi~|psi~> - 1: initial 2.22e-05..5.09e+00, final 3.47e-06..1.38e+00 (not renormalized)
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] grid: 100001 points, Q = -9.6694..9.6694 amu^0.5 A, h = 1.934e-04; composite Simpson; harmonic levels up to n + 3
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] omega_i = hbar sqrt(2a / amu) = 64.31191 meV, ES well: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] omega_f = hbar sqrt(2a / amu) = 59.08890 meV, GS well: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] Warning: initial state: the first-order mixing 3|xi|(n+1)^1.5 reaches 1.61 at n = 49 (|xi| = 1.52e-03); it stays below 0.1 only up to n = 6, so the correction is perturbative only for the lower levels; compute_franck_condon_integrals_fd solves the full potential.
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] Warning: final state: the first-order mixing 3|xi|(n+1)^1.5 reaches 0.835 at n = 59 (|xi| = 5.99e-04); it stays below 0.1 only up to n = 13, so the correction is perturbative only for the lower levels; compute_franck_condon_integrals_fd solves the full potential.
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] F_ij built in 4.35 s
+  [ES -> GS, Hermite + cubic PT [cubic (a fitted, all images)]] Integral check: 1.0099380530569158
+  wrote testing\outputs\suite\default\compare_vof\pypl_vs_cubic_cubicfit-cubic-free\data\vof_emission.csv
+
+====================================================================================================
+  [GS -> ES, PyPL (Ruhoff)] method: inherited config_coord_1d_solver.compute_franck_condon_integrals, Ruhoff recurrences (Chem. Phys. 186, 355 (1994)), float64; no grid
+  [GS -> ES, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 59.08890 meV, GS well: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
+  [GS -> ES, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 64.31191 meV, ES well: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
+  [GS -> ES, PyPL (Ruhoff)] F_ij built in 0.02 s
+  [GS -> ES, PyPL (Ruhoff)] Integral check: 1.010095819227892
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] method: compute_franck_condon_integrals_cubic, harmonic eigenfunctions + first-order correction for H' = b Q^3 (omega and HR factors unchanged; level energies stay harmonic)
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] cubic fit: cubic-free (cubic (a fitted, all images))
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] potential (initial, GS): cubic a (Q - 0.000000)^2 + b (Q - 0.000000)^3 + c, a = 0.420755 eV/(amu A^2) (fitted), b = +0.005322 eV/(amu^1.5 A^3), c = -0.000085 eV, turnover at Q = -52.70; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.09e-04 eV; unbounded beyond the turnover at Q = -52.70 (perturbative or in-box use only)
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] potential (final, ES): cubic a (Q - 0.695732)^2 + b (Q - 0.695732)^3 + c, a = 0.492512 eV/(amu A^2) (fitted), b = -0.016648 eV/(amu^1.5 A^3), c = 1.705864 eV, turnover at Q = 20.42; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 1.59e-04 eV; unbounded beyond the turnover at Q = 20.42 (perturbative or in-box use only)
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] solver frame: as on the CCD, so b_i = +0.005322, b_f = -0.016648 eV/(amu^1.5 A^3)
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] anharmonic strength: xi_i = +5.992e-04, xi_f = -1.517e-03; largest mixing 3|xi|(n+1)^1.5 = 0.835 (i) / 1.61 (f); below 0.1 up to n = 13 (i) / 6 (f)
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] norms <psi~|psi~> - 1: initial 3.47e-06..1.38e+00, final 2.22e-05..5.09e+00 (not renormalized)
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] grid: 100001 points, Q = -9.6694..9.6694 amu^0.5 A, h = 1.934e-04; composite Simpson; harmonic levels up to n + 3
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] omega_i = hbar sqrt(2a / amu) = 59.08890 meV, GS well: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] omega_f = hbar sqrt(2a / amu) = 64.31191 meV, ES well: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] Warning: initial state: the first-order mixing 3|xi|(n+1)^1.5 reaches 0.835 at n = 59 (|xi| = 5.99e-04); it stays below 0.1 only up to n = 13, so the correction is perturbative only for the lower levels; compute_franck_condon_integrals_fd solves the full potential.
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] Warning: final state: the first-order mixing 3|xi|(n+1)^1.5 reaches 1.61 at n = 49 (|xi| = 1.52e-03); it stays below 0.1 only up to n = 6, so the correction is perturbative only for the lower levels; compute_franck_condon_integrals_fd solves the full potential.
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] F_ij built in 4.25 s
+  [GS -> ES, Hermite + cubic PT [cubic (a fitted, all images)]] Integral check: 1.0107146316602786
+  wrote testing\outputs\suite\default\compare_vof\pypl_vs_cubic_cubicfit-cubic-free\data\vof_absorption.csv
+  wrote testing\outputs\suite\default\compare_vof\pypl_vs_cubic_cubicfit-cubic-free\figures\vof_comparison.png
+  wrote testing\outputs\suite\default\compare_vof\pypl_vs_cubic_cubicfit-cubic-free\figures\fc_error_maps.png
+  wrote testing\outputs\suite\default\compare_vof\pypl_vs_cubic_cubicfit-cubic-free\data\summary.csv
+
+direction   test                                               reference      max dF_ij  at (i, j)  max dF_ij (i,j<30)  max dVOF / peak  rms dVOF / peak  F_ij time (s)  verdict
+----------  -------------------------------------------------  -------------  ---------  ---------  ------------------  ---------------  ---------------  -------------  -------
+emission    Hermite + cubic PT [cubic (a fitted, all images)]  PyPL (Ruhoff)  9.81e-01   (43, 59)   3.19e-01            3.28e-02         1.23e-03         4.35           FAIL   
+absorption  Hermite + cubic PT [cubic (a fitted, all images)]  PyPL (Ruhoff)  9.81e-01   (59, 43)   3.19e-01            3.28e-02         1.76e-03         4.25           FAIL   
+
+FAIL: the lineshapes differ.
+NOTE: Hermite + cubic PT [cubic (a fitted, all images)] solve(s) an anharmonic problem, not the harmonic wells pypl / hermite use; differences from them are the anharmonicity, not an error. For a like-for-like test use the default methods and --fd-fit parabola.
+
+Outputs in testing\outputs\suite\default\compare_vof\pypl_vs_cubic_cubicfit-cubic-free (see index.md)

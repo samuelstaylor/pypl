@@ -1,0 +1,89 @@
+# Configuration of the master test suite, testing/run_all.py.
+#
+#   python testing/run_all.py                         # this file, all steps
+#   python testing/run_all.py --config my.toml        # your own copy of this file
+#   python testing/run_all.py --set physics.temp=300 --set fd.npts=40001 --name 300K-fine
+#   python testing/run_all.py --only compare plots    # a subset of the steps
+#   python testing/run_all.py --dry-run               # print every command without running it
+#
+# Every result goes to testing/outputs/suite/<name>/ ; open its index.md first. Copy this file to try a
+# different set of parameters: every key below is optional, and a missing key keeps the value shown here.
+# See testing/METHODS.md for what each method and fit does.
+
+[suite]
+name = "default"          # the suite directory: testing/outputs/suite/<name>/ (replaced when re-run)
+jobs = 1                  # steps run in parallel; each step can use ~1 GB, so raise this with care
+# Steps to run (false = skip). "checks" is the 59 regression checks, "tutorial" is tutorial 002 as a
+# script, "compare" the PASS/FAIL method comparisons, "plots" the CCD + wavefunction figures, "report" the
+# full seven-section report.
+steps = { checks = true, tutorial = true, compare = true, plots = true, report = true }
+
+[physics]                 # shared by every method
+temp = 5.0                # K
+sigma = [8.0, 25.0]       # meV, Gaussian broadening [at the ZPL, at 160 meV]; one value = constant
+gamma = 0.3               # meV, Lorentzian width of the ZPL
+zpl_lorentzian = true     # false: the ZPL keeps its Gaussian
+order_es = 50             # ES vibrational levels kept (emission ni, absorption nf)
+order_gs = 60             # GS vibrational levels kept
+ene_range = [-200.0, 1200.0]   # meV, lineshape axis relative to the ZPL
+resol = 1401              # points on that axis (1 meV steps resolve the 0.3 meV ZPL)
+ezpl = 1945.0             # meV, ZPL energy for the tutorial spectra
+tdm = 1.0                 # transition dipole moment for the tutorial spectra
+
+[methods]
+reference = "pypl"        # every comparison's reference: pypl (Ruhoff), hermite or fd
+harmonic = ["hermite", "fd"]   # methods compared like for like on the harmonic wells (must PASS)
+
+[hermite]
+npts = 100001             # Simpson quadrature points (also used by the cubic method)
+
+[fd]                      # finite-difference Schroedinger solver
+npts = 20001              # grid points
+stencil = 5               # 3 (O(h^2)) or 5 (O(h^4))
+margin = 2.0              # amu^0.5 A of grid beyond the outermost turning point
+# Fitted wells fd is run on (each one is compared with the reference and plotted). Spec strings:
+#   parabola | polyN (even N, e.g. poly2, poly6) | morse | cubic[-near][-free]
+#   spline[K][-natural|-notaknot|-clamped|-sRMS]   (K = 2..5; -s0.05 = smoothing spline, rms 0.05 meV)
+# Unbounded fits (e.g. poly4, poly8 here) are detected and skipped with the reason.
+fits = ["spline", "spline5-clamped", "morse", "poly2", "poly6", "cubic"]
+
+# Extra splines, given by their options instead of a spec string (each one is added to the fits above):
+#   order = 2..5, bc = "natural" | "not-a-knot" | "clamped", smoothing = rms target in meV (no bc then)
+[[fd.splines]]
+order = 4
+bc = "not-a-knot"
+
+[[fd.splines]]
+order = 3
+smoothing = 0.05
+
+[cubic]                   # first-order cubic anharmonic correction (method "cubic")
+enabled = true
+# Each variant is one cubic fit V = a Q^2 + b Q^3 + c of both wells:
+#   points = "all" (every image) | "parabola" (only the near-minimum images)
+#   free_a = false: a fixed to the parabola's (consistent H0) | true: a fitted too
+#   normalize = renormalize the corrected states (default: norm 1 + O(xi^2))
+# Each variant is compared with the reference AND with the exact fd solution of the same cubic.
+# The first variant is also the one analysed in report section 07.
+[[cubic.variants]]
+points = "all"
+free_a = false
+normalize = false
+
+[[cubic.variants]]
+points = "all"
+free_a = true
+normalize = false
+
+[plots]                   # plot_ccd_wavefunctions.py
+n_levels = 3              # wavefunctions drawn per well
+
+[report]                  # vof_report.py
+convergence = true        # the fd grid-convergence scan (section 02, ~1.5 min)
+cubic = true              # section 07 (cubic perturbation)
+# Fits compared in the report; [] = the report's own default set (parabola, poly2-8, morse, 6 splines).
+fits = []
+
+[tolerances]              # what PASS means for a like-for-like comparison
+fc = 1e-7                 # max |dF_ij| (PyPL's own float64 drift is ~2e-8)
+vof = 1e-8                # max |dVOF| / peak

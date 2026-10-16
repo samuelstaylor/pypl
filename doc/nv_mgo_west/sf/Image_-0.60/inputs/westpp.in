@@ -1,0 +1,7 @@
+westpp_control:
+  westpp_calculation: W
+  westpp_range:
+  - 857
+  - 863
+  westpp_format: C
+  westpp_sign: true

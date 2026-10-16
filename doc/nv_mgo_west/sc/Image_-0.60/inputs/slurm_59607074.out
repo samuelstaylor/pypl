@@ -1,0 +1,68 @@
+================================================================================
+SLURM JOB INFORMATION
+================================================================================
+Job Name            : ccd-sc-im-0.60
+Job ID              : 59607074
+Cluster             : perlmutter
+Account             : m4382_g
+Partition           : gpu_ss11
+QOS                 : gpu_regular
+
+Resources Requested
+-------------------
+Nodes               : 4
+Node List           : nid[002548,002669,002693,002841]
+Tasks per Node      : 4
+Total Tasks (calc)  : 16
+CPUs per Task       : 32
+GPUs per Node       : 4
+Total GPUs (calc)   : 16
+Memory per Node     : N/A
+Memory per CPU      : N/A
+
+Timing
+------
+Submit Directory    : /global/cfs/cdirs/m4382/sstaylor/projects/nv_mgo/tddft-ddh/phonons/ccd-extend/sc/Image_-0.60
+Submit Host         : login12
+Working Directory   : /global/cfs/cdirs/m4382/sstaylor/projects/nv_mgo/tddft-ddh/phonons/ccd-extend/sc/Image_-0.60
+Start Time          : 2026-10-10 14:02:26 PDT
+Requested Walltime  : 10:00:00
+
+Environment
+-----------
+User                : sstaylor
+Hostname            : nid002548
+SLURM Version       : slurm 25.11.8
+================================================================================
+
+
+Queue Information
+-----------------
+59607074     2026-10-09T15:45:48 2026-10-09T15:45:48 2026-10-10T14:02:09    RUNNING 
+59607074.ba+ 2026-10-10T14:02:09 2026-10-10T14:02:09 2026-10-10T14:02:09    RUNNING 
+59607074.ex+ 2026-10-10T14:02:09 2026-10-10T14:02:09 2026-10-10T14:02:09    RUNNING 
+========================================
+Job ID: 59607074
+Start Time: Sat Oct 10 02:02:28 PM PDT 2026
+Submit Dir: /global/cfs/cdirs/m4382/sstaylor/projects/nv_mgo/tddft-ddh/phonons/ccd-extend/sc/Image_-0.60
+========================================
+----------------------------------------
+Running:
+srun /global/homes/s/sstaylor/software/QEdir/bin/wbse.x -nb 16 -i wbse.in > wbse.out
+Start: Sat Oct 10 02:02:28 PM PDT 2026
+End: Sat Oct 10 11:59:43 PM PDT 2026
+Elapsed: 09:57:15
+========================================
+All steps completed successfully
+End Time: Sat Oct 10 11:59:43 PM PDT 2026
+========================================
+
+================================================================================
+FINAL JOB SUMMARY
+================================================================================
+JobID|JobName|Partition|QOS|Account|AllocNodes|NTasks|State|ExitCode|Elapsed|TotalCPU|CPUTime|MaxRSS|NodeList
+59607074|ccd-sc-im-0.60|gpu_ss11|gpu_regular|m4382_g|4||RUNNING|0:0|09:57:44|5-19:46:08|212-12:39:28||nid[002548,002669,002693,002841]
+59607074.batch|batch|||m4382_g|1|1|RUNNING|0:0|09:57:44|00:00:00|53-03:09:52||nid002548
+59607074.extern|extern|||m4382_g|4|4|RUNNING|0:0|09:57:44|00:00:00|212-12:39:28||nid[002548,002669,002693,002841]
+59607074.0|wbse.x|||m4382_g|4|16|COMPLETED|0:0|09:57:14|5-19:46:08|212-08:23:28|22424012K|nid[002548,002669,002693,002841]
+================================================================================

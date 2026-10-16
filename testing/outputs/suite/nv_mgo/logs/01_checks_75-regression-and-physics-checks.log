@@ -1,0 +1,98 @@
+$ python testing/check_1d_ccd.py -v
+
+CCD construction (parsers + parabolic fits)
+  PASS  delta_q                                        got  0.695732  expected  0.695732  (tol 1e-05 amu^0.5 A)
+  PASS  gs_phonon                                      got  59.0889  expected  59.0889  (tol 0.001 meV)
+  PASS  es_phonon                                      got  64.3119  expected  64.3119  (tol 0.001 meV)
+  PASS  gs_hrf                                         got  3.42111  expected  3.4211  (tol 0.001)
+  PASS  es_hrf                                         got  3.72351  expected  3.7235  (tol 0.001)
+  PASS  ES frequency exceeds GS frequency              
+
+Franck-Condon integrals
+  PASS  closure sum_j |F_0j|^2                         got  1  expected  1  (tol 1e-08)
+  PASS  closure holds for i < 10                       max dev 6.66e-16
+  PASS  all FC integrals finite                        
+  PASS  0 < |F_00|^2 < 1                               |F_00|^2 = 2.8246e-02
+  PASS  delta_q = 0 gives identity overlap             max dev 0.00e+00
+
+FC lineshape
+  PASS  lineshape integrates to 1                      got  1.0101  expected  1  (tol 0.05)
+  PASS  lineshape is non-negative                      min 1.917e-09
+  PASS  Boltzmann weights sum to 1                     got  1  expected  1  (tol 1e-12)
+  PASS  T = 5 K populates only the lowest level        p_0 = 1.00000000
+  PASS  T = 800 K populates excited levels             p_1 = 2.3864e-01
+  PASS  order (50,60) is converged vs (80,100)         max rel dev 0.00e+00
+  PASS  equal frequencies give F_ij = (-1)^(i+j) F_ji  max dev 1.90e-11
+  PASS  equal frequencies give identical PL and Abs lineshapes 
+
+PL and absorption spectra
+  PASS  PL axis runs downward from the ZPL             
+  PASS  Abs axis runs upward from the ZPL              
+  PASS  PL is non-negative                             
+  PASS  Abs is non-negative                            
+  PASS  PL peaks at the ZPL                            got  1945  expected  1945  (tol 1 meV)
+  PASS  Abs peaks at the ZPL                           got  1945  expected  1945  (tol 1 meV)
+  PASS  PL weight lies below the ZPL                   
+  PASS  Abs weight lies above the ZPL                  
+  PASS  invalid spectrum_type raises ValueError        
+
+Extension (pypl_ext) leaves PyPL unchanged
+  PASS  vof solver overrides no config_coord_1d_solver attribute overridden: []
+  PASS  vof solver is a config_coord_1d_solver         
+  PASS  inherited compute_franck_condon_integrals is bit-identical 
+  PASS  inherited bulid_fc_lsp is bit-identical        
+  PASS  inherited compute_spectrum is bit-identical    
+
+New F_ij routes (20 x 20 block)
+  PASS  hermite F_ij matches the Ruhoff recurrences    max dev 6.39e-13
+  PASS  fd F_ij on the parabolas matches the Ruhoff recurrences max dev 9.47e-11
+  PASS  fd eigenstates are bound (|psi| at the walls < 1e-12) 2.3e-16
+
+Potential fits
+  PASS  spline passes through every image              max residual 1.4e-17 eV
+  PASS  degree-4 polynomial is flagged unbounded       
+  PASS  parabola phonon_energy is the solver's omega   got  59.0889  expected  59.0889  (tol 1e-12 meV)
+
+Spline options
+  PASS  default spline is the natural cubic spline     max dev 1.7e-16 eV
+  PASS  spline3-notaknot passes through every image    max residual 2.8e-17 eV
+  PASS  spline3-clamped passes through every image     max residual 1.4e-17 eV
+  PASS  spline4-notaknot passes through every image    max residual 5.6e-17 eV
+  PASS  spline5-natural passes through every image     max residual 1.1e-15 eV
+  PASS  spline5-clamped passes through every image     max residual 2.8e-17 eV
+  PASS  cubic clamped spline joins its tails in C1     
+  PASS  quintic clamped spline joins its tails in C2   
+  PASS  smoothing spline meets its rms target          rms 0.05000 meV (target 0.05)
+  PASS  spline4-natural is rejected (even order)       
+  PASS  spline2-clamped is rejected (even order)       
+
+Cubic anharmonic correction
+  PASS  cubic fit keeps the parabola's a (omega unchanged) 
+  PASS  cubic fit phonon_energy is the harmonic omega  got  59.0889  expected  59.0889  (tol 1e-12 meV)
+  PASS  xi matches the SI formula                      xi = 1.031698e-03
+  PASS  b = 0 reproduces the Hermite route             max dev 4.4e-16
+  PASS  norms equal 1 + sum of squared PT coefficients max dev 6.7e-16
+  PASS  norms are 1 + O(xi^2) at n = 0                 norm - 1 = 1.03e-05, xi^2 = 1.06e-06
+  PASS  PT error vs the exact cubic falls as b^2       ratio 3.92
+  PASS  emission-frame sign of b is right (wrong sign is much worse) 1.1e-01 vs 3.7e-03
+  PASS  |xi| > 0.1 prints the warning                  
+
+Large Huang-Rhys factors and the NV- in MgO dataset
+  PASS  recurrence = explicit H_n formula (n <= 20)    max rel dev 2.2e-15
+  PASS  harmonic functions orthonormal up to n = 300   max dev 2.3e-12
+  PASS  hermite F_ij finite with 200 levels (no 2^n n! overflow) 
+  PASS  hermite closure of row 0, S ~ 50               got  1  expected  1  (tol 1e-10)
+  PASS  MgO delta_q (ccd_nv_mgo.py: 3.097879)          got  3.09788  expected  3.09788  (tol 1e-06 amu^0.5 A)
+  PASS  MgO images: every one, 30 x 1A1 (no sf +2.00), 33 x 3E 
+  PASS  MgO 3E minimum at Q = 0, 1A1 at Q = delta_q    
+  PASS  MgO 3E lowest image at Q = 0 (q = +0.00)       
+  PASS  MgO 1A1 lowest image at Q = delta_q (q = +1.00) got  3.09788  expected  3.09788  (tol 1e-12)
+  PASS  MgO 3E minimum vs 3A2 zero (ccd_nv_mgo.py: 3.1376 eV) got  3.13762  expected  3.1376  (tol 5e-05 eV)
+  PASS  MgO ZPL from the images (ccd_nv_mgo.py: 554.4 meV) got  554.414  expected  554.4  (tol 0.05 meV)
+  PASS  dataset choice leaves STATE_NAMES on the active one 
+  PASS  MgO parabola images: 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15 
+  PASS  MgO cubic-fit images: q = -0.10..+1.15 for both (26 each) 
+  PASS  MgO spline / Morse / polyN use every image     
+  PASS  fd = hermite with the 3E well left of 1A1 (MgO orientation) max dF 1.2e-11
+
+75/75 checks passed.

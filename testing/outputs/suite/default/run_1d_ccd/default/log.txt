@@ -1,0 +1,18 @@
+# Tutorial 002 as a script, started 2026-10-15T18:27:51
+# command: python.exe C:\Users\sammy\Research\Galli\programs\pypl\testing\run_1d_ccd.py --temp 5.0 --ezpl 1945.0 --order-es 50 --order-gs 60 --sigma 8.0 25.0 --gamma 0.3 --ene-range -200.0 1200.0 --resol 1401 --tdm 1.0
+  wrote testing\outputs\suite\default\run_1d_ccd\default\settings.json
+[1/3] Constructing the 1D configurational coordinate diagram
+
+[2/3] Computing spectra
+  temp=5 K  ezpl=1945 meV  sigma=[8.0, 25.0] meV  gamma=0.3 meV  orders=(es 50, gs 60)
+  PL  peak at  1945.00 meV
+  Abs peak at  1945.00 meV
+
+[3/3] Writing outputs
+  wrote testing\outputs\suite\default\run_1d_ccd\default\data\ccd_summary.csv
+  wrote testing\outputs\suite\default\run_1d_ccd\default\data\pl_spectrum.csv
+  wrote testing\outputs\suite\default\run_1d_ccd\default\data\abs_spectrum.csv
+  wrote testing\outputs\suite\default\run_1d_ccd\default\figures\ccd_diagram.png
+  wrote testing\outputs\suite\default\run_1d_ccd\default\figures\spectra.png
+
+Outputs in testing\outputs\suite\default\run_1d_ccd\default (see index.md)

@@ -1,0 +1,4 @@
+{
+  "cubic_fit": "cubic",
+  "reason": "the cubic fit has no exact solution to compare with: the 1A1 cubic turns over at Q = -1.70, inside the grid -6.68..10.23: no bound states in the box"
+}

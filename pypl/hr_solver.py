@@ -117,7 +117,7 @@ class hr_solver:
 
         .. math::
 
-            G(x) = \frac{1}{\sqrt{2 \pi \sigma^2}} \exp \left(-\frac{(x - \mu)^2}{2 \sigma^2}\right)
+            $G(x) = \frac{1}{\sqrt{2 \pi \sigma^2}} \exp \left(-\frac{(x - \mu)^2}{2 \sigma^2}\right)$
 
         Parameters
         ----------
@@ -146,7 +146,7 @@ class hr_solver:
 
         .. math::
 
-            \sigma(\omega_k) = \sigma_0 - \frac{\sigma_0 - \sigma_1}{\max(\omega_k) - \min(\omega_k)} (\omega_k - \min(\omega_k))
+            $\sigma(\omega_k) = \sigma_0 - \frac{\sigma_0 - \sigma_1}{\max(\omega_k) - \min(\omega_k)} (\omega_k - \min(\omega_k))$
 
         Parameters
         ----------
@@ -171,9 +171,8 @@ class hr_solver:
 
         .. math::
 
-            S(\hbar\omega) =
-            \sum_k S_k \, G(\hbar\omega; \hbar\omega_k, \sigma(\omega_k))
-
+            $S(\hbar\omega) = \sum_k S_k \, G(\hbar\omega; \hbar\omega_k, \sigma(\omega_k))$
+w
         where :math:`S_k` is the partial Huang–Rhys factor and
         :math:`G` is a normalized Gaussian.
 
@@ -232,9 +231,7 @@ class hr_solver:
 
         .. math::
 
-            A(\hbar\omega, T) =
-            \int dt \,
-            \exp\!\left(i \omega t - \frac{|t|\gamma_\mathrm{ZPL}}{\hbar}\right) G(t, T)
+            $A(\hbar\omega, T) =\int dt \, \exp\!\left(i \omega t - \frac{|t|\gamma_\mathrm{ZPL}}{\hbar}\right) G(t, T)$
 
         where :math:`G(t, T)` is the generating function with phonon broadening,
         and :math:`\gamma_\mathrm{ZPL}` is the zero-phonon line (ZPL) broadening.
@@ -293,9 +290,8 @@ class hr_solver:
 
         .. math::
 
-            A(\hbar\omega, T) =
-            \frac{1}{2\pi\hbar} \int dt \,
-            \exp\!\left(i \omega t - \frac{|t|\gamma_\mathrm{ZPL}}{\hbar}\right) G(t, T)
+            $A(\hbar\omega, T) = \frac{1}{2\pi\hbar} \int dt \, \exp\!\left(i \omega t - \frac{|t|\gamma_\mathrm{ZPL}}{\hbar}\right) G(t, T)$
+            
 
         Parameters
         ----------

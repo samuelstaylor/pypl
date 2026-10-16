@@ -194,13 +194,13 @@ class hr_factors:
 
         .. math::
 
-            S_k = \frac{\omega_k \Delta Q_k^2}{2 \hbar}
+            $S_k = \frac{\omega_k \Delta Q_k^2}{2 \hbar}$
 
         where
 
         .. math::
 
-            \Delta Q_k = \frac{1}{\omega_k^2} \sum_{\alpha=1}^N \sum_{i=x,y,z} \frac{F_{\alpha i}}{\sqrt{M_\alpha}} e_{k, \alpha i}
+            $\Delta Q_k = \frac{1}{\omega_k^2} \sum_{\alpha=1}^N \sum_{i=x,y,z} \frac{F_{\alpha i}}{\sqrt{M_\alpha}} e_{k, \alpha i}$
 
         Parameters
         ----------
@@ -237,13 +237,13 @@ class hr_factors:
 
         .. math::
 
-            S_k = \frac{\omega_k \Delta Q_k^2}{2 \hbar}
+            $S_k = \frac{\omega_k \Delta Q_k^2}{2 \hbar}$
 
         with
 
         .. math::
 
-            \Delta Q_k = \sum_{\alpha=1}^N \sum_{i=x,y,z} \sqrt{M_\alpha} \Delta R_{\alpha i} e_{k, \alpha i}
+            $\Delta Q_k = \sum_{\alpha=1}^N \sum_{i=x,y,z} \sqrt{M_\alpha} \Delta R_{\alpha i} e_{k, \alpha i}$
 
         Parameters
         ----------

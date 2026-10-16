@@ -1,0 +1,14 @@
+quantity,value
+delta_q,0.6957319145
+gs_phonon,59.08889712
+es_phonon,64.31191364
+gs_hrf,3.42110898
+es_hrf,3.723509423
+temp,5
+ezpl,1945
+gamma,0.3
+tdm,1
+order_es,50
+order_gs,60
+resol,1401
+sigma,8.0 25.0

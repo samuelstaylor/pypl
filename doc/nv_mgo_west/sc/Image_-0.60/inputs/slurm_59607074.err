@@ -1,0 +1,50 @@
+
+Lmod is automatically replacing "gcc-native/14" with "nvidia/26.5".
+
+
+Lmod is automatically replacing "PrgEnv-gnu/8.7.0" with "PrgEnv-nvidia/8.7.0".
+
+
+Due to MODULEPATH changes, the following have been reloaded:
+  1) cray-libsci/26.03.0     2) cray-mpich/9.1.0
+
+
+The following have been reloaded with a version change:
+  1) nvidia/26.5 => nvidia/25.5
+
+[13] This process is not using the same device it did during gtl_init.
+ Current device_id 1 original device_id 0.
+ Use of IPC is disabled from this point. IPC PUT protocol may be used instead 
+[14] This process is not using the same device it did during gtl_init.
+ Current device_id 2 original device_id 0.
+ Use of IPC is disabled from this point. IPC PUT protocol may be used instead 
+[9] This process is not using the same device it did during gtl_init.
+ Current device_id 1 original device_id 0.
+ Use of IPC is disabled from this point. IPC PUT protocol may be used instead 
+[2] This process is not using the same device it did during gtl_init.
+ Current device_id 2 original device_id 0.
+ Use of IPC is disabled from this point. IPC PUT protocol may be used instead 
+[5] This process is not using the same device it did during gtl_init.
+ Current device_id 1 original device_id 0.
+ Use of IPC is disabled from this point. IPC PUT protocol may be used instead 
+[10] This process is not using the same device it did during gtl_init.
+ Current device_id 2 original device_id 0.
+ Use of IPC is disabled from this point. IPC PUT protocol may be used instead 
+[1] This process is not using the same device it did during gtl_init.
+ Current device_id 1 original device_id 0.
+ Use of IPC is disabled from this point. IPC PUT protocol may be used instead 
+[6] This process is not using the same device it did during gtl_init.
+ Current device_id 2 original device_id 0.
+ Use of IPC is disabled from this point. IPC PUT protocol may be used instead 
+[15] This process is not using the same device it did during gtl_init.
+ Current device_id 3 original device_id 0.
+ Use of IPC is disabled from this point. IPC PUT protocol may be used instead 
+[11] This process is not using the same device it did during gtl_init.
+ Current device_id 3 original device_id 0.
+ Use of IPC is disabled from this point. IPC PUT protocol may be used instead 
+[3] This process is not using the same device it did during gtl_init.
+ Current device_id 3 original device_id 0.
+ Use of IPC is disabled from this point. IPC PUT protocol may be used instead 
+[7] This process is not using the same device it did during gtl_init.
+ Current device_id 3 original device_id 0.
+ Use of IPC is disabled from this point. IPC PUT protocol may be used instead 

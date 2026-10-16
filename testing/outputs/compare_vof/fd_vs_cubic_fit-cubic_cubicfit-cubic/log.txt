@@ -1,0 +1,76 @@
+# VOF method comparison: fd_vs_cubic_fit-cubic_cubicfit-cubic, started 2026-10-15T17:39:49
+# command: python.exe compare_vof.py --reference fd --fd-fit cubic --test cubic
+  wrote testing\outputs\compare_vof\fd_vs_cubic_fit-cubic_cubicfit-cubic\settings.json
+Comparing VOFs: Finite difference [cubic (a fixed, all images)] (reference) vs Hermite + cubic PT
+  bulid_fc_lsp: T = 5 K, sigma = [8.0, 25.0] meV, ZPL Lorentzian, gamma = 0.3 meV
+  lineshape axis: -200..1200 meV from the ZPL, 1401 points, step 1 meV
+  basis: 50 ES x 60 GS levels (emission ni x nf = 50 x 60, absorption 60 x 50)
+
+====================================================================================================
+  [ES -> GS, Finite difference [cubic (a fixed, all images)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [ES -> GS, Finite difference [cubic (a fixed, all images)]] fit: cubic (cubic (a fixed, all images))
+  [ES -> GS, Finite difference [cubic (a fixed, all images)]] potential (initial, ES): cubic a (Q - 0.695732)^2 + b (Q - 0.695732)^3 + c, a = 0.494721 eV/(amu A^2) (fixed), b = -0.012655 eV/(amu^1.5 A^3), c = 1.705818 eV, turnover at Q = 26.76; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 1.63e-04 eV; unbounded beyond the turnover at Q = 26.76 (perturbative or in-box use only)
+  [ES -> GS, Finite difference [cubic (a fixed, all images)]] potential (final, GS): cubic a (Q - 0.000000)^2 + b (Q - 0.000000)^3 + c, a = 0.417627 eV/(amu A^2) (fixed), b = +0.009164 eV/(amu^1.5 A^3), c = 0.000052 eV, turnover at Q = -30.38; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.60e-04 eV; unbounded beyond the turnover at Q = -30.38 (perturbative or in-box use only)
+  [ES -> GS, Finite difference [cubic (a fixed, all images)]] grid: 20001 points, frame x = -(Q - Q_f), x = -5.2324..4.9015 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5 A
+  [ES -> GS, Finite difference [cubic (a fixed, all images)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 49 (2.5367) and v = 59 (2.9015)
+  [ES -> GS, Finite difference [cubic (a fixed, all images)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [ES -> GS, Finite difference [cubic (a fixed, all images)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 50 and 60 states
+  [ES -> GS, Finite difference [cubic (a fixed, all images)]] checks: |psi| at walls / peak = 3.03e-16, orthonormality = 3.77e-15, ladder |E_v - E_0 - v hbar w| = 6.32e+00 (i) / 6.72e+00 (f) meV
+  [ES -> GS, Finite difference [cubic (a fixed, all images)]] F_ij built in 1.75 s
+  [ES -> GS, Finite difference [cubic (a fixed, all images)]] Integral check: 1.009755648036604
+  [ES -> GS, Hermite + cubic PT] method: compute_franck_condon_integrals_cubic, harmonic eigenfunctions + first-order correction for H' = b Q^3 (omega and HR factors unchanged; level energies stay harmonic)
+  [ES -> GS, Hermite + cubic PT] cubic fit: cubic (cubic (a fixed, all images))
+  [ES -> GS, Hermite + cubic PT] potential (initial, ES): cubic a (Q - 0.695732)^2 + b (Q - 0.695732)^3 + c, a = 0.494721 eV/(amu A^2) (fixed), b = -0.012655 eV/(amu^1.5 A^3), c = 1.705818 eV, turnover at Q = 26.76; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 1.63e-04 eV; unbounded beyond the turnover at Q = 26.76 (perturbative or in-box use only)
+  [ES -> GS, Hermite + cubic PT] potential (final, GS): cubic a (Q - 0.000000)^2 + b (Q - 0.000000)^3 + c, a = 0.417627 eV/(amu A^2) (fixed), b = +0.009164 eV/(amu^1.5 A^3), c = 0.000052 eV, turnover at Q = -30.38; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.60e-04 eV; unbounded beyond the turnover at Q = -30.38 (perturbative or in-box use only)
+  [ES -> GS, Hermite + cubic PT] solver frame: mirrored (both b change sign), so b_i = +0.012655, b_f = -0.009164 eV/(amu^1.5 A^3)
+  [ES -> GS, Hermite + cubic PT] anharmonic strength: xi_i = +1.153e-03, xi_f = -1.032e-03; largest mixing 3|xi|(n+1)^1.5 = 1.22 (i) / 1.44 (f); below 0.1 up to n = 8 (i) / 9 (f)
+  [ES -> GS, Hermite + cubic PT] norms <psi~|psi~> - 1: initial 1.28e-05..2.94e+00, final 1.03e-05..4.09e+00 (not renormalized)
+  [ES -> GS, Hermite + cubic PT] grid: 100001 points, Q = -9.6694..9.6694 amu^0.5 A, h = 1.934e-04; composite Simpson; harmonic levels up to n + 3
+  [ES -> GS, Hermite + cubic PT] omega_i = hbar sqrt(2a / amu) = 64.31191 meV, ES well: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
+  [ES -> GS, Hermite + cubic PT] omega_f = hbar sqrt(2a / amu) = 59.08890 meV, GS well: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
+  [ES -> GS, Hermite + cubic PT] Warning: initial state: the first-order mixing 3|xi|(n+1)^1.5 reaches 1.22 at n = 49 (|xi| = 1.15e-03); it stays below 0.1 only up to n = 8, so the correction is perturbative only for the lower levels; compute_franck_condon_integrals_fd solves the full potential.
+  [ES -> GS, Hermite + cubic PT] Warning: final state: the first-order mixing 3|xi|(n+1)^1.5 reaches 1.44 at n = 59 (|xi| = 1.03e-03); it stays below 0.1 only up to n = 9, so the correction is perturbative only for the lower levels; compute_franck_condon_integrals_fd solves the full potential.
+  [ES -> GS, Hermite + cubic PT] F_ij built in 1.50 s
+  [ES -> GS, Hermite + cubic PT] Integral check: 1.0102091413481953
+  wrote testing\outputs\compare_vof\fd_vs_cubic_fit-cubic_cubicfit-cubic\data\vof_emission.csv
+
+====================================================================================================
+  [GS -> ES, Finite difference [cubic (a fixed, all images)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+  [GS -> ES, Finite difference [cubic (a fixed, all images)]] fit: cubic (cubic (a fixed, all images))
+  [GS -> ES, Finite difference [cubic (a fixed, all images)]] potential (initial, GS): cubic a (Q - 0.000000)^2 + b (Q - 0.000000)^3 + c, a = 0.417627 eV/(amu A^2) (fixed), b = +0.009164 eV/(amu^1.5 A^3), c = 0.000052 eV, turnover at Q = -30.38; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.60e-04 eV; unbounded beyond the turnover at Q = -30.38 (perturbative or in-box use only)
+  [GS -> ES, Finite difference [cubic (a fixed, all images)]] potential (final, ES): cubic a (Q - 0.695732)^2 + b (Q - 0.695732)^3 + c, a = 0.494721 eV/(amu A^2) (fixed), b = -0.012655 eV/(amu^1.5 A^3), c = 1.705818 eV, turnover at Q = 26.76; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 1.63e-04 eV; unbounded beyond the turnover at Q = 26.76 (perturbative or in-box use only)
+  [GS -> ES, Finite difference [cubic (a fixed, all images)]] grid: 20001 points, frame x = Q - Q_f, x = -5.5972..4.5367 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5 A
+  [GS -> ES, Finite difference [cubic (a fixed, all images)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 59 (2.9015) and v = 49 (2.5367)
+  [GS -> ES, Finite difference [cubic (a fixed, all images)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+  [GS -> ES, Finite difference [cubic (a fixed, all images)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 60 and 50 states
+  [GS -> ES, Finite difference [cubic (a fixed, all images)]] checks: |psi| at walls / peak = 4.16e-16, orthonormality = 3.11e-15, ladder |E_v - E_0 - v hbar w| = 6.72e+00 (i) / 6.32e+00 (f) meV
+  [GS -> ES, Finite difference [cubic (a fixed, all images)]] F_ij built in 1.92 s
+  [GS -> ES, Finite difference [cubic (a fixed, all images)]] Integral check: 1.0097519090722606
+  [GS -> ES, Hermite + cubic PT] method: compute_franck_condon_integrals_cubic, harmonic eigenfunctions + first-order correction for H' = b Q^3 (omega and HR factors unchanged; level energies stay harmonic)
+  [GS -> ES, Hermite + cubic PT] cubic fit: cubic (cubic (a fixed, all images))
+  [GS -> ES, Hermite + cubic PT] potential (initial, GS): cubic a (Q - 0.000000)^2 + b (Q - 0.000000)^3 + c, a = 0.417627 eV/(amu A^2) (fixed), b = +0.009164 eV/(amu^1.5 A^3), c = 0.000052 eV, turnover at Q = -30.38; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.60e-04 eV; unbounded beyond the turnover at Q = -30.38 (perturbative or in-box use only)
+  [GS -> ES, Hermite + cubic PT] potential (final, ES): cubic a (Q - 0.695732)^2 + b (Q - 0.695732)^3 + c, a = 0.494721 eV/(amu A^2) (fixed), b = -0.012655 eV/(amu^1.5 A^3), c = 1.705818 eV, turnover at Q = 26.76; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 1.63e-04 eV; unbounded beyond the turnover at Q = 26.76 (perturbative or in-box use only)
+  [GS -> ES, Hermite + cubic PT] solver frame: as on the CCD, so b_i = +0.009164, b_f = -0.012655 eV/(amu^1.5 A^3)
+  [GS -> ES, Hermite + cubic PT] anharmonic strength: xi_i = +1.032e-03, xi_f = -1.153e-03; largest mixing 3|xi|(n+1)^1.5 = 1.44 (i) / 1.22 (f); below 0.1 up to n = 9 (i) / 8 (f)
+  [GS -> ES, Hermite + cubic PT] norms <psi~|psi~> - 1: initial 1.03e-05..4.09e+00, final 1.28e-05..2.94e+00 (not renormalized)
+  [GS -> ES, Hermite + cubic PT] grid: 100001 points, Q = -9.6694..9.6694 amu^0.5 A, h = 1.934e-04; composite Simpson; harmonic levels up to n + 3
+  [GS -> ES, Hermite + cubic PT] omega_i = hbar sqrt(2a / amu) = 59.08890 meV, GS well: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
+  [GS -> ES, Hermite + cubic PT] omega_f = hbar sqrt(2a / amu) = 64.31191 meV, ES well: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
+  [GS -> ES, Hermite + cubic PT] Warning: initial state: the first-order mixing 3|xi|(n+1)^1.5 reaches 1.44 at n = 59 (|xi| = 1.03e-03); it stays below 0.1 only up to n = 9, so the correction is perturbative only for the lower levels; compute_franck_condon_integrals_fd solves the full potential.
+  [GS -> ES, Hermite + cubic PT] Warning: final state: the first-order mixing 3|xi|(n+1)^1.5 reaches 1.22 at n = 49 (|xi| = 1.15e-03); it stays below 0.1 only up to n = 8, so the correction is perturbative only for the lower levels; compute_franck_condon_integrals_fd solves the full potential.
+  [GS -> ES, Hermite + cubic PT] F_ij built in 1.52 s
+  [GS -> ES, Hermite + cubic PT] Integral check: 1.0103081857353944
+  wrote testing\outputs\compare_vof\fd_vs_cubic_fit-cubic_cubicfit-cubic\data\vof_absorption.csv
+  wrote testing\outputs\compare_vof\fd_vs_cubic_fit-cubic_cubicfit-cubic\figures\vof_comparison.png
+  wrote testing\outputs\compare_vof\fd_vs_cubic_fit-cubic_cubicfit-cubic\figures\fc_error_maps.png
+  wrote testing\outputs\compare_vof\fd_vs_cubic_fit-cubic_cubicfit-cubic\data\summary.csv
+
+direction   test                reference                                        max dF_ij  at (i, j)  max dF_ij (i,j<30)  max dVOF / peak  rms dVOF / peak  F_ij time (s)  verdict
+----------  ------------------  -----------------------------------------------  ---------  ---------  ------------------  ---------------  ---------------  -------------  -------
+emission    Hermite + cubic PT  Finite difference [cubic (a fixed, all images)]  1.16e+00   (48, 59)   1.62e-01            3.25e-04         3.20e-05         1.50           FAIL   
+absorption  Hermite + cubic PT  Finite difference [cubic (a fixed, all images)]  1.16e+00   (59, 48)   1.62e-01            3.25e-04         3.59e-05         1.52           FAIL   
+
+FAIL: the lineshapes differ.
+NOTE: fd and cubic solve the same cubic potential (cubic (a fixed, all images)), fd exactly and cubic to first order in b, so these differences are the truncation error of the perturbation theory.
+
+Outputs in testing\outputs\compare_vof\fd_vs_cubic_fit-cubic_cubicfit-cubic (see index.md)

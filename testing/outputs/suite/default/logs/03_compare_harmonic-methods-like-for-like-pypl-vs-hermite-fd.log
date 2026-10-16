@@ -1,0 +1,17 @@
+$ python testing/compare_vof.py --reference pypl --test hermite fd --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --npts 100001 --fd-npts 20001 --fd-stencil 5 --fd-margin 2.0 --fd-fit parabola --tol-fc 1e-07 --tol-vof 1e-08
+
+Comparing VOFs: PyPL (Ruhoff) (reference) vs Hermite (quadrature), Finite difference
+  bulid_fc_lsp: T = 5 K, sigma = [8.0, 25.0] meV, ZPL Lorentzian, gamma = 0.3 meV
+  lineshape axis: -200..1200 meV from the ZPL, 1401 points, step 1 meV
+  basis: 50 ES x 60 GS levels (emission ni x nf = 50 x 60, absorption 60 x 50)
+
+direction   test                  reference      max dF_ij  at (i, j)  max dF_ij (i,j<30)  max dVOF / peak  rms dVOF / peak  F_ij time (s)  verdict
+----------  --------------------  -------------  ---------  ---------  ------------------  ---------------  ---------------  -------------  -------
+emission    Hermite (quadrature)  PyPL (Ruhoff)  1.70e-08   (49, 48)   4.87e-11            6.95e-16         4.51e-17         1.21           OK     
+emission    Finite difference     PyPL (Ruhoff)  1.80e-08   (49, 49)   6.11e-10            1.29e-12         3.81e-13         2.61           OK     
+absorption  Hermite (quadrature)  PyPL (Ruhoff)  1.37e-08   (50, 49)   3.71e-11            6.95e-16         3.83e-17         1.31           OK     
+absorption  Finite difference     PyPL (Ruhoff)  1.51e-08   (50, 49)   6.11e-10            9.55e-13         3.37e-13         2.42           OK     
+
+PASS: every lineshape matches the reference.
+
+Outputs in testing\outputs\suite\default\compare_vof\pypl_vs_hermite-fd (see index.md)

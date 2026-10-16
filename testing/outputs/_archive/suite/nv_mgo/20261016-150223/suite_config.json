@@ -1,0 +1,109 @@
+{
+  "suite": {
+    "name": "nv_mgo",
+    "dataset": "nv_mgo",
+    "jobs": 1,
+    "steps": {
+      "checks": true,
+      "tutorial": false,
+      "compare": true,
+      "plots": true,
+      "report": true
+    }
+  },
+  "physics": {
+    "temp": 5.0,
+    "sigma": [
+      20.0
+    ],
+    "gamma": 0.3,
+    "zpl_lorentzian": false,
+    "order_es": 160,
+    "order_gs": 100,
+    "ene_range": [
+      -500.0,
+      10000.0
+    ],
+    "resol": 2101,
+    "ezpl": 556.5,
+    "tdm": 1.0
+  },
+  "methods": {
+    "reference": "hermite",
+    "harmonic": [
+      "pypl",
+      "fd"
+    ]
+  },
+  "hermite": {
+    "npts": 100001
+  },
+  "fd": {
+    "npts": 40001,
+    "stencil": 5,
+    "margin": 2.0,
+    "fits": [
+      "spline",
+      "spline5-clamped",
+      "morse",
+      "poly2",
+      "poly4",
+      "poly6",
+      "poly8",
+      "cubic"
+    ],
+    "splines": [
+      {
+        "order": 4,
+        "bc": "not-a-knot"
+      },
+      {
+        "order": 3,
+        "smoothing": 0.05
+      }
+    ]
+  },
+  "cubic": {
+    "enabled": true,
+    "variants": [
+      {
+        "points": "all",
+        "free_a": false,
+        "normalize": false
+      },
+      {
+        "points": "all",
+        "free_a": true,
+        "normalize": false
+      }
+    ]
+  },
+  "plots": {
+    "n_levels": 3
+  },
+  "report": {
+    "convergence": true,
+    "cubic": true,
+    "fits": []
+  },
+  "tolerances": {
+    "fc": 1e-07,
+    "vof": 1e-08
+  },
+  "resolved_fits": [
+    "spline",
+    "spline5-clamped",
+    "morse",
+    "poly2",
+    "poly4",
+    "spline4-notaknot",
+    "spline3-s0.05"
+  ],
+  "skipped_fits": {
+    "poly6": "fit poly6 of the 1A1 images is unbounded below and has no bound states (degree-6 polynomial in (Q - 3.097879), coefficients (highest first) [-0.001825, -0.02173, -0.05884, 0.06404, 0.3992, 0.1359, 2.56]; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 5.83e-02 eV; UNBOUNDED: leading coefficient p_6 = -0.00182 < 0, so V -> -inf as |Q| -> inf)",
+    "poly8": "fit poly8 of the 1A1 images is unbounded below and has no bound states (degree-8 polynomial in (Q - 3.097879), coefficients (highest first) [-0.0001022, -0.0008933, 0.0008298, 0.02173, 0.04825, 0.02966, 0.104, 0.0004844, 2.598]; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.60e-02 eV; UNBOUNDED: leading coefficient p_8 = -0.000102 < 0, so V -> -inf as |Q| -> inf)",
+    "cubic": "the 3E cubic turns over at Q = 4.38, inside the grid -6.24..9.46: no bound states in the box",
+    "cubic (exact fd check of cubic PT)": "the 3E cubic turns over at Q = 4.38, inside the grid -6.24..9.46: no bound states in the box",
+    "cubic-free (exact fd check of cubic PT)": "the 1A1 cubic turns over at Q = 2.16, inside the grid -6.24..9.46: no bound states in the box"
+  }
+}

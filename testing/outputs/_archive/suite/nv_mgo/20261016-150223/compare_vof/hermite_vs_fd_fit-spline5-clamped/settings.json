@@ -1,0 +1,31 @@
+{
+  "reference": "hermite",
+  "tests": [
+    "fd"
+  ],
+  "tol_fc": 1e-07,
+  "tol_vof": 1e-08,
+  "params": {
+    "temp": 5.0,
+    "sigma": [
+      20.0,
+      20.0
+    ],
+    "gamma": 0.3,
+    "zpl_lorentzian": false,
+    "order_es": 160,
+    "order_gs": 100,
+    "ene_range": [
+      -500.0,
+      10000.0
+    ],
+    "resol": 2101,
+    "npts": 100001,
+    "fd_npts": 40001,
+    "fd_stencil": 5,
+    "fd_margin": 2.0,
+    "fd_fit": "spline5-clamped",
+    "cubic_fit": "cubic",
+    "cubic_normalize": false
+  }
+}

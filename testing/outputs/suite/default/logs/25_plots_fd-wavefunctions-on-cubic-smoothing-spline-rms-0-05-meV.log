@@ -1,0 +1,32 @@
+$ python testing/plot_ccd_wavefunctions.py --wf-method fd --vof-method pypl fd --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --npts 100001 --fd-npts 20001 --fd-stencil 5 --fd-margin 2.0 --fd-fit spline3-s0.05 --n-levels 3
+
+Finite differences on fit spline3-s0.05 (cubic smoothing spline (rms 0.05 meV)):
+  GS well: cubic spline (degree 3, smoothing to rms <= 5e-05 eV, 3 knots), harmonic tails a = 0.417627 eV/(amu A^2), C0 junction (slope jumps -2.02e-03 / -1.35e-02 eV/(amu^0.5 A)); fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 5.00e-05 eV
+  ES well: cubic spline (degree 3, smoothing to rms <= 5e-05 eV, 2 knots), harmonic tails a = 0.494721 eV/(amu A^2), C0 junction (slope jumps 1.23e-02 / -3.12e-03 eV/(amu^0.5 A)); fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 4.41e-05 eV
+
+Wavefunction check: <chi_i | chi_j> of the 3 drawn levels vs the solver's F_ij
+  from the drawn finite-difference eigenstates (cubic smoothing spline (rms 0.05 meV)):
+     0.166196594  -0.320380241   0.432508388
+     0.306720256  -0.427846032   0.351585919
+     0.407307861  -0.355683109   0.048850238
+  solver fc_ints:
+     0.168065239  -0.324014740   0.436679418
+     0.310578933  -0.430853756   0.349153528
+     0.410866469  -0.353282444   0.038843891
+  MISMATCH (max deviation 1.00e-02, tolerance 1e-08)
+  fit spline3-s0.05 is anharmonic: a mismatch with the harmonic solver is expected; plotting anyway
+
+Vibrational levels (eV)
+  v = 0   GS  0.029558   ES  1.738106
+  v = 1   GS  0.088785   ES  1.802637
+  v = 2   GS  0.148131   ES  1.867181
+
+Franck-Condon lineshapes via bulid_fc_lsp
+  emission  PyPL (Ruhoff)                        closure 1.0000000000  sideband peak 0.1515 eV  centroid 200.2 meV
+  emission  Finite difference [cubic smoothing spline (rms 0.05 meV)] closure 1.0000000000  sideband peak 0.1515 eV  centroid 202.5 meV
+    Finite difference [cubic smoothing spline (rms 0.05 meV)] vs PyPL (Ruhoff): max |difference| / peak = 2.21e-02
+  absorption PyPL (Ruhoff)                        closure 1.0000000000  sideband peak 1.8700 eV  centroid 237.2 meV
+  absorption Finite difference [cubic smoothing spline (rms 0.05 meV)] closure 1.0000000000  sideband peak 1.9390 eV  centroid 239.1 meV
+    Finite difference [cubic smoothing spline (rms 0.05 meV)] vs PyPL (Ruhoff): max |difference| / peak = 2.21e-02
+
+Outputs in testing\outputs\suite\default\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-spline3-s0.05 (see index.md)

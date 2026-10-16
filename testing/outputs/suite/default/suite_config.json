@@ -1,0 +1,102 @@
+{
+  "suite": {
+    "name": "default",
+    "jobs": 1,
+    "steps": {
+      "checks": true,
+      "tutorial": true,
+      "compare": true,
+      "plots": true,
+      "report": true
+    }
+  },
+  "physics": {
+    "temp": 5.0,
+    "sigma": [
+      8.0,
+      25.0
+    ],
+    "gamma": 0.3,
+    "zpl_lorentzian": true,
+    "order_es": 50,
+    "order_gs": 60,
+    "ene_range": [
+      -200.0,
+      1200.0
+    ],
+    "resol": 1401,
+    "ezpl": 1945.0,
+    "tdm": 1.0
+  },
+  "methods": {
+    "reference": "pypl",
+    "harmonic": [
+      "hermite",
+      "fd"
+    ]
+  },
+  "hermite": {
+    "npts": 100001
+  },
+  "fd": {
+    "npts": 20001,
+    "stencil": 5,
+    "margin": 2.0,
+    "fits": [
+      "spline",
+      "spline5-clamped",
+      "morse",
+      "poly2",
+      "poly6",
+      "cubic"
+    ],
+    "splines": [
+      {
+        "order": 4,
+        "bc": "not-a-knot"
+      },
+      {
+        "order": 3,
+        "smoothing": 0.05
+      }
+    ]
+  },
+  "cubic": {
+    "enabled": true,
+    "variants": [
+      {
+        "points": "all",
+        "free_a": false,
+        "normalize": false
+      },
+      {
+        "points": "all",
+        "free_a": true,
+        "normalize": false
+      }
+    ]
+  },
+  "plots": {
+    "n_levels": 3
+  },
+  "report": {
+    "convergence": true,
+    "cubic": true,
+    "fits": []
+  },
+  "tolerances": {
+    "fc": 1e-07,
+    "vof": 1e-08
+  },
+  "resolved_fits": [
+    "spline",
+    "spline5-clamped",
+    "morse",
+    "poly2",
+    "poly6",
+    "cubic",
+    "spline4-notaknot",
+    "spline3-s0.05"
+  ],
+  "skipped_fits": {}
+}

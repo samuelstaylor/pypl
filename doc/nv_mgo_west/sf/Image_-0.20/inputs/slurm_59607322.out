@@ -1,0 +1,62 @@
+================================================================================
+SLURM JOB INFORMATION
+================================================================================
+Job Name            : ccd-sf-im-0.20
+Job ID              : 59607322
+Cluster             : perlmutter
+Account             : m4382_g
+Partition           : gpu_ss11
+QOS                 : gpu_regular
+
+Resources Requested
+-------------------
+Nodes               : 4
+Node List           : nid[001029,001153,001944,002632]
+Tasks per Node      : 4
+Total Tasks (calc)  : 16
+CPUs per Task       : 32
+GPUs per Node       : 4
+Total GPUs (calc)   : 16
+Memory per Node     : N/A
+Memory per CPU      : N/A
+
+Timing
+------
+Submit Directory    : /global/cfs/cdirs/m4382/sstaylor/projects/nv_mgo/tddft-ddh/phonons/ccd-extend/sf/Image_-0.20
+Submit Host         : login12
+Working Directory   : /global/cfs/cdirs/m4382/sstaylor/projects/nv_mgo/tddft-ddh/phonons/ccd-extend/sf/Image_-0.20
+Start Time          : 2026-10-11 04:56:05 PDT
+Requested Walltime  : 10:00:00
+
+Environment
+-----------
+User                : sstaylor
+Hostname            : nid001029
+SLURM Version       : slurm 25.11.8
+================================================================================
+
+
+Queue Information
+-----------------
+59607322     2026-10-09T15:58:59 2026-10-09T15:58:59 2026-10-11T04:55:58    RUNNING 
+59607322.ba+ 2026-10-11T04:55:58 2026-10-11T04:55:58 2026-10-11T04:55:58    RUNNING 
+59607322.ex+ 2026-10-11T04:55:58 2026-10-11T04:55:58 2026-10-11T04:55:58    RUNNING 
+========================================
+Job ID: 59607322
+Start Time: Sun Oct 11 04:56:08 AM PDT 2026
+Submit Dir: /global/cfs/cdirs/m4382/sstaylor/projects/nv_mgo/tddft-ddh/phonons/ccd-extend/sf/Image_-0.20
+========================================
+----------------------------------------
+Running:
+srun /global/homes/s/sstaylor/software/QEdir/bin/wbse.x -nb 16 -i wbse.in > wbse.out
+Start: Sun Oct 11 04:56:08 AM PDT 2026
+
+================================================================================
+FINAL JOB SUMMARY
+================================================================================
+JobID|JobName|Partition|QOS|Account|AllocNodes|NTasks|State|ExitCode|Elapsed|TotalCPU|CPUTime|MaxRSS|NodeList
+59607322|ccd-sf-im-0.20|gpu_ss11|gpu_regular|m4382_g|4||TIMEOUT|0:0|10:00:10|5-11:06:22|213-09:25:20||nid[001029,001153,001944,002632]
+59607322.batch|batch|||m4382_g|1|1|TIMEOUT|0:0|10:00:10|00:00:00|53-08:21:20||nid001029
+59607322.extern|extern|||m4382_g|4|4|TIMEOUT|0:0|10:00:10|00:00:00|213-09:25:20||nid[001029,001153,001944,002632]
+59607322.0|wbse.x|||m4382_g|4|16|CANCELLED|0:15|10:00:07|5-11:06:22|213-08:59:44|21025200K|nid[001029,001153,001944,002632]
+================================================================================

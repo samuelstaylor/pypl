@@ -1,0 +1,64 @@
+{
+  "wf_method": "fd",
+  "n_levels": 3,
+  "density": false,
+  "wf_scale": 0.375,
+  "alpha": 0.3,
+  "well": "both",
+  "no_vof": false,
+  "vof_method": [
+    "pypl",
+    "fd"
+  ],
+  "temp": 5.0,
+  "sigma": [
+    8.0,
+    25.0
+  ],
+  "gamma": 0.3,
+  "no_zpl": false,
+  "order_es": 50,
+  "order_gs": 60,
+  "ene_range": [
+    -200.0,
+    1200.0
+  ],
+  "resol": 1401,
+  "npts": 100001,
+  "fd_npts": 20001,
+  "fd_stencil": 5,
+  "fd_margin": 2.0,
+  "fd_fit": "poly6",
+  "spline_order": null,
+  "spline_bc": null,
+  "spline_smoothing": null,
+  "cubic_points": "all",
+  "cubic_free_a": false,
+  "cubic_normalize": false,
+  "tag": "",
+  "verbose": false,
+  "show": false,
+  "params": {
+    "temp": 5.0,
+    "sigma": [
+      8.0,
+      25.0
+    ],
+    "gamma": 0.3,
+    "zpl_lorentzian": true,
+    "order_es": 50,
+    "order_gs": 60,
+    "ene_range": [
+      -200.0,
+      1200.0
+    ],
+    "resol": 1401,
+    "npts": 100001,
+    "fd_npts": 20001,
+    "fd_stencil": 5,
+    "fd_margin": 2.0,
+    "fd_fit": "poly6",
+    "cubic_fit": "cubic",
+    "cubic_normalize": false
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "reference": "pypl",
+  "tests": [
+    "fd"
+  ],
+  "tol_fc": 1e-07,
+  "tol_vof": 1e-08,
+  "params": {
+    "temp": 5.0,
+    "sigma": [
+      8.0,
+      25.0
+    ],
+    "gamma": 0.3,
+    "zpl_lorentzian": true,
+    "order_es": 50,
+    "order_gs": 60,
+    "ene_range": [
+      -200.0,
+      1200.0
+    ],
+    "resol": 1401,
+    "npts": 100001,
+    "fd_npts": 20001,
+    "fd_stencil": 5,
+    "fd_margin": 2.0,
+    "fd_fit": "poly6",
+    "cubic_fit": "cubic",
+    "cubic_normalize": false
+  }
+}
