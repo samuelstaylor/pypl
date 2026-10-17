@@ -232,7 +232,7 @@ class config_coord_1d_potential:
           spline joins its tails smoothly (cubic: matching slope, C1; quintic: slope and curvature, C2).
           Odd ``order`` only.
 
-        With ``smoothing`` the spline no longer passes through every sample: it is FITPACK's smoothing
+        With ``smoothing`` the spline does not pass through every sample: it is FITPACK's smoothing
         spline with the fewest knots whose rms residual is at most ``smoothing``. End conditions do not
         apply to it.
 

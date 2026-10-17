@@ -437,7 +437,11 @@ this layout (qe/ XMLs, local summary.json, script-relative paths, UTF-8 stdout, 
   dense images every spline cross-validates to ~2 meV. Its plot was added to the existing suite as
   `plot_ccd_wavefunctions/wf-fd_vof-hermite-fd_fit-spline3-notaknot-smooth/` (index.md has an "Added after this run"
   section); `run_all_nv_mgo.toml` now includes it. 80/80 checks.
-- **Suite result (outputs/suite/nv_mgo/, 2026-10-16, 23 steps, 1053 s):** checks 75/75; fd vs hermite like for like
+- **Latest suites (2026-10-16 evening, new figure style):** diamond `outputs/suite/default/` 30 steps 432 s, 17 pass/ok,
+  13 differ, 0 fail; MgO `outputs/suite/nv_mgo/` 25 steps 1529 s, 13 pass/ok, 10 differ, 2 FAIL = the expected PyPL
+  Ruhoff instability (dF 2.7e27, dVOF 1e-14; fd vs hermite dF 1.03e-8 OK). Tutorial 005 section 6 reads both suites'
+  index.md / CSVs / figures (figures downscaled + palette-compressed by `show()`; notebook ~2 MB).
+- **Earlier suite result (outputs/suite/nv_mgo/, 2026-10-16, 23 steps, 1053 s):** checks 75/75; fd vs hermite like for like
   dF 1.03e-8, dVOF 2e-9 (OK); pypl vs hermite dVOF 1e-14 but dF 2.7e27 (FAIL, finding 6); report FAIL only from pypl;
   section 07 skipped (no exact cubic). Skipped fits: poly6, poly8 (1A1 unbounded), cubic and the exact-fd checks of
   cubic PT (1A1 cubic turns over at Q = -1.70, cubic-free at -0.50; 3E at 3.24). Emission (3E -> 1A1) centroid shift

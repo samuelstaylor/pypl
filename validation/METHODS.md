@@ -9,8 +9,8 @@ to read its output, how accurate it is, and when to use it. Numbers are for the 
 > (and the comparison table at the end).
 
 The complete list of tests, references and tolerances is in `doc/validation.rst`; every formula and derivation is in
-`doc/supporting_information.rst`. The data points of a PES are called *computed energies* or *images*, never "DFT
-energies": their method differs between states and datasets (DFT, ΔSCF, TDDFT, ...; `doc/validation.rst`, Terminology).
+`doc/supporting_information.rst`. The data points of a PES are called *computed energies* or *images*; their method
+differs between states and datasets (DFT, ΔSCF, TDDFT, ...; `doc/validation.rst`, Terminology).
 
 Contents:
 
@@ -77,7 +77,7 @@ Huang-Rhys factors need: basis, a −0.5 … 10 eV axis, constant σ, and `hermi
 E_ij = j ħω_f − i ħω_i. So when two methods give different VOFs, the difference is entirely in F_ij.
 
 The methods run on `config_coord_1d_vof_solver` (`pypl/config_coord_1d_vof_solver.py`). It is a subclass of PyPL's solver that
-only *adds* methods, so all of PyPL's own functions behave exactly as before; `check_1d_ccd.py` verifies this
+only *adds* methods, so all of PyPL's own functions keep their original behaviour; `check_1d_ccd.py` verifies this
 bit for bit.
 
 ### Basis size and directions
@@ -161,8 +161,8 @@ answers the same question as `pypl` by a completely independent route, so it che
 - VOF vs `pypl`: 7e-16 of the peak, i.e. machine precision.
 - F_ij vs `pypl`: 1.7e-8, which is `pypl`'s own rounding, not Hermite's.
 
-The grid spacing must be computed as (q[−1] − q[0]) / (N − 1). The earlier `q[1] − q[0]` lost about five
-digits to cancellation and gave a hidden 1e-11 normalization error.
+The grid spacing must be computed as (q[−1] − q[0]) / (N − 1). `q[1] − q[0]` loses about five digits to
+cancellation and leaves a hidden 1e-11 normalization error.
 
 On NV⁻ in MgO (S = 50 / 85, 160 × 100 levels), `hermite` and `fd` agree to 1.3e-8 in F_ij and 4e-9 in
 the VOF, which is what makes `hermite` the reference there.
@@ -342,14 +342,14 @@ slope and curvature jumps are zero. Legends call it `cubic spline (not-a-knot, s
   reach far into them. Smooth tails change the VOF by 2.0% of the peak relative to harmonic tails (centroid
   −2.4 meV in emission, −4.0 meV in absorption). With them, the not-a-knot spline is within 0.19% of the
   harmonic reference, versus ~2% with harmonic tails. **Most of the ~2% "spline vs harmonic" difference
-  reported for diamond (README, "Spline options") is therefore the slope kink of the harmonic tail, not anharmonicity of the
-  data.**
+  of the harmonic-tailed splines on diamond (section 5) is therefore the slope kink of the harmonic tail, not
+  anharmonicity of the data.**
 
 **When to use it.** Whenever the PES should be smooth everywhere, which is always for an electronic-structure
 surface, and in particular whenever levels reach beyond the data. The recommended spline is
 **`spline3-notaknot-smooth`**: not-a-knot imposes nothing at the end images (the end shape comes from the data),
 and the smooth tails add nothing artificial at the junctions. Report `spline4-notaknot-smooth` or
-`spline3-s0.05-smooth` as robustness checks. Keep `harmonic` tails only to reproduce older results.
+`spline3-s0.05-smooth` as robustness checks. Use `harmonic` tails only to reproduce results computed with them.
 
 **Wavefunctions.** FD on the parabola reproduces the Hermite functions to an infidelity of about 1e-15. FD
 on the spline changes them by 8e-4 (GS) and 8e-5 (ES); that change is the real anharmonicity of the computed PES.
@@ -445,7 +445,7 @@ high-level F_ij exceed 1, which a true overlap cannot.
 
 ### 6.5 What the warnings mean
 
-- `|xi| > 0.1`: the warning your spec asked for. It never fires here (ξ ≈ 1e-3).
+- `|xi| > 0.1`: a large perturbation strength. It never fires here (ξ ≈ 1e-3).
 - `mixing ... reaches X at n = N; it stays below 0.1 only up to n = n_valid`: fires here. It means first-order
   perturbation theory is an inaccurate description of the levels above `n_valid`.
 
@@ -504,7 +504,7 @@ exactly, or `fd` on a spline, which follows the computed data instead of a cubic
 | `hermite` | harmonic | quadrature (exact to 1e-16) | ~3 s | validating `pypl`; the reference at large S (MgO); harmonic wavefunctions |
 | `fd` + `parabola` | harmonic | grid, O(h⁴) | ~7 s | validating both of the above |
 | `fd` + `spline3-notaknot-smooth` | anharmonic, follows the computed data, C² everywhere | grid; tails continue the spline | ~7–12 s | **the recommended realistic anharmonic VOF** (§5.1) |
-| `fd` + `spline` | anharmonic, follows the computed data | grid; harmonic tails with a slope kink | ~7 s | older results; the kink moves the diamond VOF by ~2% |
+| `fd` + `spline` | anharmonic, follows the computed data | grid; harmonic tails with a slope kink | ~7 s | results with harmonic tails; the kink moves the diamond VOF by ~2% |
 | `fd` + `cubic` | cubic model | grid; box well inside the turnover | ~7 s | exact solution of the cubic model |
 | `cubic` | cubic model | first-order perturbation | ~2 s | quick anharmonic estimate for low levels |
 

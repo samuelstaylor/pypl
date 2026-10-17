@@ -1,4 +1,4 @@
-E_minus_EZPL_meV,VOF Hermite (quadrature),VOF PyPL (Ruhoff),VOF Finite difference,PyPL (Ruhoff) - Hermite (quadrature),Finite difference - Hermite (quadrature)
+E_minus_EZPL_meV,VOF Hermite quadrature,VOF PyPL (Ruhoff recurrences),VOF FD,PyPL (Ruhoff recurrences) - Hermite quadrature,FD - Hermite quadrature
 -500,7.001588699e-159,7.001588699e-159,7.001661649e-159,-2.628063498e-173,7.295041864e-164
 -495,3.515324365e-156,3.515324365e-156,3.515360992e-156,-1.293815876e-170,3.662659935e-161
 -490,1.658023984e-153,1.658023984e-153,1.658041259e-153,-6.094390301e-168,1.727515696e-158

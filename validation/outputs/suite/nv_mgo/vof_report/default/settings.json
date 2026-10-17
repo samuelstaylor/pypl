@@ -28,6 +28,51 @@
   "reference": "hermite",
   "tol_fc": 1e-07,
   "tol_vof": 1e-08,
+  "report": {
+    "wf_levels": [
+      0,
+      1,
+      2,
+      5,
+      10,
+      20,
+      30,
+      40
+    ],
+    "convergence_npts": [
+      2001,
+      4001,
+      8001,
+      16001,
+      32001
+    ],
+    "convergence_stencils": [
+      3,
+      5
+    ],
+    "cubic_specs": [
+      "cubic",
+      "cubic-near",
+      "cubic-free",
+      "cubic-near-free"
+    ],
+    "cubic_scales": [
+      1.0,
+      0.5,
+      0.25,
+      0.125,
+      0.0625
+    ],
+    "skip_convergence": false,
+    "skip_cubic": false
+  },
+  "figures": {
+    "dpi": 300,
+    "formats": [
+      "png"
+    ],
+    "font_size": 9.0
+  },
   "params": {
     "temp": 5.0,
     "sigma": [
@@ -44,11 +89,18 @@
     ],
     "resol": 2101,
     "npts": 100001,
+    "hermite_h": null,
+    "hermite_margin": 6.0,
     "fd_npts": 40001,
+    "fd_h": null,
+    "fd_range": null,
     "fd_stencil": 5,
     "fd_margin": 2.0,
+    "fd_shift": null,
     "fd_fit": "parabola",
+    "line_positions": "harmonic",
     "cubic_fit": "cubic",
-    "cubic_normalize": false
+    "cubic_normalize": false,
+    "cubic_warn": 0.1
   }
 }

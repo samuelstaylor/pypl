@@ -201,7 +201,7 @@ STATES = [
 # ===========================================================================
 # DFT total energy only (no VEE).  The ground-state SCF is identical in sc/ and
 # sf/, so each image is taken from the first directory in "dirs" that has a
-# QE XML for it (sc/ first, sf/ as fallback for images not yet linked in sc/).
+# QE XML for it (sc/ first, sf/ as fallback for images missing from sc/).
 
 GROUND_STATE = {
     "enabled":     True,

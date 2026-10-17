@@ -1,3 +1,3 @@
 direction,reference,test,fc_max,fc_at_text,fc_rms,fc_low,vof_max,vof_rms,zpl_weight_ref,zpl_weight,centroid_shift_mev,closure,integral,seconds,verdict
-emission,Hermite (quadrature),Finite difference [cubic spline (natural)],0.863607576,"(0, 18)",0.0992530907,0.863607576,5.699290087,0.3881107532,1.829540887e-21,2.914923349e-21,-572.4672656,1,1,13.2959322,FAIL
-absorption,Hermite (quadrature),Finite difference [cubic spline (natural)],0.863607576,"(18, 0)",0.09928163408,0.863607576,10.53598593,0.8987026141,1.829540887e-21,2.914924173e-21,-2379.70817,1,1,10.4471009,FAIL
+emission,Hermite (quadrature),Finite difference [cubic spline (natural)],0.863607576,"(0, 18)",0.0992530907,0.863607576,5.699290087,0.3881107532,1.829540887e-21,2.914923349e-21,-572.4672656,1,1,16.4652434,FAIL
+absorption,Hermite (quadrature),Finite difference [cubic spline (natural)],0.863607576,"(18, 0)",0.09928163408,0.863607576,10.53598593,0.8987026141,1.829540887e-21,2.914924173e-21,-2379.70817,1,1,12.9814742,FAIL

@@ -1,4 +1,4 @@
-Q,E_DFT_eV,residual_parabola_meV,residual_poly2_meV,residual_poly4_meV,residual_poly6_meV,residual_poly8_meV,residual_morse_meV,residual_spline_meV,residual_spline3-notaknot_meV,residual_spline3-clamped_meV,residual_spline4-notaknot_meV,residual_spline5-clamped_meV,residual_spline3-s0.05_meV
+Q,E_eV,residual_parabola_meV,residual_poly2_meV,residual_poly4_meV,residual_poly6_meV,residual_poly8_meV,residual_morse_meV,residual_spline_meV,residual_spline3-notaknot_meV,residual_spline3-clamped_meV,residual_spline4-notaknot_meV,residual_spline5-clamped_meV,residual_spline3-s0.05_meV
 -3.097879369,9.395009225,-1986.764015,-2281.608972,241.5894457,-11.57273215,0.05500331367,135.3153312,1.776356839e-12,0,0,0,-3.552713679e-12,-1.083390444e-05
 -1.858727622,5.238255406,-548.7520841,299.7389502,-635.5172101,72.44831831,-0.6167612037,-599.1772794,0,-8.881784197e-13,0,-8.881784197e-13,0,8.325961076e-05
 -0.6195758739,3.393429524,-63.29714628,1067.401797,-170.0298784,-131.2291018,3.752861045,8.694741529,0,0,0,4.440892099e-13,0,-0.002237719428

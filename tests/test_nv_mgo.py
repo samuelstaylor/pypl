@@ -30,7 +30,7 @@ def test_mgo_ccd(mgo):
     assert es["q_image"][np.argmin(es["e"])] == 0.0 and gs["q_image"][np.argmin(gs["e"])] == 1.0
     assert es["e"].min() == pytest.approx(3.1376, abs=5e-5)
     assert 1e3 * (es["e"].min() - gs["e"].min()) == pytest.approx(554.4, abs=0.05)
-    # The harmonic parabolas of tutorial 003 and of the ISC script.
+    # The harmonic parabolas of tutorial 003.
     assert es["phonon"] == pytest.approx(60.8332, abs=1e-4)
     assert gs["phonon"] == pytest.approx(31.5511, abs=1e-4)
     assert len(es["parabola"].index) == len(gs["parabola"].index) == 12

@@ -77,7 +77,7 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
 
     Extends :class:`config_coord_1d_solver` without changing it. Every inherited method
     (``compute_franck_condon_integrals``, ``bulid_fc_lsp``, ``compute_spectrum``, ``Gaussian``,
-    ``Lorentzian``, ``BZ``) behaves exactly as in the parent. The new methods fill the same
+    ``Lorentzian``, ``BZ``) behaves exactly as in the parent. The methods added here fill the same
     attributes (``fc_ints``, ``ni``, ``nf``), so ``bulid_fc_lsp`` and ``compute_spectrum`` work on
     their result unchanged.
 
@@ -792,7 +792,7 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
         Boltzmann weights :math:`p_i` use the actual initial levels. With anharmonic wells
         (``compute_franck_condon_integrals_fd`` on a fitted potential) this keeps the line
         positions consistent with the potential that produced :math:`F_{ij}`; with harmonic
-        ladders it equals ``bulid_fc_lsp``. ``bulid_fc_lsp`` itself is not changed.
+        ladders it equals ``bulid_fc_lsp``.
 
         Parameters
         ----------

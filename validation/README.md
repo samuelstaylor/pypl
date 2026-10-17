@@ -33,8 +33,8 @@ Two datasets (`--dataset`, or `PYPL_VALIDATION_DATASET`), defined in `harness/cc
 | `nv_diamond` (default) | NV⁻ in diamond, 3E → 3A2 | 3A2: DFT (PBE) | 3E: ΔSCF, constrained occupations (PBE) |
 | `nv_mgo` | NV⁻ in MgO, 3E → 1A1 | 1A1: spin-flip TDDFT@DDH (WEST, root 4) | 3E: spin-conserving TDDFT@DDH (WEST, root 1) |
 
-The data points are **computed energies** at the images, not "DFT energies": the method differs between datasets and
-between the two states (ground-state DFT, ΔSCF, spin-conserving or spin-flip TDDFT, and in other systems BSE or
+The data points are **computed energies** at the images. The method differs between datasets and between the two
+states (ground-state DFT, ΔSCF, spin-conserving or spin-flip TDDFT, and in other systems BSE or
 embedding methods). Each `Dataset` records `energy_methods` (per state) and `energy_zero`; figures label the points
 with them (`ccd_data.energy_label`) and every log and `index.md` prints them.
 

@@ -1,8 +1,9 @@
-$ python testing/plot_ccd_wavefunctions.py --wf-method hermite --vof-method hermite pypl fd --dataset nv_mgo --temp 5.0 --sigma 20.0 --gamma 0.3 --no-zpl --order-es 160 --order-gs 100 --ene-range -500.0 10000.0 --resol 2101 --npts 100001 --fd-npts 40001 --fd-stencil 5 --fd-margin 2.0 --fd-fit parabola --n-levels 3
+$ python validation/plot_ccd_wavefunctions.py --wf-method fd --vof-method hermite fd --dataset nv_mgo --temp 5.0 --sigma 20.0 --gamma 0.3 --no-zpl --order-es 160 --order-gs 100 --ene-range -500.0 10000.0 --resol 2101 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit parabola --fd-npts 40001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --n-levels 3 --check-tol 1e-10 1e-08
 
 # dataset: nv_mgo (NV- in MgO), 3E -> 1A1 (WEST TDDFT-DDH)
-# data: doc/nv_mgo_west
+# data: doc/tutorials/003_nv_mgo_isc
 # roles: 'ES' = 3E (upper state, minimum at Q = 0), 'GS' = 1A1 (lower state, minimum at Q = delta_q); emission = ES -> GS = 3E -> 1A1
+# energies: 3E = spin-conserving TDDFT@DDH (WEST, root 1); 1A1 = spin-flip TDDFT@DDH (WEST, root 4); zero = the 3A2 minimum, DFT with the DDH functional (PBE0, exact exchange 0.34)
 # Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
 # E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
 # image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit (splines, Morse, polyN) ALL images
@@ -12,7 +13,7 @@ Finite differences on fit parabola (parabola (near min.)):
   3E well: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
 
 Wavefunction check: <chi_i | chi_j> of the 3 drawn levels vs the solver's F_ij
-  from the drawn Hermite functions:
+  from the drawn finite-difference eigenstates (parabola (near min.)):
      0.000000000  -0.000000000   0.000000002
      0.000000000  -0.000000002   0.000000010
      0.000000001  -0.000000008   0.000000040
@@ -20,7 +21,7 @@ Wavefunction check: <chi_i | chi_j> of the 3 drawn levels vs the solver's F_ij
      0.000000000  -0.000000000   0.000000002
      0.000000000  -0.000000002   0.000000010
      0.000000001  -0.000000008   0.000000040
-  MATCH (max deviation 9.26e-23, tolerance 1e-10)
+  MATCH (max deviation 1.06e-15, tolerance 1e-08)
 
 Vibrational levels (eV)
   v = 0   GS  2.611320   ES  3.190628
@@ -29,14 +30,10 @@ Vibrational levels (eV)
 
 Franck-Condon lineshapes via bulid_fc_lsp
   emission  Hermite (quadrature)                 closure 1.0000000000  sideband peak 3.7563 eV  centroid 1146.2 meV
-  emission  PyPL (Ruhoff)                        closure 1.0000000000  sideband peak 3.7563 eV  centroid 1146.2 meV
   emission  Finite difference                    closure 1.0000000000  sideband peak 3.7563 eV  centroid 1146.2 meV
-    PyPL (Ruhoff) vs Hermite (quadrature): max |difference| / peak = 1.98e-15
     Finite difference vs Hermite (quadrature): max |difference| / peak = 1.92e-10
   absorption Hermite (quadrature)                 closure 0.9999999998  sideband peak 7.3256 eV  centroid 4254.8 meV
-  absorption PyPL (Ruhoff)                        closure 0.9999999998  sideband peak 7.3256 eV  centroid 4254.8 meV
   absorption Finite difference                    closure 0.9999999998  sideband peak 7.3256 eV  centroid 4254.8 meV
-    PyPL (Ruhoff) vs Hermite (quadrature): max |difference| / peak = 9.62e-15
     Finite difference vs Hermite (quadrature): max |difference| / peak = 1.95e-09
 
-Outputs in testing\outputs\suite\nv_mgo\plot_ccd_wavefunctions\wf-hermite_vof-hermite-pypl-fd_fit-parabola (see index.md)
+Outputs in validation\outputs\suite\nv_mgo\plot_ccd_wavefunctions\wf-fd_vof-hermite-fd_fit-parabola (see index.md)

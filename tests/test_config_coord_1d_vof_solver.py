@@ -37,13 +37,13 @@ def test_subclass_overrides_nothing():
 
 
 def test_inherited_methods_bit_identical(pair):
-    old, new = config_coord_1d_solver(*pair), SUB(*pair)
-    for s in (old, new):
+    parent, child = config_coord_1d_solver(*pair), SUB(*pair)
+    for s in (parent, child):
         s.compute_franck_condon_integrals(ni=50, nf=60)
         s.bulid_fc_lsp(**LSP)
-    assert np.array_equal(old.fc_ints, new.fc_ints)
-    assert np.array_equal(old.fc_lineshape, new.fc_lineshape)
-    for a, b in zip(old.compute_spectrum(zpl=1945.0), new.compute_spectrum(zpl=1945.0)):
+    assert np.array_equal(parent.fc_ints, child.fc_ints)
+    assert np.array_equal(parent.fc_lineshape, child.fc_lineshape)
+    for a, b in zip(parent.compute_spectrum(zpl=1945.0), child.compute_spectrum(zpl=1945.0)):
         assert np.array_equal(a, b)
 
 
@@ -271,8 +271,8 @@ def test_uniform_grid_by_points_or_spacing():
             uniform_grid(0.0, 1.0, **bad)
 
 
-def test_fd_default_grid_is_unchanged(pair, diamond):
-    """npts=None means the documented default of 20001 points, exactly as before the grid options were added."""
+def test_fd_default_grid(pair, diamond):
+    """npts=None means the documented default of 20001 points, spanning the turning points plus the margin."""
 
     s = SUB(*pair)
     x, q, info = s.fd_grid(20, 20, q_i=pair[2], q_f=0.0)

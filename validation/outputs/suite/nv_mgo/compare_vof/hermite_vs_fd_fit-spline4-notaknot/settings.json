@@ -21,11 +21,18 @@
     ],
     "resol": 2101,
     "npts": 100001,
+    "hermite_h": null,
+    "hermite_margin": 6.0,
     "fd_npts": 40001,
+    "fd_h": null,
+    "fd_range": null,
     "fd_stencil": 5,
     "fd_margin": 2.0,
+    "fd_shift": null,
     "fd_fit": "spline4-notaknot",
+    "line_positions": "harmonic",
     "cubic_fit": "cubic",
-    "cubic_normalize": false
+    "cubic_normalize": false,
+    "cubic_warn": 0.1
   }
 }

@@ -23,8 +23,8 @@ place, so every module that imported them follows.
 Naming of the data points: every point of a PES is the total energy of one electronic state at one configuration
 (an *image*), computed by some electronic-structure method. The method differs between datasets and between the two
 states of one dataset (ground-state DFT, constrained-occupation DFT (Delta-SCF), spin-conserving or spin-flip TDDFT,
-BSE, ...), so figures and logs never call them "DFT energies". They say *computed energies* or *images*, and name the
-method of each state from ``Dataset.energy_methods`` (``ENERGY_METHODS``, ``energy_label``).
+BSE, ...), so figures and logs call them *computed energies* or *images* and name the method of each state from
+``Dataset.energy_methods`` (``ENERGY_METHODS``, ``energy_label``).
 """
 
 import json

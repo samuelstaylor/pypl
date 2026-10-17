@@ -8,7 +8,7 @@ PyPL is a Python package for computing vibrationally resolved optical spectra of
 - **1D configuration-coordinate model** (`config_coord_1d_solver`): Franck-Condon integrals of two displaced harmonic oscillators by the Ruhoff recurrences and the broadened Franck-Condon lineshape.
 - **Anharmonic 1D CCD** (`config_coord_1d_vof_solver`, a subclass of `config_coord_1d_solver` that only adds methods):
   - Franck-Condon integrals by quadrature of harmonic eigenfunctions (stable for hundreds of levels, i.e. large Huang-Rhys factors);
-  - finite-difference eigenstates of any potential, e.g. a fit of the DFT images;
+  - finite-difference eigenstates of any potential, e.g. a fit of the computed energies at the images;
   - a first-order cubic anharmonic correction;
   - a lineshape with lines at the actual vibrational level energies (`build_fc_lsp_from_levels`).
 - **Potential fits** (`config_coord_1d_potential`): parabola, polynomial, Morse, cubic, and splines of degree 2-5 (natural, not-a-knot or clamped ends; harmonic or smooth C² tails).

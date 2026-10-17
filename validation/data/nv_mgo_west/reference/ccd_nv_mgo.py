@@ -19,7 +19,7 @@ Only image directories that contain a completed WBSE summary.json are plotted.
 Total energies are read from the QE data-file-schema.xml, located via the
 west.wbse.save symlink (fallback: local pwscf.save/data-file-schema.xml).
 
-(Reference copy of the user's HPC script, kept unchanged as the specification of how the CCD energies
+(Reference copy of the HPC analysis script, the specification of how the CCD energies
 are assembled: E_state(Q) = E_DFT(Q) + VEE_state(Q), with E_DFT the ground-state total energy.)
 """
 

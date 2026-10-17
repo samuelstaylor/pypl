@@ -431,7 +431,7 @@ def check_extension(c, ccd):
     c.check("inherited compute_spectrum is bit-identical", same)
 
     print()
-    print("New F_ij routes (20 x 20 block)")
+    print("Hermite and finite-difference F_ij routes (20 x 20 block)")
     ref = sub(w_es, w_gs, delta_q)
     ref.compute_franck_condon_integrals(ni=20, nf=20)
     herm = sub(w_es, w_gs, delta_q)

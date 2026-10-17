@@ -5,7 +5,7 @@ along the 1D configuration coordinate between the 3E and 1A1 equilibrium structu
 - sc: spin-conserving TDDFT at every image, `sc/Image_<q>/summary.json` (root 1 = 3E; excitation energies in Ry)
 - sf: spin-flip TDDFT at every image, `sf/Image_<q>/summary.json` (roots 1-4 = ms0, 1B2, 1B1, 1A1)
 - `<sc|sf>/Image_<q>/inputs`: input files, logs and small outputs of each calculation
-- reference: the original plotting script and notes
+- reference: the plotting script for the HPC directory layout, and notes
 - ccd_nv_mgo.py: plots the CCD from this directory (ccd_nv_mgo.png)
 - NOTES.md, MANIFEST.tsv: how and from where the data were collected
 

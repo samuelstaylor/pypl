@@ -1,4 +1,4 @@
-$ python testing/check_1d_ccd.py -v
+$ python validation/check_1d_ccd.py -v
 
 CCD construction (parsers + parabolic fits)
   PASS  delta_q                                        got  0.695732  expected  0.695732  (tol 1e-05 amu^0.5 A)
@@ -36,14 +36,14 @@ PL and absorption spectra
   PASS  Abs weight lies above the ZPL                  
   PASS  invalid spectrum_type raises ValueError        
 
-Extension (pypl_ext) leaves PyPL unchanged
+Extension (config_coord_1d_vof_solver) leaves PyPL unchanged
   PASS  vof solver overrides no config_coord_1d_solver attribute overridden: []
   PASS  vof solver is a config_coord_1d_solver         
   PASS  inherited compute_franck_condon_integrals is bit-identical 
   PASS  inherited bulid_fc_lsp is bit-identical        
   PASS  inherited compute_spectrum is bit-identical    
 
-New F_ij routes (20 x 20 block)
+Hermite and finite-difference F_ij routes (20 x 20 block)
   PASS  hermite F_ij matches the Ruhoff recurrences    max dev 6.39e-13
   PASS  fd F_ij on the parabolas matches the Ruhoff recurrences max dev 9.47e-11
   PASS  fd eigenstates are bound (|psi| at the walls < 1e-12) 2.3e-16
@@ -93,6 +93,12 @@ Large Huang-Rhys factors and the NV- in MgO dataset
   PASS  MgO parabola images: 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15 
   PASS  MgO cubic-fit images: q = -0.10..+1.15 for both (26 each) 
   PASS  MgO spline / Morse / polyN use every image     
+  PASS  smooth-tail spline = not-a-knot spline inside the data 
+  PASS  smooth tails are C2 at both end images         max jump 8.8e-05
+  PASS  smooth tails bounded on MgO (V'' > 0 at every end) 
+  PASS  clamped + smooth tails is rejected             
+  PASS  spline_spec(3, not-a-knot, tails=smooth) is canonical 
+  PASS  build_fc_lsp_from_levels(harmonic ladders) = bulid_fc_lsp max dev 0.0e+00
   PASS  fd = hermite with the 3E well left of 1A1 (MgO orientation) max dF 1.2e-11
 
-75/75 checks passed.
+81/81 checks passed.

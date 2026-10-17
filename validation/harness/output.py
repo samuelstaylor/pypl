@@ -97,7 +97,7 @@ class OutputDir:
 
     def __init__(self, script, run="default", title=None, verbose=False, keep_figures=False):
         self.script = script
-        # The run directory is replaced on every run, so keep its name a single safe path component.
+        # The run name becomes a directory name, so keep it a single safe path component.
         self.run = "".join(c if c.isalnum() or c in "-_.+" else "_" for c in (run or "default")).strip(".") or "default"
         self.path = os.path.join(output_root(), script, self.run)
         self.title = title or "%s: %s" % (script, self.run)
@@ -117,7 +117,7 @@ class OutputDir:
         if archived:
             self.log("# previous run with this name moved to %s" % os.path.relpath(archived, REPO_ROOT))
         # Every run records its dataset: data, state roles and how each state's energies were computed. On the
-        # default dataset it goes to log.txt only, to keep the console as before.
+        # default dataset it goes to log.txt only, to keep the console short.
         for line in self.dataset.describe():
             self.log("# %s" % line, detail=self.dataset.name == ccd_data.DEFAULT_DATASET)
 

@@ -54,9 +54,9 @@ Terminology
 was computed. The images of a 1D CCD are usually a linear interpolation between the equilibrium structures of the two
 states, labelled by :math:`q` with :math:`Q = q\,\Delta Q`.
 
-**Computed energies, not "DFT energies".** The data points of a potential energy surface (PES) are total energies of
-one electronic state at each image, obtained by *some* electronic-structure method. That method differs between
-datasets and even between the two states of one dataset:
+**Computed energies.** The data points of a potential energy surface (PES) are total energies of one electronic state
+at each image, obtained by *some* electronic-structure method. That method differs between datasets and even between
+the two states of one dataset:
 
 .. list-table::
    :header-rows: 1
@@ -73,12 +73,10 @@ datasets and even between the two states of one dataset:
      - :math:`^3E`: spin-conserving TDDFT on a DDH ground state (WEST, root 1)
 
 Other systems may use the Bethe-Salpeter equation (BSE), quantum embedding (QDET), quantum chemistry or a machine
-learned potential. "DFT" would therefore be wrong or misleading for most excited-state PESs: TDDFT and
-:math:`\Delta`\ SCF are built on DFT, but the energy of the excited state comes from a different approximation with
-different errors, and many-body methods use DFT only as a starting point or not at all. The package (which does not
-know where the numbers come from) calls them *samples* or *images*; the validation suite labels them *computed
-energies* and names the method of each state from the dataset's metadata (``Dataset.energy_methods`` in
-``validation/harness/ccd_data.py``). The energy zero is recorded too (``Dataset.energy_zero``).
+learned potential. The package (which does not know where the numbers come from) calls them *samples* or *images*;
+the validation suite labels them *computed energies* and names the method of each state from the dataset's metadata
+(``Dataset.energy_methods`` in ``validation/harness/ccd_data.py``). The energy zero is recorded too
+(``Dataset.energy_zero``).
 
 **GS / ES roles.** The validation code calls the lower state of a dataset "GS" and the upper one "ES", whatever their
 physical names; *emission* is ES :math:`\rightarrow` GS and *absorption* GS :math:`\rightarrow` ES. Figures and logs
@@ -323,9 +321,9 @@ The validation checks (``validation/check_1d_ccd.py``)
 ======================================================
 
 The script prints one header per group and a summary line; ``-v`` prints every check with its measured value. The exit
-status is 0 only if all pass. Reference values are those of tutorial 002 and of the user's MgO analysis script;
-``REFERENCE`` is changed only when a change of physics is intended, and tolerances are never widened to make a check
-pass.
+status is 0 only if all pass. Reference values are those of tutorial 002 and of the MgO analysis script
+``ccd_nv_mgo.py``; ``REFERENCE`` is changed only when a change of physics is intended, and tolerances are never
+widened to make a check pass.
 
 .. list-table::
    :header-rows: 1
@@ -352,7 +350,7 @@ pass.
    * - Extension leaves PyPL unchanged (5)
      - no attribute overridden; inherited methods bit-identical
      - the extension contract
-   * - New :math:`F_{ij}` routes (3)
+   * - Hermite and finite-difference :math:`F_{ij}` routes (3)
      - Hermite and fd on the parabolas equal Ruhoff (1e-10, 1e-8); fd states vanish at the walls (1e-12)
      - three independent routes agree
    * - Potential fits (3), spline options (11)
@@ -469,7 +467,7 @@ Figures follow one style (``validation/harness/plots.py``): 9 pt sans-serif text
 units, the colour-blind-safe Okabe-Ito palette for methods and fits (all spline variants share one colour and differ
 by line style; the two states keep the dataset's colours), one shared legend per figure below the panels, viridis
 for every colour map with a labelled colour bar, and 300 dpi by default. Settings and statistics are written to
-``log.txt``, the CSV files and ``index.md`` rather than onto the figures.
+``log.txt``, the CSV files and ``index.md``.
 
 **Fit specifications** for ``--fd-fit``: ``parabola``, ``polyN``, ``morse``, ``cubic[-near][-free]`` and
 ``spline[K][-natural|-notaknot|-clamped|-sRMS][-smooth]`` (``K`` = degree 2-5; ``-sRMS`` a smoothing spline with an
@@ -553,11 +551,11 @@ NV\ :sup:`-` in MgO, 160 :math:`\times` 100 levels, constant 20 meV broadening, 
 (finding 6); the smooth-spline VOF peaks about 580 meV below the harmonic one (Tutorial 003).
 
 
-Findings about the original solver
-==================================
+Findings about ``config_coord_1d_solver``
+=========================================
 
-None of these is changed in the package (changing them would change PyPL's behaviour); they are documented and, where
-relevant, avoided by the new methods.
+These behaviours are kept for backward compatibility (changing them would change PyPL's results); they are documented
+here and, where relevant, avoided by the methods of ``config_coord_1d_vof_solver``.
 
 1. **Float64 drift of the Ruhoff recurrence** (:math:`\sim 10^{-8}` at the highest indices of a 50 :math:`\times` 60
    basis); the same recurrence in 60-digit arithmetic agrees with Hermite quadrature to 1e-12. Invisible in spectra.

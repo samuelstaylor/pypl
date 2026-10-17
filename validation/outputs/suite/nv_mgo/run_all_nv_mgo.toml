@@ -1,13 +1,13 @@
-# Master test suite on NV- in MgO, 3E -> 1A1, from WEST TDDFT-DDH (doc/nv_mgo_west).
+# Master test suite on NV- in MgO, 3E -> 1A1, from WEST TDDFT-DDH (doc/tutorials/003_nv_mgo_isc).
 #
-#   python testing/run_all.py --config testing/run_all_nv_mgo.toml
-#   python testing/run_all.py --config testing/run_all_nv_mgo.toml --dry-run
+#   python validation/run_all.py --config validation/run_all_nv_mgo.toml
+#   python validation/run_all.py --config validation/run_all_nv_mgo.toml --dry-run
 #
-# Results go to testing/outputs/suite/nv_mgo/ (open its index.md first). The diamond suite is
-# testing/outputs/suite/default/; a suite refuses to replace a directory made from another dataset.
-# Every key is documented in testing/run_all.toml; only the values that differ from it are explained here.
+# Results go to validation/outputs/suite/nv_mgo/ (open its index.md first). The diamond suite is
+# validation/outputs/suite/default/; a suite refuses to replace a directory made from another dataset.
+# Every key is documented in validation/run_all.toml; only the values that differ from it are explained here.
 #
-# The dataset (harness/ccd_data.py, DATASETS["nv_mgo"]), laid out as doc/nv_mgo_west/reference/ccd_nv_mgo.py:
+# The dataset (harness/ccd_data.py, DATASETS["nv_mgo"]), laid out as doc/tutorials/003_nv_mgo_isc/reference/ccd_nv_mgo.py:
 #   'ES' = 3E  (sc root 1), the upper state, minimum at Q = 0 (Image_+0.00), drawn red (circles)
 #   'GS' = 1A1 (sf root 4), the lower state, minimum at Q = delta_q = 3.0979 amu^0.5 A (Image_+1.00), blue (diamonds)
 #   Q = q delta_q; energies relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py.
@@ -63,6 +63,12 @@ margin = 2.0
 # poly6 and poly8 (1A1) and cubic (it turns over inside the grid); the cubic PT method below still runs, but
 # its check against the exact fd solution of the same cubic is skipped for the same reason.
 fits = ["spline", "spline5-clamped", "morse", "poly2", "poly4", "poly6", "poly8", "cubic"]
+
+# The recommended MgO spline: not-a-knot, C2 tails continuing the spline itself (smooth, data-driven).
+[[fd.splines]]
+order = 3
+bc = "not-a-knot"
+tails = "smooth"
 
 [[fd.splines]]
 order = 4

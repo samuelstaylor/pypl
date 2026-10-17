@@ -15,16 +15,16 @@ configuration coordinate with many images. Each image has a ground-state QE calc
 The energy of each state on image Q is the ground-state DFT total energy plus that state's WBSE vertical
 excitation energy: E_state(Q) = E_DFT(Q) + VEE_state(Q), with eigenvalues in Ry (× 13.605693 for eV). Images
 are named `Image_<q>` (e.g. `Image_+0.05`, `Image_-0.10`), and Q = q·ΔQ. ΔQ is the mass-weighted distance
-between `Image_+0.00` and `Image_+1.00`. `reference/ccd_nv_mgo.py` is the user's HPC script that builds this
+between `Image_+0.00` and `Image_+1.00`. `reference/ccd_nv_mgo.py` is the HPC analysis script that builds this
 CCD, kept as the specification.
 
-## Layout (after the transfer)
+## Layout of the collected bundle
 
 ```
 nv_mgo_west/
 ├── README.md                    this file
 ├── collect_on_hpc.sh            the HPC-side collector (read-only on the source data)
-├── reference/ccd_nv_mgo.py      how the CCD energies are assembled (the user's script)
+├── reference/ccd_nv_mgo.py      how the CCD energies are assembled (the HPC analysis script)
 ├── MANIFEST.tsv                 per state and image: what was found, from where, checksums, flags
 ├── NOTES.md                     host, date, source path, counts, code versions, flags
 ├── qe/Image_<q>/data-file-schema.xml      ground-state QE XML (total energy + geometry)
@@ -75,9 +75,9 @@ tar -xzf nv_mgo_west.tar.gz                       # fills nv_mgo_west/ (this REA
 Run these from that directory, with relative paths: Git Bash's `tar` misreads `C:` in an absolute path as a
 remote host.
 
-## Status
+## Where the data are used
 
-Waiting for the data. The harness's loader (`validation/harness/ccd_data.py`) reads the tutorial-002 QE layout,
-so this dataset will need its own loader. It must handle `Image_<q>` coordinates, E_DFT + VEE per state, the
-Mg / O / N masses, and the energy zero at the ³A₂ minimum. It also needs a choice of which pair of states forms
-the transition (³E at Q = 0 and ¹A₁ at Q = ΔQ in the reference script).
+The collected bundle is stored in `doc/tutorials/003_nv_mgo_isc/` (tutorial 003). The harness reads it as the
+`nv_mgo` dataset (`validation/harness/ccd_data.py`, `--dataset nv_mgo`): `Image_<q>` coordinates, E_DFT + VEE per
+state, the Mg / O / N masses and the energy zero at the ³A₂ minimum, with the transition ³E (Q = 0) → ¹A₁
+(Q = ΔQ) as in the reference script.
