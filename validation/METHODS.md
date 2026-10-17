@@ -360,7 +360,8 @@ frequencies (from a), the HR factors and the level energies are unchanged; only 
 corrected. With b = 0 it is exactly the `hermite` method.
 
 `doc/tutorials/pypl_004.ipynb` is the notebook version of this section, with the full derivation (matrix elements,
-second-order energies, turnover and barrier) and the validity analysis checked numerically.
+second-order energies, turnover and barrier) and the validity analysis checked numerically; `pypl_004a.ipynb` repeats it
+for NV⁻ in MgO, where the cubic turns over inside the images and perturbation theory fails.
 
 ### 6.1 Fitting b: "a fixed" vs "a fitted"
 

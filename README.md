@@ -25,6 +25,7 @@ The tutorial and documentation are hosted on [GitHub Pages](https://miccompy.git
 | `pypl_002.ipynb` | PL and absorption of NV⁻ in diamond in the 1D CCD model |
 | `pypl_003.ipynb` | 3E → 1A1 intersystem crossing of NV⁻ in MgO: harmonic vs anharmonic (smooth spline) vibrational overlap and ISC rate, from WEST TDDFT data |
 | `pypl_004.ipynb` | Cubic anharmonicity by first-order perturbation theory: corrected wavefunctions, Franck-Condon integrals and VOF, the regime of validity, and a supplementary derivation |
+| `pypl_004a.ipynb` | The same analysis for the strongly anharmonic NV⁻ in MgO (3E → 1A1): where and by how much perturbation theory fails |
 | `pypl_005.ipynb` | Running the test suite and the validation checks, and comparing potential fits and VOF methods |
 
 ## Installation

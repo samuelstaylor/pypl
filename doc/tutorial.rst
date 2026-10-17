@@ -14,5 +14,6 @@ Contents:
    tutorials/pypl_002.ipynb
    tutorials/pypl_003.ipynb
    tutorials/pypl_004.ipynb
+   tutorials/pypl_004a.ipynb
    tutorials/pypl_005.ipynb
 

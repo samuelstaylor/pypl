@@ -443,6 +443,13 @@ Added 2026-10-16 (all in `doc/tutorial.rst`, executed and stored with outputs; n
   NV- MgO as the failing case (|xi| ~ 0.01, n_valid = 1, turnovers inside the images). Supplementary S1-S4: ladder-operator
   derivation, coefficient table, E2 = -hbar w xi^2 (30n^2+30n+11) (checked against fd: ratio 1.002 at n=0, 1.039 at n=15),
   |Q_t| = l/(6|xi|), barrier = hbar w/(432 xi^2) (checked on the fits), n_valid formula.
+- `pypl_004a.ipynb` (2026-10-16): the 004 analysis on NV- MgO. First figure = CCD + parabola/cubic/spline fits + turnovers
+  (004's first figure is now also a CCD + fits plot; the per-well residual figure follows it). Cubic rms in window 108 / 40 meV,
+  xi -0.0095 / +0.0089, n_valid 1, mixing at n = S 17 / 6; 1A1 PT vs cubic-in-a-box (wall Q = -1.3) and vs spline states;
+  VOF: PT sum_j F_0j^2 = 4.52, exact cubic collapses (3E level -49 eV, grid past the turnover), spline peak 569 vs harmonic
+  1145 meV; weight-averaged final-level mixing 6.1 (harmonic) / 2.3 (spline); b-scaling: PT captures 95/91/81/63/25 % at
+  s = 1/64..1/4, s = 1/2 has a turnover inside the grid -> PT valid only for ~b/30; S4 table (E2(n=S) 13.5 / 3.2 hw,
+  barrier 25 / 29 levels, turnovers inside the images).
 - `pypl_005.ipynb`: runs pytest (-m "not slow") and check_1d_ccd.py via subprocess, method table (pypl/hermite/fd/cubic),
   fit table + VOF per bounded fit with build_fc_lsp_from_levels, compare_vof.py and plot_ccd_wavefunctions.py runs (shown
   figures), run_all --dry-run. Validation outputs go to a tempdir via PYPL_VALIDATION_OUTPUT_ROOT; paths are printed as <tmp>.
