@@ -285,9 +285,7 @@ def draw_vof(ax, results):
         sticks = first.weights[keep] / np.max(first.weights) * first.sideband_max / peak
         ax.hlines(first.levels_ev[keep], 0.0, sticks, color=color, lw=0.8, alpha=0.5, zorder=1.5)
     ax.set_xlim((0.0, 1.18))
-    ax.set_xlabel("FC lineshape (norm.)")
-    ax.set_title("VOF", fontsize=10)
-    ax.legend(loc="center right", edgecolor="black", fontsize=7)
+    ax.set_xlabel("VOF (norm.)")
     ax.tick_params(labelleft=False)
     plots.style(ax)
     ax.grid(axis="y", visible=False)
@@ -429,7 +427,24 @@ def main():
             tail = absorption.lineshape > 0.03 * absorption.sideband_max
             y_hi = max(y_hi, float(absorption.energy_ev[tail].max()) + 0.04)
     ax.set_ylim((y_lo, y_hi))
-    ax.legend(loc="center left" if args.well == "both" else "upper right", edgecolor="black", fontsize=9)
+    if args.no_vof:
+        ax.legend(loc="center left" if args.well == "both" else "upper right", edgecolor="black", fontsize=9)
+    else:
+        # Both legends go below the panels, where they cannot cover the curves: CCD entries left, VOF entries right.
+        h_ccd, l_ccd = ax.get_legend_handles_labels()
+        h_vof, l_vof = ax_vof.get_legend_handles_labels()
+        l_vof = ["VOF, " + label.replace("\n", ": ") for label in l_vof]
+        pad = max(len(l_ccd), len(l_vof))
+        blank = plt.Line2D([], [], color="none")
+        fig.legend(
+            h_ccd + [blank] * (pad - len(l_ccd)) + h_vof + [blank] * (pad - len(l_vof)),
+            l_ccd + [""] * (pad - len(l_ccd)) + l_vof + [""] * (pad - len(l_vof)),
+            loc="upper center",
+            bbox_to_anchor=(0.5, 0.0),
+            ncol=2,
+            fontsize=8,
+            edgecolor="black",
+        )
     wf_source = {
         "hermite": "Hermite",
         "fd": "finite difference on %s" % fits.label(params.fd_fit),

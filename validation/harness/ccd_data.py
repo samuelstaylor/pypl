@@ -4,7 +4,7 @@ Every script works on one *dataset*, chosen with ``--dataset`` (or the environme
 ``PYPL_TESTING_DATASET``; the default is ``nv_diamond``):
 
     nv_diamond   NV- in diamond, 3E -> 3A2, tutorial 002 (doc/tutorials/002_nv_diamond_1d_ccd)
-    nv_mgo       NV- in MgO, 3E -> 1A1, WEST TDDFT-DDH (doc/nv_mgo_west)
+    nv_mgo       NV- in MgO, 3E -> 1A1, WEST TDDFT-DDH (doc/tutorials/003_nv_mgo_isc)
 
 ``build_ccd()`` turns the active dataset into the three numbers ``config_coord_1d_solver`` needs
 (delta_q, gs_phonon, es_phonon) plus the raw samples every other fit is made from. The harmonic wells
@@ -13,7 +13,7 @@ are ``config_coord_1d_potential`` parabolas fitted to the images near each minim
 The two states are always called ``"gs"`` and ``"es"`` internally: ``"gs"`` is the lower state and ``"es"``
 the upper one; emission is es -> gs. Where each minimum sits is the dataset's choice (``center``): diamond
 has the GS at Q = 0 and the ES at delta_q, as in tutorial 002; MgO has 3E ("es") at Q = 0 and 1A1 ("gs") at
-Q = delta_q, as in doc/nv_mgo_west/reference/ccd_nv_mgo.py. The solver methods take both minima, so every
+Q = delta_q, as in doc/tutorials/003_nv_mgo_isc/reference/ccd_nv_mgo.py. The solver methods take both minima, so every
 F_ij is the same in either orientation.
 
 ``STATE_NAMES`` (plain text, for logs and CSV), ``STATE_LABELS`` (mathtext, for figures), ``STATE_COLORS`` and
@@ -51,10 +51,10 @@ FIT_SLICES = {"gs": GS_FIT_SLICE, "es": ES_FIT_SLICE}
 
 # ------------------------------------------------------------------------------ NV- in MgO (WEST)
 
-MGO_DATA_DIR = os.path.join(REPO_ROOT, "doc", "nv_mgo_west")
+MGO_DATA_DIR = os.path.join(REPO_ROOT, "doc", "tutorials", "003_nv_mgo_isc")
 MGO_MASS_LIST = {"N": 14.0067, "O": 15.999, "Mg": 24.305}
 # Path coordinate q of the image directories (Image_<q>): 0 = 3E minimum, 1 = 1A1 minimum, and
-# Q = q * delta_q, exactly as in doc/nv_mgo_west/reference/ccd_nv_mgo.py.
+# Q = q * delta_q, exactly as in doc/tutorials/003_nv_mgo_isc/reference/ccd_nv_mgo.py.
 MGO_STATES = {
     # state: (WEST run directory, 0-based root in summary.json eigenval, physical name)
     "gs": ("sf", 3, "1A1"),
@@ -373,9 +373,9 @@ def mgo_images(data_dir, state):
 
 
 def _build_nv_mgo(data_dir):
-    """NV- in MgO, 3E (upper, "es") and 1A1 (lower, "gs"), from the collected WEST bundle in doc/nv_mgo_west.
+    """NV- in MgO, 3E (upper, "es") and 1A1 (lower, "gs"), from the collected WEST bundle in doc/tutorials/003_nv_mgo_isc.
 
-    The same energies as ``doc/nv_mgo_west/ccd_nv_mgo.py``: the QE total energy of each image plus the
+    The same energies as ``doc/tutorials/003_nv_mgo_isc/ccd_nv_mgo.py``: the QE total energy of each image plus the
     WEST excitation energy of the state's root. delta_q is the mass-weighted distance between
     Image_+0.00 (3E minimum) and Image_+1.00 (1A1 minimum).
     """

@@ -225,7 +225,7 @@ def check_datasets(c):
     c.close("hermite closure of row 0, S ~ 50", np.sum(s.fc_ints[0] ** 2), 1.0, 1e-10)
 
     if not os.path.isdir(ccd_data.MGO_DATA_DIR):
-        print("  (doc/nv_mgo_west not present: MgO loader checks skipped)")
+        print("  (doc/tutorials/003_nv_mgo_isc not present: MgO loader checks skipped)")
         return
     mgo = quiet(ccd_data.build_ccd, dataset="nv_mgo")
     c.close("MgO delta_q (ccd_nv_mgo.py: 3.097879)", mgo["delta_q"], 3.097879, 1e-6, " amu^0.5 A")

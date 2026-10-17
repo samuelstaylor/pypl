@@ -18,7 +18,7 @@ from pypl.config_coord_1d_potential import config_coord_1d_potential  # noqa: E4
 from pypl.utils import parse_atoms_qexml, parse_total_energy_qexml, parse_west_summary  # noqa: E402
 
 DIAMOND_DIR = os.path.join(REPO_ROOT, "doc", "tutorials", "002_nv_diamond_1d_ccd")
-MGO_DIR = os.path.join(REPO_ROOT, "doc", "nv_mgo_west")
+MGO_DIR = os.path.join(REPO_ROOT, "doc", "tutorials", "003_nv_mgo_isc")
 
 
 def pytest_configure(config):
@@ -64,7 +64,7 @@ def mgo():
     """Tutorial 003: 3E (sc root 1, at Q = 0) and 1A1 (sf root 4, at Q = delta_q) of NV- in MgO."""
 
     if not os.path.isdir(MGO_DIR):
-        pytest.skip("doc/nv_mgo_west is not present")
+        pytest.skip("doc/tutorials/003_nv_mgo_isc is not present")
     xml = lambda image: os.path.join(MGO_DIR, "qe", image, "data-file-schema.xml")  # noqa: E731
     masses = {"N": 14.0067, "O": 15.999, "Mg": 24.305}
     symbols, c0, _ = parse_atoms_qexml(xml("Image_+0.00"))

@@ -15,7 +15,9 @@ Every existing function behaves exactly as in v1.0; tutorials 001 and 002 give b
   degree 2-5; natural, not-a-knot or clamped ends; harmonic or smooth C2 tails).
 - New ``pypl.isc``: golden-rule intersystem crossing rate and lifetime.
 - New ``utils.parse_west_summary`` for WEST TDDFT excitation energies.
-- New tutorial ``pypl_003``: 3E -> 1A1 ISC of NV- in MgO from WEST TDDFT-DDH data (``doc/nv_mgo_west``).
+- New tutorial ``pypl_003``: 3E -> 1A1 ISC of NV- in MgO from WEST TDDFT-DDH data (``doc/tutorials/003_nv_mgo_isc``).
+- New tutorial ``pypl_004``: the first-order cubic anharmonic correction, its validity and its derivation.
+- New tutorial ``pypl_005``: running the tests and comparing potential fits and VOF methods.
 - pytest suite (``tests/``), validation suite for the 1D CCD (``validation/``), CI test job, ``pypl.__version__``.
 - Docstring LaTeX markup fixed; invalid escape sequences in two printed strings made raw (same output).
 

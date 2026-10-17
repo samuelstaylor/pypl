@@ -17,13 +17,15 @@ PyPL is a Python package for computing vibrationally resolved optical spectra of
 
 ## Documentation
 
-The tutorial and documentation are hosted on [GitHub Pages](https://miccompy.github.io/pypl/). The tutorials are in `doc/tutorials/`:
+The tutorial and documentation are hosted on [GitHub Pages](https://miccompy.github.io/pypl/). The tutorials and their input data (`001_*`, `002_*`, `003_*`) are in `doc/tutorials/`:
 
 | Notebook | Content |
 | --- | --- |
 | `pypl_001.ipynb` | PL and absorption of NV⁻ in diamond from full phonons (displacement and force routes) |
 | `pypl_002.ipynb` | PL and absorption of NV⁻ in diamond in the 1D CCD model |
 | `pypl_003.ipynb` | 3E → 1A1 intersystem crossing of NV⁻ in MgO: harmonic vs anharmonic (smooth spline) vibrational overlap and ISC rate, from WEST TDDFT data |
+| `pypl_004.ipynb` | Cubic anharmonicity by first-order perturbation theory: corrected wavefunctions, Franck-Condon integrals and VOF, the regime of validity, and a supplementary derivation |
+| `pypl_005.ipynb` | Running the test suite and the validation checks, and comparing potential fits and VOF methods |
 
 ## Installation
 

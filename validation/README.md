@@ -2,7 +2,7 @@
 
 Local test harness for PyPL's **1D configuration-coordinate (1D CCD)** path. It runs on two datasets
 (`--dataset`): NV⁻ in diamond, 3E → 3A2, from `doc/tutorials/002_nv_diamond_1d_ccd/` (the default), and
-NV⁻ in MgO, 3E → 1A1, from the WEST TDDFT-DDH data in `doc/nv_mgo_west/` (`nv_mgo`). It compares three independent routes to the
+NV⁻ in MgO, 3E → 1A1, from the WEST TDDFT-DDH data in `doc/tutorials/003_nv_mgo_isc/` (`nv_mgo`). It compares three independent routes to the
 Franck–Condon matrix `F_ij` and the vibrational overlap function (VOF) built from it:
 
 | Method | Where `F_ij` comes from |
@@ -16,6 +16,9 @@ The classes it tests live in the package (`pypl/config_coord_1d_vof_solver.py`, 
 the harness and scripts here are not installed. CI runs `check_1d_ccd.py`; the fast unit and regression tests of the
 package are in `tests/` (`pytest`).
 
+`doc/tutorials/pypl_005.ipynb` walks through the tests, the checks and these scripts, and compares fits and VOF
+methods with the package API.
+
 **[METHODS.md](METHODS.md)** is a tutorial-style overview of every method: the physics and derivations,
 how to run it, how to read its output, measured accuracy, and when to use it.
 
@@ -24,7 +27,7 @@ how to run it, how to read its output, measured accuracy, and when to use it.
 ```
 validation/
 ├── harness/                          validation-only helpers (not installed)
-│   ├── ccd_data.py                     the datasets: nv_diamond (tutorial 002) and nv_mgo (doc/nv_mgo_west)
+│   ├── ccd_data.py                     the datasets: nv_diamond (tutorial 002) and nv_mgo (doc/tutorials/003_nv_mgo_isc)
 │   ├── fits.py                         fit specs: parabola, polyN, spline, morse
 │   ├── methods.py                      VOFParams, shared CLI flags, METHODS, compute_vof, compare_results
 │   ├── output.py                       OutputDir: one organized directory per run
@@ -37,7 +40,7 @@ validation/
 ├── run_all.py                        MASTER SUITE: runs every method / fit / variant with one parameter set
 ├── run_all.toml                      its commented configuration (every parameter and choice), NV⁻ in diamond
 ├── run_all_nv_mgo.toml               the same for NV⁻ in MgO, 3E -> 1A1 (suite name nv_mgo)
-├── data/nv_mgo_west/                 how the MgO data was collected on the HPC (README, collector); data: doc/nv_mgo_west/
+├── data/nv_mgo_west/                 how the MgO data was collected on the HPC (README, collector); data: doc/tutorials/003_nv_mgo_isc/
 └── outputs/                          everything the scripts write; reruns archive to outputs/_archive/
 ```
 
@@ -105,7 +108,7 @@ factors (50 and 85) need 160 × 100 levels, a −0.5 … 10 eV axis and `hermite
 recurrence is unstable there (see METHODS.md §2). The tutorial step does not apply (3E → 1A1 has no PL).
 `doc/tutorials/pypl_003.ipynb` is the MgO tutorial: harmonic (PyPL, Ruhoff) vs smooth not-a-knot spline VOFs
 of 3E → 1A1 and the ISC rate Γ(Δ) from each (λ⊥ from QDET). It uses only the package API
-(`pypl.config_coord_1d_*`, `pypl.isc`, `pypl.utils.parse_west_summary`). The MgO CCD follows `doc/nv_mgo_west/reference/ccd_nv_mgo.py`: 3E (red) at Q = 0, 1A1 (blue) at Q = ΔQ. Image
+(`pypl.config_coord_1d_*`, `pypl.isc`, `pypl.utils.parse_west_summary`). The MgO CCD follows `doc/tutorials/003_nv_mgo_isc/reference/ccd_nv_mgo.py`: 3E (red) at Q = 0, 1A1 (blue) at Q = ΔQ. Image
 windows (q of `Image_<q>`): parabola 3E −0.10 … +0.45 and 1A1 +0.60 … +1.15; cubic (perturbative correction)
 −0.10 … +1.15; every other fit all images. Every legend, note and `index.md` names the images each fit used.
 

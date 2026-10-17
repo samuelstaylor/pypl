@@ -43,8 +43,8 @@ if hasattr(sys.stdout, "reconfigure"):
 try:
     from pypl.utils import parse_atoms_qexml, parse_total_energy_qexml
 except ImportError:
-    # pypl not installed: fall back to the repository this script lives in (doc/nv_mgo_west → ../..)
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")))
+    # pypl not installed: fall back to the repository this script lives in (doc/tutorials/003_nv_mgo_isc → ../../..)
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")))
     from pypl.utils import parse_atoms_qexml, parse_total_energy_qexml
 
 

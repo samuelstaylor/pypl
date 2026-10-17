@@ -87,4 +87,4 @@ def test_tutorial_003_isc_numbers(mgo):
 
 
 def test_data_present():
-    assert os.path.isdir(MGO_DIR), "doc/nv_mgo_west is part of the repository"
+    assert os.path.isdir(MGO_DIR), "doc/tutorials/003_nv_mgo_isc is part of the repository"

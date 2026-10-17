@@ -96,7 +96,7 @@ validation/
 ├── run_all.py                        master suite: every method/fit/variant from one TOML config, ~20 min
 ├── run_all.toml                      the commented default config (documents every key), NV- in diamond
 ├── run_all_nv_mgo.toml               the NV- in MgO suite config (suite name nv_mgo, dataset nv_mgo)
-├── data/nv_mgo_west/             how the MgO data was collected on the HPC (README, collector); the data is doc/nv_mgo_west/
+├── data/nv_mgo_west/             how the MgO data was collected on the HPC (README, collector); the data is doc/tutorials/003_nv_mgo_isc/
 ├── README.md
 ├── METHODS.md                        tutorial overview of every VOF method (update with every method change)
 └── outputs/<script>/<run>/           every run's results (committed on vof-extensions); _archive/ = replaced runs; _legacy_flat/ = old flat files
@@ -355,10 +355,10 @@ run cleanly, and black is clean on every testing file.
   labelled as anharmonicity
 - the extension must never change existing PyPL behaviour
 
-**NV- in MgO dataset (`--dataset nv_mgo`, data in `doc/nv_mgo_west/`, untracked; `doc/nv_mgo_west.tar.gz` is its
-tarball).** Collector layout: `{sc,sf}/Image_<q>/summary.json` (`plep.eigenval`, Ry), `qe/Image_<q>/data-file-schema.xml`
+**NV- in MgO dataset (`--dataset nv_mgo`, data in `doc/tutorials/003_nv_mgo_isc/`, moved there
+from `doc/nv_mgo_west/` on 2026-10-16; the transfer tarball was removed, it is in commit 7ed4613).** Collector layout: `{sc,sf}/Image_<q>/summary.json` (`plep.eigenval`, Ry), `qe/Image_<q>/data-file-schema.xml`
 (34 images, from sc), `<state>/Image_<q>/inputs/` (logs), `reference/` (`ccd_nv_mgo.py` = the user's spec and the
-reference for colours / labels; `sf_note.md`). `doc/nv_mgo_west/ccd_nv_mgo.py` is the user's plot script, edited to read
+reference for colours / labels; `sf_note.md`). `doc/tutorials/003_nv_mgo_isc/ccd_nv_mgo.py` is the user's plot script, edited to read
 this layout (qe/ XMLs, local summary.json, script-relative paths, UTF-8 stdout, `SF_EXCLUDE = ["Image_+2.00"]`).
 - E_state = qe etot + eigenval[root] x 13.605693 (3E: sc root 1; 1A1: sf root 4), zero = 3A2 (qe) minimum excluding
   Image_-1.00, exactly as ccd_nv_mgo.py. dQ = 3.097879 (Mg107 O108 N1, 216 atoms); every image is an exact linear
@@ -426,11 +426,27 @@ this layout (qe/ XMLs, local summary.json, script-relative paths, UTF-8 stdout, 
   26.10.1 was installed** on 2026-10-15; CI pins black 26.1.
 - `pytest`, `sphinx`, `sphinx_rtd_theme` installed 2026-10-16, and pypl itself as an editable install
   (`pip install -e . --no-deps`), which the tutorials need.
-- Everything (validation/, its outputs, doc/nv_mgo_west, CLAUDE.md) is tracked on `vof-extensions`; the user removed
+- Everything (validation/, its outputs, doc/tutorials/003_nv_mgo_isc, CLAUDE.md) is tracked on `vof-extensions`; the user removed
   the testing ignore rules. `CLAUDE.md` is still listed in `.gitignore` but is tracked (added with -f).
 - Heredocs in the Bash tool turn `\\n` into a real newline inside Python strings. For Python edits with
   backslashes, use the Edit / Write tools.
 
 ## Documentation and tutorials
 
-`doc/tutorials/pypl_001.ipynb` (NV-center absorption/PL from full phonons, both the displacement and force routes) and `pypl_002.ipynb` (1D CCD) are the executable reference for the intended API usage; their input data lives in `doc/tutorials/001_*` and `002_*` and is real QE/Phonopy output. Docs are built by `.github/workflows/doc.yml` on every push and deployed to GitHub Pages from `main` by `gh_pages.yml`; notebook rendering needs `nbsphinx` and `pandoc`, which are not project dependencies.
+`doc/tutorials/pypl_001.ipynb` (NV-center absorption/PL from full phonons, both the displacement and force routes) and `pypl_002.ipynb` (1D CCD) are the executable reference for the intended API usage; their input data lives in `doc/tutorials/001_*` and `002_*` and is real QE/Phonopy output.
+
+Added 2026-10-16 (all in `doc/tutorial.rst`, executed and stored with outputs; nbsphinx does not re-run them):
+- `pypl_003.ipynb`: 3E -> 1A1 ISC of NV- in MgO; data in `doc/tutorials/003_nv_mgo_isc/` (moved from `doc/nv_mgo_west/`, README.md added in the 001/002 style; the transfer tarball was dropped).
+- `pypl_004.ipynb`: cubic perturbation theory on NV- diamond. Fits (a fixed), xi and n_valid, PT vs harmonic vs exact-fd
+  wavefunctions (GS infidelity n=0: 5e-6 -> 2.5e-10), VOF (PT captures 99.1 % of the exact cubic effect), validity:
+  b-scaling slopes 1.99 / 1.00, a universal infidelity-vs-mu_n plot on model wells (xi 1e-3..1e-2; harmonic ~mu^2, PT ~mu^3),
+  NV- MgO as the failing case (|xi| ~ 0.01, n_valid = 1, turnovers inside the images). Supplementary S1-S4: ladder-operator
+  derivation, coefficient table, E2 = -hbar w xi^2 (30n^2+30n+11) (checked against fd: ratio 1.002 at n=0, 1.039 at n=15),
+  |Q_t| = l/(6|xi|), barrier = hbar w/(432 xi^2) (checked on the fits), n_valid formula.
+- `pypl_005.ipynb`: runs pytest (-m "not slow") and check_1d_ccd.py via subprocess, method table (pypl/hermite/fd/cubic),
+  fit table + VOF per bounded fit with build_fc_lsp_from_levels, compare_vof.py and plot_ccd_wavefunctions.py runs (shown
+  figures), run_all --dry-run. Validation outputs go to a tempdir via PYPL_VALIDATION_OUTPUT_ROOT; paths are printed as <tmp>.
+- Notebooks were generated from cell lists by a jupyter_client runner in the session scratchpad (nbformat/nbclient are not
+  installed); edit the .ipynb directly from now on. The kernel needs pypl installed (`pip install -e .`).
+- `validation/plot_ccd_wavefunctions.py`: the CCD and VOF legends now sit together below the panels (they used to cover
+  the curves on MgO); existing figures in validation/outputs were not regenerated. Docs are built by `.github/workflows/doc.yml` on every push and deployed to GitHub Pages from `main` by `gh_pages.yml`; notebook rendering needs `nbsphinx` and `pandoc`, which are not project dependencies.

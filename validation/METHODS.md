@@ -46,10 +46,10 @@ Every script runs on one dataset, chosen with `--dataset` (default `nv_diamond`)
 | dataset | transition | 'ES' (upper) | 'GS' (lower) | ΔQ (amu^½ Å) | ħω (meV) / S, ES and GS | basis |
 | --- | --- | --- | --- | --- | --- | --- |
 | `nv_diamond` | 3E → 3A2, tutorial 002 | 3E, at Q = ΔQ | 3A2, at Q = 0 | 0.6957 | 64.31 / 3.72, 59.09 / 3.42 | 50 ES × 60 GS |
-| `nv_mgo` | 3E → 1A1, WEST TDDFT-DDH (`doc/nv_mgo_west`) | 3E, at Q = 0 (red) | 1A1, at Q = ΔQ (blue) | 3.0979 | 60.83 / 69.8, 31.55 / 36.2 | 160 ES × 100 GS |
+| `nv_mgo` | 3E → 1A1, WEST TDDFT-DDH (`doc/tutorials/003_nv_mgo_isc`) | 3E, at Q = 0 (red) | 1A1, at Q = ΔQ (blue) | 3.0979 | 60.83 / 69.8, 31.55 / 36.2 | 160 ES × 100 GS |
 
 The roles are always called GS (lower) and ES (upper) in the code, and "emission" is ES → GS. Each dataset
-places the two minima (`ccd_data.center`). MgO follows `doc/nv_mgo_west/reference/ccd_nv_mgo.py`: Q = q ΔQ from
+places the two minima (`ccd_data.center`). MgO follows `doc/tutorials/003_nv_mgo_isc/reference/ccd_nv_mgo.py`: Q = q ΔQ from
 `Image_<q>`, 3E at Q = 0, 1A1 at Q = ΔQ, energies from the 3A2 minimum, 3E red, 1A1 blue. So "emission" is
 3E → 1A1, the transition of interest (higher → lower, ZPL ≈ 0.556 eV). The solver methods take both minima,
 so F_ij is the same in either orientation (`check_1d_ccd.py` checks fd = hermite with the 3E well on the left).
@@ -358,6 +358,9 @@ V(Q) = a(Q − Q₀)² + b(Q − Q₀)³ + c,
 and the cubic term H′ = bQ³ is treated as a small perturbation of the harmonic Hamiltonian H₀. The harmonic
 frequencies (from a), the HR factors and the level energies are unchanged; only the wavefunctions are
 corrected. With b = 0 it is exactly the `hermite` method.
+
+`doc/tutorials/pypl_004.ipynb` is the notebook version of this section, with the full derivation (matrix elements,
+second-order energies, turnover and barrier) and the validity analysis checked numerically.
 
 ### 6.1 Fitting b: "a fixed" vs "a fitted"
 
