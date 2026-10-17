@@ -1,6 +1,10 @@
-# 1D CCD with wavefunctions: wf-fd_vof-pypl-fd_fit-spline4-notaknot, started 2026-10-15T18:38:49
-# command: python.exe C:\Users\sammy\Research\Galli\programs\pypl\testing\plot_ccd_wavefunctions.py --wf-method fd --vof-method pypl fd --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --npts 100001 --fd-npts 20001 --fd-stencil 5 --fd-margin 2.0 --fd-fit spline4-notaknot --n-levels 3
-  wrote testing\outputs\suite\default\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-spline4-notaknot\settings.json
+# 1D CCD with wavefunctions: wf-fd_vof-pypl-fd_fit-spline4-notaknot, started 2026-10-16T21:08:43
+# command: python.exe C:\Users\sammy\Research\Galli\programs\pypl\validation\plot_ccd_wavefunctions.py --wf-method fd --vof-method pypl fd --dataset nv_diamond --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit spline4-notaknot --fd-npts 20001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --n-levels 3 --check-tol 1e-10 1e-08
+# dataset: nv_diamond (NV- in diamond), 3E -> 3A2
+# data: doc/tutorials/002_nv_diamond_1d_ccd
+# roles: 'ES' = ES (upper state, minimum at Q = delta_q), 'GS' = GS (lower state, minimum at Q = 0); emission = ES -> GS = ES -> GS
+# energies: ES = ΔSCF, constrained occupations (PBE), 3E; GS = DFT (PBE), 3A2; zero = the GS (3A2) minimum image
+  wrote validation\outputs\suite\default\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-spline4-notaknot\settings.json
 Finite differences on fit spline4-notaknot (quartic spline (not-a-knot)):
   GS well: quartic spline (degree 4, not-a-knot ends, 12 knots), harmonic tails a = 0.417627 eV/(amu A^2), C0 junction (slope jumps 6.94e-04 / -1.52e-02 eV/(amu^0.5 A)); fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.65e-17 eV
   ES well: quartic spline (degree 4, not-a-knot ends, 8 knots), harmonic tails a = 0.494721 eV/(amu A^2), C0 junction (slope jumps 8.74e-03 / -6.52e-03 eV/(amu^0.5 A)); fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 4.97e-16 eV
@@ -22,36 +26,36 @@ Vibrational levels (eV)
   v = 1   GS  0.088783   ES  1.802639
   v = 2   GS  0.148119   ES  1.867191
   [ES -> GS, PyPL (Ruhoff)] method: inherited config_coord_1d_solver.compute_franck_condon_integrals, Ruhoff recurrences (Chem. Phys. 186, 355 (1994)), float64; no grid
-  [ES -> GS, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 64.31191 meV, ES well: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
-  [ES -> GS, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 59.08890 meV, GS well: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
-  [ES -> GS, PyPL (Ruhoff)] F_ij built in 0.03 s
+  [ES -> GS, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 64.31191 meV, ES well [images q = +0.60..+1.20 (7 of 11)]: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
+  [ES -> GS, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 59.08890 meV, GS well [images q = -0.20..+0.20 (5 of 15)]: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
+  [ES -> GS, PyPL (Ruhoff)] F_ij built in 0.01 s
   [ES -> GS, PyPL (Ruhoff)] Integral check: 1.0100972996226194
   [ES -> GS, Finite difference [quartic spline (not-a-knot)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
   [ES -> GS, Finite difference [quartic spline (not-a-knot)]] fit: spline4-notaknot (quartic spline (not-a-knot))
-  [ES -> GS, Finite difference [quartic spline (not-a-knot)]] potential (initial, ES): quartic spline (degree 4, not-a-knot ends, 8 knots), harmonic tails a = 0.494721 eV/(amu A^2), C0 junction (slope jumps 8.74e-03 / -6.52e-03 eV/(amu^0.5 A)); fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 4.97e-16 eV
-  [ES -> GS, Finite difference [quartic spline (not-a-knot)]] potential (final, GS): quartic spline (degree 4, not-a-knot ends, 12 knots), harmonic tails a = 0.417627 eV/(amu A^2), C0 junction (slope jumps 6.94e-04 / -1.52e-02 eV/(amu^0.5 A)); fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.65e-17 eV
-  [ES -> GS, Finite difference [quartic spline (not-a-knot)]] grid: 20001 points, frame x = -(Q - Q_f), x = -5.2324..4.9015 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5 A
+  [ES -> GS, Finite difference [quartic spline (not-a-knot)]] potential (initial, ES) [all 11 images (q = +0.20..+1.20)]: quartic spline (degree 4, not-a-knot ends, 8 knots), harmonic tails a = 0.494721 eV/(amu A^2), C0 junction (slope jumps 8.74e-03 / -6.52e-03 eV/(amu^0.5 A)); fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 4.97e-16 eV
+  [ES -> GS, Finite difference [quartic spline (not-a-knot)]] potential (final, GS) [all 15 images (q = -0.20..+1.20)]: quartic spline (degree 4, not-a-knot ends, 12 knots), harmonic tails a = 0.417627 eV/(amu A^2), C0 junction (slope jumps 6.94e-04 / -1.52e-02 eV/(amu^0.5 A)); fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.65e-17 eV
+  [ES -> GS, Finite difference [quartic spline (not-a-knot)]] grid: 20001 points, frame x = -(Q - Q_f), x = -5.2324..4.9015 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5 A (from --fd-npts); 302 points per shortest wavelength
   [ES -> GS, Finite difference [quartic spline (not-a-knot)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 49 (2.5367) and v = 59 (2.9015)
   [ES -> GS, Finite difference [quartic spline (not-a-knot)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
   [ES -> GS, Finite difference [quartic spline (not-a-knot)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 50 and 60 states
   [ES -> GS, Finite difference [quartic spline (not-a-knot)]] checks: |psi| at walls / peak = 5.23e-16, orthonormality = 2.78e-15, ladder |E_v - E_0 - v hbar w| = 1.03e+00 (i) / 2.12e+00 (f) meV
-  [ES -> GS, Finite difference [quartic spline (not-a-knot)]] F_ij built in 40.73 s
+  [ES -> GS, Finite difference [quartic spline (not-a-knot)]] F_ij built in 1.90 s
   [ES -> GS, Finite difference [quartic spline (not-a-knot)]] Integral check: 1.009877221656776
   [GS -> ES, PyPL (Ruhoff)] method: inherited config_coord_1d_solver.compute_franck_condon_integrals, Ruhoff recurrences (Chem. Phys. 186, 355 (1994)), float64; no grid
-  [GS -> ES, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 59.08890 meV, GS well: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
-  [GS -> ES, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 64.31191 meV, ES well: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
+  [GS -> ES, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 59.08890 meV, GS well [images q = -0.20..+0.20 (5 of 15)]: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
+  [GS -> ES, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 64.31191 meV, ES well [images q = +0.60..+1.20 (7 of 11)]: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
   [GS -> ES, PyPL (Ruhoff)] F_ij built in 0.01 s
   [GS -> ES, PyPL (Ruhoff)] Integral check: 1.010095819227892
   [GS -> ES, Finite difference [quartic spline (not-a-knot)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
   [GS -> ES, Finite difference [quartic spline (not-a-knot)]] fit: spline4-notaknot (quartic spline (not-a-knot))
-  [GS -> ES, Finite difference [quartic spline (not-a-knot)]] potential (initial, GS): quartic spline (degree 4, not-a-knot ends, 12 knots), harmonic tails a = 0.417627 eV/(amu A^2), C0 junction (slope jumps 6.94e-04 / -1.52e-02 eV/(amu^0.5 A)); fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.65e-17 eV
-  [GS -> ES, Finite difference [quartic spline (not-a-knot)]] potential (final, ES): quartic spline (degree 4, not-a-knot ends, 8 knots), harmonic tails a = 0.494721 eV/(amu A^2), C0 junction (slope jumps 8.74e-03 / -6.52e-03 eV/(amu^0.5 A)); fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 4.97e-16 eV
-  [GS -> ES, Finite difference [quartic spline (not-a-knot)]] grid: 20001 points, frame x = Q - Q_f, x = -5.5972..4.5367 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5 A
+  [GS -> ES, Finite difference [quartic spline (not-a-knot)]] potential (initial, GS) [all 15 images (q = -0.20..+1.20)]: quartic spline (degree 4, not-a-knot ends, 12 knots), harmonic tails a = 0.417627 eV/(amu A^2), C0 junction (slope jumps 6.94e-04 / -1.52e-02 eV/(amu^0.5 A)); fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.65e-17 eV
+  [GS -> ES, Finite difference [quartic spline (not-a-knot)]] potential (final, ES) [all 11 images (q = +0.20..+1.20)]: quartic spline (degree 4, not-a-knot ends, 8 knots), harmonic tails a = 0.494721 eV/(amu A^2), C0 junction (slope jumps 8.74e-03 / -6.52e-03 eV/(amu^0.5 A)); fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 4.97e-16 eV
+  [GS -> ES, Finite difference [quartic spline (not-a-knot)]] grid: 20001 points, frame x = Q - Q_f, x = -5.5972..4.5367 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5 A (from --fd-npts); 302 points per shortest wavelength
   [GS -> ES, Finite difference [quartic spline (not-a-knot)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 59 (2.9015) and v = 49 (2.5367)
   [GS -> ES, Finite difference [quartic spline (not-a-knot)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
   [GS -> ES, Finite difference [quartic spline (not-a-knot)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 60 and 50 states
   [GS -> ES, Finite difference [quartic spline (not-a-knot)]] checks: |psi| at walls / peak = 3.52e-16, orthonormality = 3.00e-15, ladder |E_v - E_0 - v hbar w| = 2.12e+00 (i) / 1.03e+00 (f) meV
-  [GS -> ES, Finite difference [quartic spline (not-a-knot)]] F_ij built in 2.62 s
+  [GS -> ES, Finite difference [quartic spline (not-a-knot)]] F_ij built in 7.09 s
   [GS -> ES, Finite difference [quartic spline (not-a-knot)]] Integral check: 1.0098756867425691
 
 Franck-Condon lineshapes via bulid_fc_lsp
@@ -61,6 +65,6 @@ Franck-Condon lineshapes via bulid_fc_lsp
   absorption PyPL (Ruhoff)                        closure 1.0000000000  sideband peak 1.8700 eV  centroid 237.2 meV
   absorption Finite difference [quartic spline (not-a-knot)] closure 1.0000000000  sideband peak 1.9390 eV  centroid 239.1 meV
     Finite difference [quartic spline (not-a-knot)] vs PyPL (Ruhoff): max |difference| / peak = 2.18e-02
-  wrote testing\outputs\suite\default\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-spline4-notaknot\ccd_wavefunctions.png
+  wrote validation\outputs\suite\default\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-spline4-notaknot\ccd_wavefunctions.png
 
-Outputs in testing\outputs\suite\default\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-spline4-notaknot (see index.md)
+Outputs in validation\outputs\suite\default\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-spline4-notaknot (see index.md)

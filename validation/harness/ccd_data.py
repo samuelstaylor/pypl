@@ -147,7 +147,7 @@ DATASETS = {
             state_markers={"gs": "o", "es": "s"},
             energy_methods={
                 "gs": "DFT (PBE), 3A2",
-                "es": "Delta-SCF, constrained occupations (PBE), 3E",
+                "es": "ΔSCF, constrained occupations (PBE), 3E",
             },
             energy_zero="the GS (3A2) minimum image",
         ),

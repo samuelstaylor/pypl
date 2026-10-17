@@ -254,3 +254,64 @@ def test_levels_lineshape_errors(pair):
         s.build_fc_lsp_from_levels(eneaxis=AXIS)
     with pytest.raises(ValueError):
         s.build_fc_lsp_from_levels(eneaxis=AXIS, energies_i=np.arange(3.0), energies_f=np.arange(5.0))
+
+
+# ----------------------------------------------------------------------------- grid options
+
+
+def test_uniform_grid_by_points_or_spacing():
+    from pypl.config_coord_1d_vof_solver import uniform_grid
+
+    np.testing.assert_array_equal(uniform_grid(-1.0, 1.0, npts=5), np.linspace(-1, 1, 5))
+    g = uniform_grid(-1.0, 1.0, h=0.3)
+    assert g[0] == -1.0 and g[-1] >= 1.0 and np.allclose(np.diff(g), 0.3)
+    assert len(uniform_grid(0.0, 1.0, npts=4, odd=True)) == 5
+    for bad in (dict(), dict(npts=5, h=0.1), dict(h=-0.1), dict(npts=2)):
+        with pytest.raises(ValueError):
+            uniform_grid(0.0, 1.0, **bad)
+
+
+def test_fd_default_grid_is_unchanged(pair, diamond):
+    """npts=None means the documented default of 20001 points, exactly as before the grid options were added."""
+
+    s = SUB(*pair)
+    x, q, info = s.fd_grid(20, 20, q_i=pair[2], q_f=0.0)
+    turn_i, turn_f = info["turning_points"]
+    np.testing.assert_array_equal(x, np.linspace(-pair[2] - turn_i - 2.0, turn_f + 2.0, 20001))
+    assert info["grid_from"] == "turning points + margin"
+
+
+def test_fd_grid_spacing_and_range(pair, diamond, ruhoff20):
+    pots = (diamond["es"]["parabola"], diamond["gs"]["parabola"])
+    s = SUB(*pair)
+    s.compute_franck_condon_integrals_fd(20, 20, *pots, q_i=pair[2], h=4e-4)
+    assert s.fd_info["h"] == pytest.approx(4e-4, rel=1e-9)
+    assert s.fd_info["points_per_wavelength"] > 50
+    assert np.max(np.abs(s.fc_ints - ruhoff20)) < 1e-8
+    r = SUB(*pair)
+    r.compute_franck_condon_integrals_fd(20, 20, *pots, q_i=pair[2], q_range=(-3.5, 4.2), npts=15001)
+    assert r.fd_info["grid_from"] == "q_range"
+    assert r.fd_info["q_range"] == pytest.approx((-3.5, 4.2))
+    assert np.max(np.abs(r.fc_ints - ruhoff20)) < 1e-8
+    with pytest.raises(ValueError):
+        SUB(*pair).fd_grid(20, 20, q_i=pair[2], npts=1001, h=1e-3)
+    with pytest.raises(ValueError):
+        SUB(*pair).fd_grid(20, 20, q_i=pair[2], q_range=(0.1, 3.0))  # excludes the GS minimum
+
+
+def test_seven_point_stencil_beats_five_point(pair, diamond, ruhoff20):
+    pots = (diamond["es"]["parabola"], diamond["gs"]["parabola"])
+    errs = {}
+    for stencil in (5, 7):
+        s = SUB(*pair)
+        s.compute_franck_condon_integrals_fd(12, 12, *pots, q_i=pair[2], npts=3001, stencil=stencil)
+        errs[stencil] = np.max(np.abs(s.fc_ints - ruhoff20[:12, :12]))
+    assert errs[7] < errs[5] / 10
+
+
+def test_hermite_spacing_and_margin(pair, ruhoff20):
+    s = SUB(*pair)
+    s.compute_franck_condon_integrals_hermite(20, 20, h=2e-4, margin=5.0)
+    assert grid_spacing(s.hermite_grid) == pytest.approx(2e-4, rel=1e-6)
+    assert len(s.hermite_grid) % 2 == 1 and s.hermite_grid[0] == pytest.approx(-s.hermite_grid[-1])
+    assert np.max(np.abs(s.fc_ints - ruhoff20)) < 1e-10

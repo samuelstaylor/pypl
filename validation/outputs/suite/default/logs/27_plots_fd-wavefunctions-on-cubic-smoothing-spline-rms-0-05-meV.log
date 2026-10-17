@@ -1,4 +1,4 @@
-$ python testing/plot_ccd_wavefunctions.py --wf-method fd --vof-method pypl fd --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --npts 100001 --fd-npts 20001 --fd-stencil 5 --fd-margin 2.0 --fd-fit spline3-s0.05 --n-levels 3
+$ python validation/plot_ccd_wavefunctions.py --wf-method fd --vof-method pypl fd --dataset nv_diamond --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit spline3-s0.05 --fd-npts 20001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --n-levels 3 --check-tol 1e-10 1e-08
 
 Finite differences on fit spline3-s0.05 (cubic smoothing spline (rms 0.05 meV)):
   GS well: cubic spline (degree 3, smoothing to rms <= 5e-05 eV, 3 knots), harmonic tails a = 0.417627 eV/(amu A^2), C0 junction (slope jumps -2.02e-03 / -1.35e-02 eV/(amu^0.5 A)); fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 5.00e-05 eV
@@ -29,4 +29,4 @@ Franck-Condon lineshapes via bulid_fc_lsp
   absorption Finite difference [cubic smoothing spline (rms 0.05 meV)] closure 1.0000000000  sideband peak 1.9390 eV  centroid 239.1 meV
     Finite difference [cubic smoothing spline (rms 0.05 meV)] vs PyPL (Ruhoff): max |difference| / peak = 2.21e-02
 
-Outputs in testing\outputs\suite\default\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-spline3-s0.05 (see index.md)
+Outputs in validation\outputs\suite\default\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-spline3-s0.05 (see index.md)

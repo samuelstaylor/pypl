@@ -1,58 +1,128 @@
-# VOF method comparison: pypl_vs_fd_fit-poly2, started 2026-10-15T18:28:39
-# command: python.exe C:\Users\sammy\Research\Galli\programs\pypl\testing\compare_vof.py --reference pypl --test fd --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --npts 100001 --fd-npts 20001 --fd-stencil 5 --fd-margin 2.0 --fd-fit poly2 --tol-fc 1e-07 --tol-vof 1e-08
-  wrote testing\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2\settings.json
+# VOF method comparison: pypl_vs_fd_fit-poly2, started 2026-10-16T21:06:27
+# command: python.exe C:\Users\sammy\Research\Galli\programs\pypl\validation\compare_vof.py --reference pypl --test fd --dataset nv_diamond --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit poly2 --fd-npts 20001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --tol-fc 1e-07 --tol-vof 1e-08
+# dataset: nv_diamond (NV- in diamond), 3E -> 3A2
+# data: doc/tutorials/002_nv_diamond_1d_ccd
+# roles: 'ES' = ES (upper state, minimum at Q = delta_q), 'GS' = GS (lower state, minimum at Q = 0); emission = ES -> GS = ES -> GS
+# energies: ES = ΔSCF, constrained occupations (PBE), 3E; GS = DFT (PBE), 3A2; zero = the GS (3A2) minimum image
+  wrote validation\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2\settings.json
 Comparing VOFs: PyPL (Ruhoff) (reference) vs Finite difference [polynomial deg. 2]
-  bulid_fc_lsp: T = 5 K, sigma = [8.0, 25.0] meV, ZPL Lorentzian, gamma = 0.3 meV
+  lineshape: T = 5 K, sigma = [8.0, 25.0] meV, ZPL Lorentzian, gamma = 0.3 meV; lines at harmonic ladders (bulid_fc_lsp)
   lineshape axis: -200..1200 meV from the ZPL, 1401 points, step 1 meV
   basis: 50 ES x 60 GS levels (emission ni x nf = 50 x 60, absorption 60 x 50)
 
 ====================================================================================================
   [ES -> GS, PyPL (Ruhoff)] method: inherited config_coord_1d_solver.compute_franck_condon_integrals, Ruhoff recurrences (Chem. Phys. 186, 355 (1994)), float64; no grid
-  [ES -> GS, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 64.31191 meV, ES well: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
-  [ES -> GS, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 59.08890 meV, GS well: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
+  [ES -> GS, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 64.31191 meV, ES well [images q = +0.60..+1.20 (7 of 11)]: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
+  [ES -> GS, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 59.08890 meV, GS well [images q = -0.20..+0.20 (5 of 15)]: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
   [ES -> GS, PyPL (Ruhoff)] F_ij built in 0.01 s
   [ES -> GS, PyPL (Ruhoff)] Integral check: 1.0100972996226194
   [ES -> GS, Finite difference [polynomial deg. 2]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
   [ES -> GS, Finite difference [polynomial deg. 2]] fit: poly2 (polynomial deg. 2)
-  [ES -> GS, Finite difference [polynomial deg. 2]] potential (initial, ES): degree-2 polynomial in (Q - 0.695732), coefficients (highest first) [0.5058, 0.002201, 1.706]; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 7.66e-05 eV
-  [ES -> GS, Finite difference [polynomial deg. 2]] potential (final, GS): degree-2 polynomial in (Q - 0.000000), coefficients (highest first) [0.4264, -0.00111, -0.0001572]; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.52e-04 eV
-  [ES -> GS, Finite difference [polynomial deg. 2]] grid: 20001 points, frame x = -(Q - Q_f), x = -5.2324..4.9015 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5 A
+  [ES -> GS, Finite difference [polynomial deg. 2]] potential (initial, ES) [all 11 images (q = +0.20..+1.20)]: degree-2 polynomial in (Q - 0.695732), coefficients (highest first) [0.5058, 0.002201, 1.706]; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 7.66e-05 eV
+  [ES -> GS, Finite difference [polynomial deg. 2]] potential (final, GS) [all 15 images (q = -0.20..+1.20)]: degree-2 polynomial in (Q - 0.000000), coefficients (highest first) [0.4264, -0.00111, -0.0001572]; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.52e-04 eV
+  [ES -> GS, Finite difference [polynomial deg. 2]] grid: 20001 points, frame x = -(Q - Q_f), x = -5.2324..4.9015 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5 A (from --fd-npts); 301 points per shortest wavelength
   [ES -> GS, Finite difference [polynomial deg. 2]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 49 (2.5367) and v = 59 (2.9015)
   [ES -> GS, Finite difference [polynomial deg. 2]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
   [ES -> GS, Finite difference [polynomial deg. 2]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 50 and 60 states
   [ES -> GS, Finite difference [polynomial deg. 2]] checks: |psi| at walls / peak = 4.30e-16, orthonormality = 4.88e-15, ladder |E_v - E_0 - v hbar w| = 3.51e+01 (i) / 3.62e+01 (f) meV
-  [ES -> GS, Finite difference [polynomial deg. 2]] F_ij built in 2.36 s
+  [ES -> GS, Finite difference [polynomial deg. 2]] F_ij built in 0.87 s
   [ES -> GS, Finite difference [polynomial deg. 2]] Integral check: 1.0100728628214548
-  wrote testing\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2\data\vof_emission.csv
+  wrote validation\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2\data\vof_emission.csv
 
 ====================================================================================================
   [GS -> ES, PyPL (Ruhoff)] method: inherited config_coord_1d_solver.compute_franck_condon_integrals, Ruhoff recurrences (Chem. Phys. 186, 355 (1994)), float64; no grid
-  [GS -> ES, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 59.08890 meV, GS well: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
-  [GS -> ES, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 64.31191 meV, ES well: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
+  [GS -> ES, PyPL (Ruhoff)] omega_i = hbar sqrt(2a / amu) = 59.08890 meV, GS well [images q = -0.20..+0.20 (5 of 15)]: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
+  [GS -> ES, PyPL (Ruhoff)] omega_f = hbar sqrt(2a / amu) = 64.31191 meV, ES well [images q = +0.60..+1.20 (7 of 11)]: parabola a (Q - 0.695732)^2 + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual 1.49e-04 eV
   [GS -> ES, PyPL (Ruhoff)] F_ij built in 0.01 s
   [GS -> ES, PyPL (Ruhoff)] Integral check: 1.010095819227892
   [GS -> ES, Finite difference [polynomial deg. 2]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
   [GS -> ES, Finite difference [polynomial deg. 2]] fit: poly2 (polynomial deg. 2)
-  [GS -> ES, Finite difference [polynomial deg. 2]] potential (initial, GS): degree-2 polynomial in (Q - 0.000000), coefficients (highest first) [0.4264, -0.00111, -0.0001572]; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.52e-04 eV
-  [GS -> ES, Finite difference [polynomial deg. 2]] potential (final, ES): degree-2 polynomial in (Q - 0.695732), coefficients (highest first) [0.5058, 0.002201, 1.706]; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 7.66e-05 eV
-  [GS -> ES, Finite difference [polynomial deg. 2]] grid: 20001 points, frame x = Q - Q_f, x = -5.5972..4.5367 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5 A
+  [GS -> ES, Finite difference [polynomial deg. 2]] potential (initial, GS) [all 15 images (q = -0.20..+1.20)]: degree-2 polynomial in (Q - 0.000000), coefficients (highest first) [0.4264, -0.00111, -0.0001572]; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.52e-04 eV
+  [GS -> ES, Finite difference [polynomial deg. 2]] potential (final, ES) [all 11 images (q = +0.20..+1.20)]: degree-2 polynomial in (Q - 0.695732), coefficients (highest first) [0.5058, 0.002201, 1.706]; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 7.66e-05 eV
+  [GS -> ES, Finite difference [polynomial deg. 2]] grid: 20001 points, frame x = Q - Q_f, x = -5.5972..4.5367 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5 A (from --fd-npts); 301 points per shortest wavelength
   [GS -> ES, Finite difference [polynomial deg. 2]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 59 (2.9015) and v = 49 (2.5367)
   [GS -> ES, Finite difference [polynomial deg. 2]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
   [GS -> ES, Finite difference [polynomial deg. 2]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 60 and 50 states
   [GS -> ES, Finite difference [polynomial deg. 2]] checks: |psi| at walls / peak = 3.73e-16, orthonormality = 2.89e-15, ladder |E_v - E_0 - v hbar w| = 3.62e+01 (i) / 3.51e+01 (f) meV
-  [GS -> ES, Finite difference [polynomial deg. 2]] F_ij built in 4.41 s
+  [GS -> ES, Finite difference [polynomial deg. 2]] F_ij built in 2.14 s
   [GS -> ES, Finite difference [polynomial deg. 2]] Integral check: 1.010071350163776
-  wrote testing\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2\data\vof_absorption.csv
-  wrote testing\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2\figures\vof_comparison.png
-  wrote testing\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2\figures\fc_error_maps.png
-  wrote testing\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2\data\summary.csv
+  wrote validation\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2\data\vof_absorption.csv
+emission: omega_i = 64.31191 meV, omega_f = 59.08890 meV, dQ = 0.695732 amu^0.5 A, ni x nf = 50 x 60
+lineshape: T = 5 K, sigma = [8.0, 25.0] meV, ZPL Lorentzian, gamma = 0.3 meV; lines at harmonic ladders (bulid_fc_lsp)
+lineshape axis: -200..1200 meV from the ZPL, 1401 points, step 1 meV
+
+[PyPL (Ruhoff)] reference
+method: inherited config_coord_1d_solver.compute_franck_condon_integrals, Ruhoff recurrences (Chem. Phys. 186, 355
+    (1994)), float64; no grid
+omega_i = hbar sqrt(2a / amu) = 64.31191 meV, ES well [images q = +0.60..+1.20 (7 of 11)]: parabola a (Q - 0.695732)^2
+    + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual
+    1.49e-04 eV
+omega_f = hbar sqrt(2a / amu) = 59.08890 meV, GS well [images q = -0.20..+0.20 (5 of 15)]: parabola a (Q - 0.000000)^2
+    + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual
+    7.49e-05 eV
+F_ij built in 0.01 s
+Integral check: 1.0100972996226194
+
+[Finite difference [polynomial deg. 2]]
+method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+fit: poly2 (polynomial deg. 2)
+potential (initial, ES) [all 11 images (q = +0.20..+1.20)]: degree-2 polynomial in (Q - 0.695732), coefficients
+    (highest first) [0.5058, 0.002201, 1.706]; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 7.66e-05
+    eV
+potential (final, GS) [all 15 images (q = -0.20..+1.20)]: degree-2 polynomial in (Q - 0.000000), coefficients (highest
+    first) [0.4264, -0.00111, -0.0001572]; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.52e-04 eV
+grid: 20001 points, frame x = -(Q - Q_f), x = -5.2324..4.9015 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5
+    A (from --fd-npts); 301 points per shortest wavelength
+padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 49 (2.5367) and v = 59 (2.9015)
+stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 50 and 60 states
+checks: |psi| at walls / peak = 4.30e-16, orthonormality = 4.88e-15, ladder |E_v - E_0 - v hbar w| = 3.51e+01 (i) /
+    3.62e+01 (f) meV
+F_ij built in 0.87 s
+Integral check: 1.0100728628214548
+absorption: omega_i = 59.08890 meV, omega_f = 64.31191 meV, dQ = 0.695732 amu^0.5 A, ni x nf = 60 x 50
+lineshape: T = 5 K, sigma = [8.0, 25.0] meV, ZPL Lorentzian, gamma = 0.3 meV; lines at harmonic ladders (bulid_fc_lsp)
+lineshape axis: -200..1200 meV from the ZPL, 1401 points, step 1 meV
+
+[PyPL (Ruhoff)] reference
+method: inherited config_coord_1d_solver.compute_franck_condon_integrals, Ruhoff recurrences (Chem. Phys. 186, 355
+    (1994)), float64; no grid
+omega_i = hbar sqrt(2a / amu) = 59.08890 meV, GS well [images q = -0.20..+0.20 (5 of 15)]: parabola a (Q - 0.000000)^2
+    + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual
+    7.49e-05 eV
+omega_f = hbar sqrt(2a / amu) = 64.31191 meV, ES well [images q = +0.60..+1.20 (7 of 11)]: parabola a (Q - 0.695732)^2
+    + c, a = 0.494721 eV/(amu A^2), c = 1.705877 eV; fitted to samples 5-11 of 11 (Q = 0.417..0.835); rms residual
+    1.49e-04 eV
+F_ij built in 0.01 s
+Integral check: 1.010095819227892
+
+[Finite difference [polynomial deg. 2]]
+method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
+fit: poly2 (polynomial deg. 2)
+potential (initial, GS) [all 15 images (q = -0.20..+1.20)]: degree-2 polynomial in (Q - 0.000000), coefficients
+    (highest first) [0.4264, -0.00111, -0.0001572]; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual
+    1.52e-04 eV
+potential (final, ES) [all 11 images (q = +0.20..+1.20)]: degree-2 polynomial in (Q - 0.695732), coefficients (highest
+    first) [0.5058, 0.002201, 1.706]; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 7.66e-05 eV
+grid: 20001 points, frame x = Q - Q_f, x = -5.5972..4.5367 (Q = -4.9015..5.2324 amu^0.5 A), h = 5.0669e-04 amu^0.5 A
+    (from --fd-npts); 301 points per shortest wavelength
+padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 59 (2.9015) and v = 49 (2.5367)
+stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
+eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 60 and 50 states
+checks: |psi| at walls / peak = 3.73e-16, orthonormality = 2.89e-15, ladder |E_v - E_0 - v hbar w| = 3.62e+01 (i) /
+    3.51e+01 (f) meV
+F_ij built in 2.14 s
+Integral check: 1.010071350163776
+  wrote validation\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2\figures\vof_comparison.png
+  wrote validation\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2\figures\fc_error_maps.png
+  wrote validation\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2\data\summary.csv
 
 direction   test                                   reference      max dF_ij  at (i, j)  max dF_ij (i,j<30)  max dVOF / peak  rms dVOF / peak  F_ij time (s)  verdict
 ----------  -------------------------------------  -------------  ---------  ---------  ------------------  ---------------  ---------------  -------------  -------
-emission    Finite difference [polynomial deg. 2]  PyPL (Ruhoff)  3.36e-03   (49, 32)   2.48e-03            2.42e-03         7.10e-05         2.36           FAIL   
-absorption  Finite difference [polynomial deg. 2]  PyPL (Ruhoff)  3.36e-03   (32, 49)   2.48e-03            2.42e-03         8.57e-05         4.41           FAIL   
+emission    Finite difference [polynomial deg. 2]  PyPL (Ruhoff)  3.36e-03   (49, 32)   2.48e-03            2.42e-03         7.10e-05         0.87           FAIL   
+absorption  Finite difference [polynomial deg. 2]  PyPL (Ruhoff)  3.36e-03   (32, 49)   2.48e-03            2.42e-03         8.57e-05         2.14           FAIL   
 
 FAIL: the lineshapes differ.
 NOTE: Finite difference [polynomial deg. 2] solve(s) an anharmonic problem, not the harmonic wells pypl / hermite use; differences from them are the anharmonicity, not an error. For a like-for-like test use the default methods and --fd-fit parabola.
 
-Outputs in testing\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2 (see index.md)
+Outputs in validation\outputs\suite\default\compare_vof\pypl_vs_fd_fit-poly2 (see index.md)

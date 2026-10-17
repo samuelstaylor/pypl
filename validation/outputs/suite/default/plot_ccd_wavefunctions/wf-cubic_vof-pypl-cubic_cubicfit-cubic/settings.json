@@ -5,11 +5,16 @@
   "wf_scale": 0.375,
   "alpha": 0.3,
   "well": "both",
+  "check_tol": [
+    1e-10,
+    1e-08
+  ],
   "no_vof": false,
   "vof_method": [
     "pypl",
     "cubic"
   ],
+  "dataset": "nv_diamond",
   "temp": 5.0,
   "sigma": [
     8.0,
@@ -24,17 +29,30 @@
     1200.0
   ],
   "resol": 1401,
+  "line_positions": "harmonic",
   "npts": 100001,
+  "hermite_h": null,
+  "hermite_margin": 6.0,
   "fd_npts": 20001,
-  "fd_stencil": 5,
+  "fd_h": null,
+  "fd_range": null,
   "fd_margin": 2.0,
+  "fd_stencil": 5,
+  "fd_shift": null,
   "fd_fit": "parabola",
   "spline_order": null,
   "spline_bc": null,
+  "spline_tails": null,
   "spline_smoothing": null,
   "cubic_points": "all",
   "cubic_free_a": false,
   "cubic_normalize": false,
+  "cubic_warn": 0.1,
+  "dpi": 300,
+  "fig_format": [
+    "png"
+  ],
+  "font_size": 9.0,
   "tag": "",
   "verbose": false,
   "show": false,
@@ -54,11 +72,18 @@
     ],
     "resol": 1401,
     "npts": 100001,
+    "hermite_h": null,
+    "hermite_margin": 6.0,
     "fd_npts": 20001,
+    "fd_h": null,
+    "fd_range": null,
     "fd_stencil": 5,
     "fd_margin": 2.0,
+    "fd_shift": null,
     "fd_fit": "parabola",
+    "line_positions": "harmonic",
     "cubic_fit": "cubic",
-    "cubic_normalize": false
+    "cubic_normalize": false,
+    "cubic_warn": 0.1
   }
 }

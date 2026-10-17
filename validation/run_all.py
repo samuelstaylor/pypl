@@ -88,13 +88,25 @@ DEFAULTS = {
         "resol": 1401,
         "ezpl": 1945.0,
         "tdm": 1.0,
+        "line_positions": "harmonic",
     },
     "methods": {"reference": "pypl", "harmonic": ["hermite", "fd"]},
-    "hermite": {"npts": 100001},
-    "fd": {"npts": 20001, "stencil": 5, "margin": 2.0, "fits": [], "splines": []},
-    "cubic": {"enabled": True, "variants": [{"points": "all", "free_a": False, "normalize": False}]},
-    "plots": {"n_levels": 3},
-    "report": {"convergence": True, "cubic": True, "fits": []},
+    "hermite": {"npts": 100001, "h": 0.0, "margin": 6.0},
+    "fd": {
+        "npts": 20001,
+        "h": 0.0,
+        "range": [],
+        "stencil": 5,
+        "margin": 2.0,
+        "shift": "auto",
+        "fits": [],
+        "splines": [],
+    },
+    "cubic": {"enabled": True, "warn": 0.1, "variants": [{"points": "all", "free_a": False, "normalize": False}]},
+    "plots": {"n_levels": 3, "check_tol": [1e-10, 1e-8]},
+    "report": {"convergence": True, "cubic": True, "fits": [], "options": []},
+    "figures": {"dpi": 300, "formats": ["png"], "font_size": 9.0},
+    "checks": {"tolerances": {}},
     "tolerances": {"fc": 1e-7, "vof": 1e-8},
 }
 LIST_OF_TABLES = {
@@ -114,7 +126,7 @@ def merge(base, override, path=""):
         where = "%s.%s" % (path, key) if path else key
         if key not in base:
             raise SystemExit("Unknown configuration key %r; allowed here: %s" % (where, ", ".join(sorted(base))))
-        if isinstance(base[key], dict) and isinstance(value, dict):
+        if isinstance(base[key], dict) and isinstance(value, dict) and base[key]:
             out[key] = merge(base[key], value, where)
         else:
             out[key] = value
@@ -187,9 +199,7 @@ def resolve_fits(config, ccd):
             )
         except ValueError as err:
             raise SystemExit("Invalid [[fd.splines]] entry %s: %s" % (s, err))
-    params = VOFParams(
-        order_es=config["physics"]["order_es"], order_gs=config["physics"]["order_gs"], fd_margin=config["fd"]["margin"]
-    )
+    params = grid_params(config)
     usable, skipped = [], {}
     for spec in specs:
         try:
@@ -226,16 +236,40 @@ class Step:
         return " ".join(["python", "validation/" + self.script] + [str(a) for a in self.args])
 
 
+def grid_params(config):
+    """VOFParams with the basis and fd grid of ``config`` (enough to know the fd grid's Q range)."""
+
+    fd = config["fd"]
+    return VOFParams(
+        order_es=config["physics"]["order_es"],
+        order_gs=config["physics"]["order_gs"],
+        fd_margin=fd["margin"],
+        fd_range=tuple(fd["range"]) if fd["range"] else None,
+    )
+
+
+def figure_args(config):
+    f = config["figures"]
+    return ["--dpi", f["dpi"], "--fig-format", *f["formats"], "--font-size", f["font_size"]]
+
+
 def vof_args(config, fd_fit="parabola", cubic=None):
     """The shared VOF flags of compare_vof.py / plot_ccd_wavefunctions.py / vof_report.py."""
 
-    p, fd = config["physics"], config["fd"]
+    p, fd, herm = config["physics"], config["fd"], config["hermite"]
     args = ["--dataset", config["suite"]["dataset"]]
     args += ["--temp", p["temp"], "--sigma", *p["sigma"], "--gamma", p["gamma"]]
     args += [] if p["zpl_lorentzian"] else ["--no-zpl"]
     args += ["--order-es", p["order_es"], "--order-gs", p["order_gs"], "--ene-range", *p["ene_range"]]
-    args += ["--resol", p["resol"], "--npts", config["hermite"]["npts"]]
-    args += ["--fd-npts", fd["npts"], "--fd-stencil", fd["stencil"], "--fd-margin", fd["margin"], "--fd-fit", fd_fit]
+    args += ["--resol", p["resol"], "--line-positions", p["line_positions"]]
+    args += ["--npts", herm["npts"], "--hermite-margin", herm["margin"]]
+    args += ["--hermite-h", herm["h"]] if herm["h"] else []
+    args += ["--fd-stencil", fd["stencil"], "--fd-margin", fd["margin"], "--fd-fit", fd_fit]
+    args += ["--fd-h", fd["h"]] if fd["h"] else ["--fd-npts", fd["npts"]]
+    args += ["--fd-range", *fd["range"]] if fd["range"] else []
+    args += [] if fd["shift"] == "auto" else ["--fd-shift", fd["shift"]]
+    args += ["--cubic-warn", config["cubic"]["warn"]]
+    args += figure_args(config)
     if cubic is not None:
         args += ["--cubic-points", cubic.get("points", "all")]
         args += ["--cubic-free-a"] if cubic.get("free_a", False) else []
@@ -254,9 +288,7 @@ def cubic_spec(variant):
 def resolve_cubic_exact(config, ccd):
     """``{spec: reason}`` of the cubic variants with no exact fd solution (the cubic turns over inside the grid)."""
 
-    params = VOFParams(
-        order_es=config["physics"]["order_es"], order_gs=config["physics"]["order_gs"], fd_margin=config["fd"]["margin"]
-    )
+    params = grid_params(config)
     out = {}
     for variant in config["cubic"]["variants"] if config["cubic"]["enabled"] else []:
         spec = cubic_spec(variant)
@@ -276,12 +308,14 @@ def build_steps(config, usable_fits, no_exact_cubic=()):
     steps = []
 
     if on["checks"]:
-        steps.append(Step("checks", "81 regression and physics checks", "check_1d_ccd.py", ["-v"]))
+        tols = ["--tol=%s=%r" % kv for kv in sorted(config["checks"]["tolerances"].items())]
+        steps.append(Step("checks", "81 regression and physics checks", "check_1d_ccd.py", ["-v"] + tols))
     if on["tutorial"]:
         p = config["physics"]
         args = ["--temp", p["temp"], "--ezpl", p["ezpl"], "--order-es", p["order_es"], "--order-gs", p["order_gs"]]
         args += ["--sigma", *p["sigma"][:2] * (2 if len(p["sigma"]) == 1 else 1), "--gamma", p["gamma"]]
         args += ["--ene-range", *p["ene_range"], "--resol", p["resol"], "--tdm", p["tdm"]]
+        args += ["--dataset", config["suite"]["dataset"]] + figure_args(config)
         steps.append(Step("tutorial", "tutorial 002 spectra (PyPL's own solver)", "run_1d_ccd.py", args))
 
     if on["compare"]:
@@ -329,7 +363,7 @@ def build_steps(config, usable_fits, no_exact_cubic=()):
             )
 
     if on["plots"]:
-        n = ["--n-levels", config["plots"]["n_levels"]]
+        n = ["--n-levels", config["plots"]["n_levels"], "--check-tol", *config["plots"]["check_tol"]]
         steps.append(
             Step(
                 "plots",
@@ -365,6 +399,7 @@ def build_steps(config, usable_fits, no_exact_cubic=()):
         args += ["--fits", *rep["fits"]] if rep["fits"] else []
         args += [] if rep["convergence"] else ["--skip-convergence"]
         args += [] if (rep["cubic"] and variants) else ["--skip-cubic"]
+        args += [str(a) for a in rep["options"]]
         steps.append(Step("report", "full seven-section report", "vof_report.py", args))
     return steps
 

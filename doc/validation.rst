@@ -407,9 +407,69 @@ Scripts
        step is a subprocess of one of the scripts above.
      - ``suite/<name>/``
 
-Shared flags (every script): ``--dataset``, ``--temp``, ``--sigma``, ``--gamma``, ``--no-zpl``, ``--order-es``,
-``--order-gs``, ``--ene-range``, ``--resol``, ``--npts`` (Hermite grid), ``--fd-npts``, ``--fd-stencil {3,5}``,
-``--fd-margin``, ``--fd-fit`` and the spline / cubic options. Defaults are those of tutorial 002.
+Configuration
+-------------
+
+Every setting can be changed without editing the source, either on the command line of a script or in the TOML
+configuration of ``run_all.py`` (``validation/run_all.toml`` documents every key; ``--set section.key=value``
+overrides one key). The defaults reproduce tutorial 002.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 26 34 40
+
+   * - Setting
+     - Script flag
+     - ``run_all.toml`` key
+   * - dataset
+     - ``--dataset``
+     - ``suite.dataset``
+   * - temperature, broadening, ZPL
+     - ``--temp``, ``--sigma``, ``--gamma``, ``--no-zpl``
+     - ``physics.temp``, ``.sigma``, ``.gamma``, ``.zpl_lorentzian``
+   * - basis, energy axis
+     - ``--order-es``, ``--order-gs``, ``--ene-range``, ``--resol``
+     - ``physics.order_es``, ``.order_gs``, ``.ene_range``, ``.resol``
+   * - line positions of the VOF
+     - ``--line-positions {harmonic,levels}``
+     - ``physics.line_positions``
+   * - quadrature grid (hermite, cubic)
+     - ``--npts`` or ``--hermite-h``; ``--hermite-margin``
+     - ``hermite.npts``, ``.h``, ``.margin``
+   * - finite-difference grid
+     - ``--fd-npts`` or ``--fd-h``; ``--fd-range QMIN QMAX`` or ``--fd-margin``; ``--fd-stencil {3,5,7}``;
+       ``--fd-shift``
+     - ``fd.npts``, ``.h``, ``.range``, ``.margin``, ``.stencil``, ``.shift``
+   * - fits
+     - ``--fd-fit SPEC``, ``--spline-*``
+     - ``fd.fits``, ``[[fd.splines]]``
+   * - cubic perturbation theory
+     - ``--cubic-points``, ``--cubic-free-a``, ``--cubic-normalize``, ``--cubic-warn``
+     - ``[[cubic.variants]]``, ``cubic.warn``
+   * - pass criteria of comparisons
+     - ``--tol-fc``, ``--tol-vof``
+     - ``tolerances.fc``, ``tolerances.vof``
+   * - pass criteria of the checks
+     - ``check_1d_ccd.py --tol NAME=VALUE`` (``--list-tolerances``)
+     - ``[checks.tolerances]``
+   * - wavefunction check of the plots
+     - ``plot_ccd_wavefunctions.py --check-tol ANALYTIC FD``
+     - ``plots.check_tol``
+   * - report contents
+     - ``vof_report.py --fits``, ``--skip-*`` and the level / convergence / cubic-scan options (``--help``)
+     - ``report.fits``, ``.convergence``, ``.cubic``, ``.options``
+   * - figures
+     - ``--dpi``, ``--fig-format png pdf svg``, ``--font-size``
+     - ``figures.dpi``, ``.formats``, ``.font_size``
+   * - output location
+     - environment ``PYPL_VALIDATION_OUTPUT_ROOT``
+     - ``suite.name``
+
+Figures follow one style (``validation/harness/plots.py``): 9 pt sans-serif text with math-text symbols and upright
+units, the colour-blind-safe Okabe-Ito palette for methods and fits (all spline variants share one colour and differ
+by line style; the two states keep the dataset's colours), one shared legend per figure below the panels, viridis
+for every colour map with a labelled colour bar, and 300 dpi by default. Settings and statistics are written to
+``log.txt``, the CSV files and ``index.md`` rather than onto the figures.
 
 **Fit specifications** for ``--fd-fit``: ``parabola``, ``polyN``, ``morse``, ``cubic[-near][-free]`` and
 ``spline[K][-natural|-notaknot|-clamped|-sRMS][-smooth]`` (``K`` = degree 2-5; ``-sRMS`` a smoothing spline with an

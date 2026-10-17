@@ -1,4 +1,4 @@
-$ python testing/check_1d_ccd.py -v
+$ python validation/check_1d_ccd.py -v
 
 CCD construction (parsers + parabolic fits)
   PASS  delta_q                                        got  0.695732  expected  0.695732  (tol 1e-05 amu^0.5 A)
@@ -36,7 +36,7 @@ PL and absorption spectra
   PASS  Abs weight lies above the ZPL                  
   PASS  invalid spectrum_type raises ValueError        
 
-Extension (pypl_ext) leaves PyPL unchanged
+Extension (config_coord_1d_vof_solver) leaves PyPL unchanged
   PASS  vof solver overrides no config_coord_1d_solver attribute overridden: []
   PASS  vof solver is a config_coord_1d_solver         
   PASS  inherited compute_franck_condon_integrals is bit-identical 
@@ -71,10 +71,34 @@ Cubic anharmonic correction
   PASS  cubic fit phonon_energy is the harmonic omega  got  59.0889  expected  59.0889  (tol 1e-12 meV)
   PASS  xi matches the SI formula                      xi = 1.031698e-03
   PASS  b = 0 reproduces the Hermite route             max dev 4.4e-16
-  PASS  norms equal 1 + sum of squared PT coefficients max dev 4.4e-16
+  PASS  norms equal 1 + sum of squared PT coefficients max dev 6.7e-16
   PASS  norms are 1 + O(xi^2) at n = 0                 norm - 1 = 1.03e-05, xi^2 = 1.06e-06
   PASS  PT error vs the exact cubic falls as b^2       ratio 3.92
   PASS  emission-frame sign of b is right (wrong sign is much worse) 1.1e-01 vs 3.7e-03
   PASS  |xi| > 0.1 prints the warning                  
 
-59/59 checks passed.
+Large Huang-Rhys factors and the NV- in MgO dataset
+  PASS  recurrence = explicit H_n formula (n <= 20)    max rel dev 2.2e-15
+  PASS  harmonic functions orthonormal up to n = 300   max dev 2.3e-12
+  PASS  hermite F_ij finite with 200 levels (no 2^n n! overflow) 
+  PASS  hermite closure of row 0, S ~ 50               got  1  expected  1  (tol 1e-10)
+  PASS  MgO delta_q (ccd_nv_mgo.py: 3.097879)          got  3.09788  expected  3.09788  (tol 1e-06 amu^0.5 A)
+  PASS  MgO images: every one, 30 x 1A1 (no sf +2.00), 33 x 3E 
+  PASS  MgO 3E minimum at Q = 0, 1A1 at Q = delta_q    
+  PASS  MgO 3E lowest image at Q = 0 (q = +0.00)       
+  PASS  MgO 1A1 lowest image at Q = delta_q (q = +1.00) got  3.09788  expected  3.09788  (tol 1e-12)
+  PASS  MgO 3E minimum vs 3A2 zero (ccd_nv_mgo.py: 3.1376 eV) got  3.13762  expected  3.1376  (tol 5e-05 eV)
+  PASS  MgO ZPL from the images (ccd_nv_mgo.py: 554.4 meV) got  554.414  expected  554.4  (tol 0.05 meV)
+  PASS  dataset choice leaves STATE_NAMES on the active one 
+  PASS  MgO parabola images: 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15 
+  PASS  MgO cubic-fit images: q = -0.10..+1.15 for both (26 each) 
+  PASS  MgO spline / Morse / polyN use every image     
+  PASS  smooth-tail spline = not-a-knot spline inside the data 
+  PASS  smooth tails are C2 at both end images         max jump 8.8e-05
+  PASS  smooth tails bounded on MgO (V'' > 0 at every end) 
+  PASS  clamped + smooth tails is rejected             
+  PASS  spline_spec(3, not-a-knot, tails=smooth) is canonical 
+  PASS  build_fc_lsp_from_levels(harmonic ladders) = bulid_fc_lsp max dev 0.0e+00
+  PASS  fd = hermite with the 3E well left of 1A1 (MgO orientation) max dF 1.2e-11
+
+81/81 checks passed.

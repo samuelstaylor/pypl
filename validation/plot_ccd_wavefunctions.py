@@ -51,7 +51,7 @@ from harness.methods import (
 from harness.output import OutputDir
 from pypl.config_coord_1d_vof_solver import config_coord_1d_vof_solver, grid_spacing
 
-WF_COLOR = "dimgray"
+WF_COLOR = "0.25"
 # The reference VOF of each direction is a solid, filled line in the direction's colour. Every further method
 # gets the direction's own (colour, linestyle, width), so emission and absorption never look alike.
 VOF_TEST_STYLES = {
@@ -210,19 +210,21 @@ def draw_ccd(ax, ccd, args, params, levels):
         scale = args.wf_scale * ccd["%s_phonon" % state] * 1e-3 / max(np.max(np.abs(c)) for c in curves)
         for (energy, _, (left, right)), curve in zip(levels[state], curves):
             ax.fill_between(q, energy, energy + curve * scale, color=WF_COLOR, alpha=args.alpha, lw=0, zorder=1)
-            ax.hlines(energy, left, right, color=WF_COLOR, lw=0.9, alpha=0.75, zorder=2)
+            visible = np.where(np.abs(curve) > 2e-3 * np.max(np.abs(curve)), energy + curve * scale, np.nan)
+            ax.plot(q, visible, color=WF_COLOR, lw=0.6, alpha=0.9, zorder=2)
+            ax.hlines(energy, left, right, color=WF_COLOR, lw=0.8, ls=(0, (2, 1.5)), alpha=0.9, zorder=2)
 
     spec = {"fd": params.fd_fit, "cubic": params.cubic_fit}.get(args.wf_method, fits.DEFAULT_FIT)
     for state in ("es", "gs"):
         color = plots.STATE_COLORS[state]
-        suffix = "" if spec == fits.DEFAULT_FIT else " (%s)" % fits.label(spec)
         ax.plot(
             q,
             fits.make_potential(ccd, state, spec)(q),
             color=color,
             lw=1.4,
             zorder=3,
-            label="%s fit%s\n[%s]" % (STATE_LABELS[state], suffix, fits.images(ccd, state, spec)),
+            label="%s %s, %s"
+            % (STATE_LABELS[state], "parabola" if spec == fits.DEFAULT_FIT else "fit", fits.images(ccd, state, spec)),
         )
         q_s, e_s = ccd_data.samples(ccd, state)
         ax.plot(
@@ -242,7 +244,7 @@ def draw_ccd(ax, ccd, args, params, levels):
         [],
         color=WF_COLOR,
         alpha=args.alpha,
-        label="%s, v = 0..%d (%s)" % (wf_label, args.n_levels - 1, args.wf_method),
+        label="%s, $v$ = 0-%d (%s), at their energies" % (wf_label, args.n_levels - 1, args.wf_method),
     )
     ax.axvline(0.0, color="gray", ls="--", lw=1, zorder=0)
     ax.axvline(delta_q, color="gray", ls="--", lw=1, zorder=0)
@@ -257,8 +259,8 @@ def draw_ccd(ax, ccd, args, params, levels):
             max(top + args.wf_scale * ccd["es_phonon"] * 1e-3, ccd["es_params"][1] + 0.3) + 0.07,
         )
     ax.set_xlim((q[0], q[-1]))
-    ax.set_xlabel(r"Q (amu$^{1/2}$ $\AA$)")
-    ax.set_ylabel("Total energy (eV)")
+    ax.set_xlabel(plots.Q_LABEL)
+    ax.set_ylabel(plots.ENERGY_LABEL)
     plots.style(ax, grid=False)
     return y
 
@@ -278,14 +280,16 @@ def draw_vof(ax, results):
             env = r.lineshape / peak
             if k == 0:
                 ax.fill_betweenx(r.energy_ev, 0.0, env, color=color, alpha=0.25, lw=0, zorder=1)
-            label = "%s\n%s" % (DIRECTION_LABELS[direction].replace("->", r"$\rightarrow$"), r.label)
+            label = "%s: %s" % (DIRECTION_LABELS[direction].replace("->", r"$\rightarrow$"), METHODS[r.method].label)
             ax.plot(env, r.energy_ev, color=line_color, ls=ls, lw=lw, zorder=2 + k, label=label)
         first = group[0]
         keep = first.weights > 1e-4 * np.max(first.weights)
         sticks = first.weights[keep] / np.max(first.weights) * first.sideband_max / peak
         ax.hlines(first.levels_ev[keep], 0.0, sticks, color=color, lw=0.8, alpha=0.5, zorder=1.5)
+    ax.hlines([], 0, 0, color="0.5", lw=0.8, label=r"line weights $p_i|F_{ij}|^2$ (first method)")
     ax.set_xlim((0.0, 1.18))
-    ax.set_xlabel("VOF (norm.)")
+    ax.set_xticks([0.5, 1.0])
+    ax.set_xlabel("VOF (normalized)")
     ax.tick_params(labelleft=False)
     plots.style(ax)
     ax.grid(axis="y", visible=False)
@@ -309,6 +313,15 @@ def parse_args():
     g.add_argument("--wf-scale", type=float, default=0.375, help="peak amplitude / level spacing (default 0.375)")
     g.add_argument("--alpha", type=float, default=0.3, help="fill opacity (default 0.3)")
     g.add_argument("--well", choices=("both", "gs", "es"), default="both", help="zoom the energy axis onto one well")
+    g.add_argument(
+        "--check-tol",
+        type=float,
+        nargs=2,
+        default=(1e-10, 1e-8),
+        metavar=("ANALYTIC", "FD"),
+        help="pass criterion of the check of the drawn wavefunctions against the solver's F_ij: max |deviation| for "
+        "Hermite / cubic functions and for finite-difference states (default 1e-10 1e-8)",
+    )
     g = p.add_argument_group("VOF panel")
     g.add_argument("--no-vof", action="store_true", help="omit the VOF panel")
     g.add_argument(
@@ -371,12 +384,12 @@ def main():
             config_coord_1d_vof_solver.classical_turning_point(args.n_levels, ccd["%s_phonon" % s]) for s in STATES
         )
         q_check = np.linspace(*ccd_data.q_span(ccd, {"gs": tp, "es": tp}, 6.0), 200001)
-        tol, source = 1e-10, "Hermite functions"
+        tol, source = args.check_tol[0], "Hermite functions"
     elif args.wf_method == "cubic":
         levels = cubic_levels(ccd, args.n_levels, params)
         solver = config_coord_1d_vof_solver(ccd["es_phonon"], ccd["gs_phonon"], ccd["delta_q"])
         q_check, _ = solver._simpson_grid(args.n_levels + 2, args.n_levels + 2, 100001)
-        tol = 1e-10
+        tol = args.check_tol[0]
         source = "first-order corrected functions (%s), vs the cubic method" % fits.label(params.cubic_fit)
         for state in STATES:
             pot = fits.make_potential(ccd, state, params.cubic_fit)
@@ -384,7 +397,7 @@ def main():
             out.log("  %s well: %s; xi = %+.3e" % (STATE_NAMES[state], pot.describe(), xi))
     else:
         q_check, levels = fd_levels(ccd, args.n_levels, params)
-        tol, source = 1e-8, "finite-difference eigenstates (%s)" % fits.label(params.fd_fit)
+        tol, source = args.check_tol[1], "finite-difference eigenstates (%s)" % fits.label(params.fd_fit)
     simpson = args.wf_method in ("hermite", "cubic")
     cubic = params if args.wf_method == "cubic" else None
     numerical, block, max_dev = check_against_solver(ccd, levels, q_check, args.n_levels, simpson, cubic)
@@ -401,10 +414,10 @@ def main():
         out.log("  v = %d   GS % .6f   ES % .6f" % (v, levels["gs"][v][0], levels["es"][v][0]))
 
     if args.no_vof:
-        fig, ax = plt.subplots(figsize=(6.6, 8.6))
+        fig, ax = plt.subplots(figsize=(5.4, 6.6))
     else:
         fig, (ax, ax_vof) = plt.subplots(
-            1, 2, figsize=(8.8, 8.6), sharey=True, gridspec_kw={"width_ratios": [3, 1], "wspace": 0.05}
+            1, 2, figsize=(7.2, 6.6), sharey=True, gridspec_kw={"width_ratios": [3, 1], "wspace": 0.05}
         )
     y_lo, y_hi = draw_ccd(ax, ccd, args, params, levels)
     subtitle = ""
@@ -428,7 +441,7 @@ def main():
             y_hi = max(y_hi, float(absorption.energy_ev[tail].max()) + 0.04)
     ax.set_ylim((y_lo, y_hi))
     if args.no_vof:
-        ax.legend(loc="center left" if args.well == "both" else "upper right", edgecolor="black", fontsize=9)
+        ax.legend(loc="center left" if args.well == "both" else "upper right")
     else:
         # Both legends go below the panels, where they cannot cover the curves: CCD entries left, VOF entries right.
         h_ccd, l_ccd = ax.get_legend_handles_labels()
@@ -442,48 +455,43 @@ def main():
             loc="upper center",
             bbox_to_anchor=(0.5, 0.0),
             ncol=2,
-            fontsize=8,
-            edgecolor="black",
         )
     wf_source = {
-        "hermite": "Hermite",
-        "fd": "finite difference on %s" % fits.label(params.fd_fit),
-        "cubic": "Hermite + cubic PT, %s" % fits.label(params.cubic_fit),
+        "hermite": "harmonic (Hermite) wavefunctions",
+        "fd": "FD wavefunctions on the %s" % fits.label(params.fd_fit),
+        "cubic": "cubic-PT wavefunctions (%s)" % fits.label(params.cubic_fit),
     }[args.wf_method]
     fit_line = ""
     if uses_cubic:
         b = {s: fits.make_potential(ccd, s, params.cubic_fit).params["b"] for s in STATES}
         xi = {s: config_coord_1d_vof_solver.anharmonic_strength(b[s], ccd["%s_phonon" % s]) for s in STATES}
-        fit_line += "\ncubic: b GS %+.4f, ES %+.4f eV/(amu$^{3/2}$ $\\AA^3$);  $\\xi$ GS %+.1e, ES %+.1e" % (
-            b["gs"],
-            b["es"],
+        fit_line += "\n" + r"cubic: $\xi$ = %+.1e (%s), %+.1e (%s)" % (
             xi["gs"],
+            STATE_NAMES["gs"],
             xi["es"],
+            STATE_NAMES["es"],
         )
     if uses_fd:
         hw = {s: fits.make_potential(ccd, s, params.fd_fit).phonon_energy() for s in STATES}
-        fit_line = "\nfd wells: %s (hbar w at the minimum: %s %.2f, %s %.2f meV)" % (
-            fits.label(params.fd_fit),
-            STATE_NAMES["gs"],
+        fit_line = "\n" + r"FD wells: $\hbar\omega$ at the minimum %.2f meV (%s), %.2f meV (%s)" % (
             hw["gs"],
-            STATE_NAMES["es"],
+            STATE_NAMES["gs"],
             hw["es"],
+            STATE_NAMES["es"],
         )
     fig.suptitle(
-        "%s, 1D CCD, wavefunctions: %s\n"
-        r"harmonic %s %.2f meV,  %s %.2f meV,  $\Delta Q$ = %.3f amu$^{1/2}\,\AA$%s%s"
+        "%s: 1D CCD with %s\n" % (ccd_data.active().title, wf_source)
+        + r"harmonic $\hbar\omega$ %.2f meV (%s), %.2f meV (%s); $\Delta Q$ = %.3f %s"
         % (
-            ccd_data.active().title,
-            wf_source,
-            STATE_NAMES["gs"],
             ccd["gs_phonon"],
-            STATE_NAMES["es"],
+            STATE_NAMES["gs"],
             ccd["es_phonon"],
+            STATE_NAMES["es"],
             ccd["delta_q"],
-            fit_line,
-            subtitle,
-        ),
-        fontsize=12,
+            plots.Q_UNIT,
+        )
+        + fit_line,
+        fontsize=plots.FIGURE["font_size"] + 1,
     )
     out.save_fig(
         fig,

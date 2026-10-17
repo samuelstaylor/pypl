@@ -102,6 +102,28 @@ validation/
 └── outputs/<script>/<run>/           every run's results (committed on vof-extensions); _archive/ = replaced runs; _legacy_flat/ = old flat files
 ```
 
+### Figures and configuration (2026-10-16, second round)
+
+- `harness/plots.py` is the single style: `apply_style()` (rcParams, 9 pt DejaVu Sans, Okabe-Ito cycle, viridis, 300 dpi),
+  `FIGURE` settings set by `add_figure_args` / `configure` (`--dpi`, `--fig-format png pdf svg`, `--font-size`),
+  labels `Q_LABEL`, `Q_UNIT`, `HW`, `VOF_LABEL`, `E_ZPL_LABEL`, `ENERGY_LABEL`, `fij()`, `transition_label()` (math state
+  labels); `fit_style(spec, specs)` = family colour + line style (all splines green, cubics purple, polys orange, Morse
+  sky, parabola black); `legend_below`, `panel_label`, `scaled`/`times_ten`, `off_scale_note`. No settings panels or
+  monospace notes on figures (they go to log.txt / CSV / index.md descriptions). `vof_comparison_figure` is 7.2 x 6.4 in
+  (tol_vof=None hides the tolerance line); `fc_error_figure` has one shared colour bar. `output.save_fig` writes every
+  format at FIGURE dpi; MgO caption at the top right. vof_report.py was restyled by a subagent (all sections, 7.2 in
+  wide, shared legends) and gained `--wf-levels --convergence-npts --convergence-stencils --cubic-specs --cubic-scales`.
+- Package FD/quadrature grid options (defaults bit-identical): `uniform_grid(lo, hi, npts|h, odd)`, `FD_STENCILS[7]`
+  (O(h^6)), `fd_grid(ni, nf, q_i, q_f, npts, h, margin, q_range)`, `compute_franck_condon_integrals_fd(..., npts=None ->
+  20001, h, q_range, shift)`, `fd_info["points_per_wavelength"]` (302 at diamond defaults) and `grid_from`;
+  `solve_schrodinger_fd(..., shift)`; hermite / cubic `h`, `margin` (6.0). 5 new tests (108 total).
+- Harness flags: `--line-positions {harmonic,levels}`, `--hermite-h --hermite-margin`, `--fd-h --fd-range QMIN QMAX
+  --fd-shift --fd-stencil {3,5,7}`, `--cubic-warn`, figure flags; `plot_ccd_wavefunctions.py --check-tol A F`;
+  `check_1d_ccd.py --tol NAME=VALUE --list-tolerances` (TOLERANCES dict, 35 named criteria). run_all.toml keys:
+  physics.line_positions, hermite.h/margin, fd.h/range/shift (0 / [] / "auto" = unset), cubic.warn, plots.check_tol,
+  report.options (extra vof_report flags), [figures], [checks.tolerances] (passed as --tol). Diamond config also runs
+  spline3-notaknot-smooth. Docs: validation.rst *Configuration* table; supporting_information.rst S6 grid options.
+
 ### Docs pages and naming (2026-10-16)
 
 - `doc/validation.rst` (*Validation and testing*): layers, terminology, datasets (with the method of each state's energies),

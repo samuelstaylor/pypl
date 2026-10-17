@@ -29,18 +29,24 @@ ene_range = [-200.0, 1200.0]   # meV, lineshape axis relative to the ZPL
 resol = 1401              # points on that axis (1 meV steps resolve the 0.3 meV ZPL)
 ezpl = 1945.0             # meV, ZPL energy for the tutorial spectra
 tdm = 1.0                 # transition dipole moment for the tutorial spectra
+line_positions = "harmonic"   # VOF lines at the harmonic ladders (bulid_fc_lsp) or "levels": fd level energies
 
 [methods]
 reference = "pypl"        # every comparison's reference: pypl (Ruhoff), hermite or fd
 harmonic = ["hermite", "fd"]   # methods compared like for like on the harmonic wells (must PASS)
 
-[hermite]
-npts = 100001             # Simpson quadrature points (also used by the cubic method)
+[hermite]                 # quadrature grid of the hermite and cubic methods
+npts = 100001             # Simpson points (rounded up to odd)
+h = 0.0                   # grid spacing in amu^0.5 A instead of npts (0 = use npts)
+margin = 6.0              # amu^0.5 A of grid beyond delta_q + the outermost turning point, on each side
 
-[fd]                      # finite-difference Schroedinger solver
+[fd]                      # finite-difference Schrodinger solver
 npts = 20001              # grid points
-stencil = 5               # 3 (O(h^2)) or 5 (O(h^4))
-margin = 2.0              # amu^0.5 A of grid beyond the outermost turning point
+h = 0.0                   # grid spacing in amu^0.5 A instead of npts (0 = use npts), e.g. 5e-4
+range = []                # [Q_min, Q_max] on the CCD axis instead of turning points + margin ([] = automatic)
+stencil = 5               # 3 (O(h^2)), 5 (O(h^4)) or 7 (O(h^6))
+margin = 2.0              # amu^0.5 A of grid beyond the outermost harmonic turning point
+shift = "auto"            # eigensolver shift-invert target in eV ("auto" = min V - 1 eV)
 # Fitted wells fd is run on (each one is compared with the reference and plotted). Spec strings:
 #   parabola | polyN (even N, e.g. poly2, poly6) | morse | cubic[-near][-free]
 #   spline[K][-natural|-notaknot|-clamped|-sRMS]   (K = 2..5; -s0.05 = smoothing spline, rms 0.05 meV)
@@ -51,6 +57,11 @@ fits = ["spline", "spline5-clamped", "morse", "poly2", "poly6", "cubic"]
 #   order = 2..5, bc = "natural" | "not-a-knot" | "clamped", smoothing = rms target in meV (no bc then),
 #   tails = "harmonic" (default) | "smooth" (C2 tails continuing the spline itself; not with clamped; METHODS.md 5.1)
 [[fd.splines]]
+order = 3                 # the recommended anharmonic fit: not-a-knot with smooth (C2) tails
+bc = "not-a-knot"
+tails = "smooth"
+
+[[fd.splines]]
 order = 4
 bc = "not-a-knot"
 
@@ -60,6 +71,7 @@ smoothing = 0.05
 
 [cubic]                   # first-order cubic anharmonic correction (method "cubic")
 enabled = true
+warn = 0.1                # warn when |xi| or the mixing 3|xi|(n+1)^1.5 exceeds this
 # Each variant is one cubic fit V = a Q^2 + b Q^3 + c of both wells:
 #   points = "all" (every image) | "parabola" (only the near-minimum images)
 #   free_a = false: a fixed to the parabola's (consistent H0) | true: a fitted too
@@ -78,12 +90,26 @@ normalize = false
 
 [plots]                   # plot_ccd_wavefunctions.py
 n_levels = 3              # wavefunctions drawn per well
+check_tol = [1e-10, 1e-8] # pass criterion of the drawn wavefunctions vs the solver's F_ij: [analytic, fd]
 
 [report]                  # vof_report.py
 convergence = true        # the fd grid-convergence scan (section 02, ~1.5 min)
 cubic = true              # section 07 (cubic perturbation)
 # Fits compared in the report; [] = the report's own default set (parabola, poly2-8, morse, 6 splines).
 fits = []
+# Any further vof_report.py options, e.g. ["--wf-levels", "0", "5", "20", "--convergence-npts", "4001", "16001"]
+# (see python validation/vof_report.py --help).
+options = []
+
+[figures]                 # every figure of every step
+dpi = 300                 # resolution of raster figures
+formats = ["png"]         # any of "png", "pdf", "svg"; the first is the one linked in index.md
+font_size = 9.0           # base font size in pt
+
+[checks.tolerances]       # pass criteria of check_1d_ccd.py to override, by name; [] = the defaults
+# python validation/check_1d_ccd.py --list-tolerances prints every name, default and meaning, e.g.
+# fd_vs_ruhoff = 1e-8
+# closure_row0 = 1e-8
 
 [tolerances]              # what PASS means for a like-for-like comparison
 fc = 1e-7                 # max |dF_ij| (PyPL's own float64 drift is ~2e-8)

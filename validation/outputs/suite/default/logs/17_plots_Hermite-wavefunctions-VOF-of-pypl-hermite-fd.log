@@ -1,4 +1,4 @@
-$ python testing/plot_ccd_wavefunctions.py --wf-method hermite --vof-method pypl hermite fd --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --npts 100001 --fd-npts 20001 --fd-stencil 5 --fd-margin 2.0 --fd-fit parabola --n-levels 3
+$ python validation/plot_ccd_wavefunctions.py --wf-method hermite --vof-method pypl hermite fd --dataset nv_diamond --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit parabola --fd-npts 20001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --n-levels 3 --check-tol 1e-10 1e-08
 
 Finite differences on fit parabola (parabola (near min.)):
   GS well: parabola a (Q - 0.000000)^2 + c, a = 0.417627 eV/(amu A^2), c = -0.000013 eV; fitted to samples 1-5 of 15 (Q = -0.139..0.139); rms residual 7.49e-05 eV
@@ -13,7 +13,7 @@ Wavefunction check: <chi_i | chi_j> of the 3 drawn levels vs the solver's F_ij
      0.168065239  -0.324014740   0.436679418
      0.310578933  -0.430853756   0.349153528
      0.410866469  -0.353282444   0.038843891
-  MATCH (max deviation 1.67e-16, tolerance 1e-10)
+  MATCH (max deviation 2.22e-16, tolerance 1e-10)
 
 Vibrational levels (eV)
   v = 0   GS  0.029531   ES  1.738033
@@ -32,4 +32,4 @@ Franck-Condon lineshapes via bulid_fc_lsp
     Hermite (quadrature) vs PyPL (Ruhoff): max |difference| / peak = 6.95e-16
     Finite difference vs PyPL (Ruhoff): max |difference| / peak = 9.55e-13
 
-Outputs in testing\outputs\suite\default\plot_ccd_wavefunctions\wf-hermite_vof-pypl-hermite-fd_fit-parabola (see index.md)
+Outputs in validation\outputs\suite\default\plot_ccd_wavefunctions\wf-hermite_vof-pypl-hermite-fd_fit-parabola (see index.md)

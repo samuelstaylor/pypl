@@ -129,17 +129,21 @@ def main():
     elif anharmonic:
         verdict += "; %s anharmonic, so differences are physics, not error" % " and ".join(anharmonic)
 
-    title = "Franck-Condon lineshape via bulid_fc_lsp: %s (reference)   [%s]" % (ref_label, verdict)
+    system = ccd_data.active().title
+    title = "%s: vibrational overlap functions against %s" % (system, ref_label)
+    for ref, tested in comparison.values():
+        out.detail(plots.settings_text(params, ref, tested))
     out.save_fig(
         plots.vof_comparison_figure(plt, comparison, params, args.tol_vof, title),
         "figures/vof_comparison.png",
-        "Per direction: VOFs overlaid, (test - ref) / peak, log10 |test - ref| / peak with the tolerance, "
-        "and every method's settings.",
+        "Per direction (columns): the VOFs overlaid (reference thick and translucent, tests dashed / dotted), the "
+        "signed difference (test - reference) / reference peak, and its absolute value on a log scale with the "
+        "tolerance --tol-vof (dashed). Verdict: %s. Every setting of every method is in log.txt." % verdict,
     )
     out.save_fig(
-        plots.fc_error_figure(plt, comparison, "Franck-Condon matrix error vs %s" % ref_label),
+        plots.fc_error_figure(plt, comparison, r"%s: Franck-Condon matrix error against %s" % (system, ref_label)),
         "figures/fc_error_maps.png",
-        "log10 |F_ij(test) - F_ij(reference)| per test and direction.",
+        "log10 |F_ij(test) - F_ij(reference)| per test (rows) and direction (columns); the cross marks the maximum.",
     )
     out.save_table(
         "data/summary.csv",

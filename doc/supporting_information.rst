@@ -184,19 +184,38 @@ on a uniform grid :math:`x_k`, with hard walls (:math:`\psi = 0` beyond the grid
 
    \psi''_k &\approx \frac{\psi_{k-1} - 2\psi_k + \psi_{k+1}}{h^2} + O(h^2) \qquad \text{(3-point)}, \\
    \psi''_k &\approx \frac{-\psi_{k-2} + 16\psi_{k-1} - 30\psi_k + 16\psi_{k+1} - \psi_{k+2}}{12h^2} + O(h^4)
-   \qquad \text{(5-point)},
+   \qquad \text{(5-point)}, \\
+   \psi''_k &\approx \frac{2\psi_{k\pm3} - 27\psi_{k\pm2} + 270\psi_{k\pm1} - 490\psi_k}{180h^2} + O(h^6)
+   \qquad \text{(7-point; } \psi_{k\pm m} \text{ summed over both signs)},
 
 follow from the Taylor expansion :math:`\psi_{k\pm m} = \sum_p (\pm mh)^p\psi^{(p)}_k/p!`: the 3-point combination
 cancels all odd terms and leaves :math:`h^2\psi^{(4)}/12`; the 5-point weights also cancel the :math:`h^2` term,
-leaving :math:`-h^4\psi^{(6)}/90`. The Hamiltonian is a symmetric banded matrix (bandwidth 1 or 2); its lowest
+leaving :math:`-h^4\psi^{(6)}/90`; the 7-point weights cancel through :math:`h^4`, leaving
+:math:`h^6\psi^{(8)}/560`. The Hamiltonian is a symmetric banded matrix (bandwidth 1, 2 or 3); its lowest
 eigenpairs come from sparse shift-invert Lanczos (``eigsh`` with :math:`\sigma = \min V - 1` eV), so no dense matrix is
 formed. Eigenvectors are normalized to :math:`\sum_k \psi_n(x_k)^2 h = 1` and signed positive on the right-hand tail,
 the Hermite-function convention, so that :math:`F_{ij} = \sum_k \psi^{(i)}_i(x_k)\psi^{(f)}_j(x_k)\,h` has the same
 signs as S4.
 
-**Grid.** :math:`x \in [-\Delta Q - x^{(i)}_{n_i-1} - m,\; x^{(f)}_{n_f-1} + m]` with the harmonic turning points
-:math:`x_n` (S3) and a margin :math:`m` (default 2 amu\ :sup:`1/2` Å), in the solver frame of S1;
-:math:`Q = Q_f + s\,x`, :math:`s = \mathrm{sign}(Q_f - Q_i)`.
+**Grid.** By default :math:`x \in [-\Delta Q - x^{(i)}_{n_i-1} - m,\; x^{(f)}_{n_f-1} + m]` with the harmonic turning
+points :math:`x_n` (S3) and a margin :math:`m` (``margin``, default 2 amu\ :sup:`1/2` Å), in the solver frame of S1;
+:math:`Q = Q_f + s\,x`, :math:`s = \mathrm{sign}(Q_f - Q_i)`. Every part is configurable
+(``config_coord_1d_vof_solver.fd_grid`` previews the grid without solving):
+
+- ``npts`` (default 20001) or the spacing ``h``; with ``h`` the grid starts at the lower limit with exactly that
+  spacing and extends to the next whole step past the upper one (``uniform_grid``);
+- ``q_range = (Q_min, Q_max)``: explicit limits on the CCD axis instead of turning points and margin (must contain
+  both minima);
+- ``stencil`` 3, 5 or 7; ``shift``: the eigensolver's shift-invert target (default :math:`\min V - 1` eV).
+
+The resolution that matters is the number of grid points per shortest local wavelength of the highest level,
+:math:`\lambda_\mathrm{min}/h` with :math:`\lambda_\mathrm{min} = 2\pi\sqrt{K/(E_\mathrm{max} - V_\mathrm{min})}`,
+reported as ``fd_info["points_per_wavelength"]`` (NV\ :sup:`-` in diamond at the defaults: about 300). With the
+5-point stencil the error falls as :math:`(\lambda_\mathrm{min}/h)^{-4}`; a few tens of points per wavelength already
+give :math:`F_{ij}` to :math:`\sim 10^{-8}`.
+
+The quadrature grid of S5 is configurable in the same way: ``npts`` or ``h``, and ``margin`` (default 6
+amu\ :sup:`1/2` Å beyond :math:`\Delta Q` plus the outermost turning point).
 
 **Diagnostics** (``fd_info``): wall amplitude :math:`\max_n |\psi_n(x_\mathrm{edge})| / \max|\psi_n|` (bound states:
 :math:`\sim 10^{-16}`); orthonormality :math:`\max|h\Psi\Psi^T - I|`; ladder deviation

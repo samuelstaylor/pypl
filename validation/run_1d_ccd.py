@@ -23,10 +23,11 @@ import numpy as np
 
 from harness import ccd_data
 from harness.output import OutputDir
-from harness.plots import STATE_COLORS, style
+from harness import plots
+from harness.plots import ENERGY_LABEL, FIGURE, Q_LABEL, Q_UNIT, STATE_COLORS, legend_below, off_scale_note, style
 from pypl.config_coord_1d_solver import config_coord_1d_solver
 
-BLUE, RED = STATE_COLORS["es"], STATE_COLORS["gs"]
+BLUE, RED = "#4285F4", "#DB4437"  # upper (ES) and lower (GS) state, as in tutorial 002
 
 
 def parse_args():
@@ -56,6 +57,8 @@ def parse_args():
     p.add_argument("--tdm", type=float, default=1.0, help="transition dipole moment (default: 1.0)")
     p.add_argument("--tag", default="", help="name of the run directory (default: 'default')")
     p.add_argument("--show", action="store_true", help="display the figures in addition to saving them")
+    ccd_data.add_dataset_arg(p)
+    plots.add_figure_args(p)
     return p.parse_args()
 
 
@@ -69,45 +72,86 @@ def compute_spectrum(omega_i, omega_f, delta_q, ni, nf, args, eneaxis, spectrum_
 
 
 def draw_ccd(plt, ccd):
-    fig, ax = plt.subplots(figsize=(5, 7))
-    for state, color, marker in (("es", BLUE, "s"), ("gs", RED, "o")):
-        name = ccd_data.STATE_NAMES[state]
+    """The two wells on a broken energy axis (upper state on top), with the images and the parabola fits."""
+
+    fig, (top, bottom) = plt.subplots(
+        2, 1, figsize=(4.8, 5.4), sharex=True, gridspec_kw={"hspace": 0.06, "height_ratios": (1, 1)}
+    )
+    q_all = np.concatenate([ccd_data.samples(ccd, s)[0] for s in ccd_data.STATES])
+    x = np.linspace(q_all.min() - 0.1, q_all.max() + 0.1, 400)
+    for ax, state, color, marker in ((top, "es", BLUE, "s"), (bottom, "gs", RED, "o")):
         q, e = ccd_data.samples(ccd, state)
+        pot = ccd["%s_potential" % state]
+        used = pot.index
+        ax.plot(
+            x,
+            pot(x),
+            color=color,
+            lw=1.3,
+            label="%s parabola (images %d-%d)" % (ccd_data.STATE_NAMES[state], used[0] + 1, used[-1] + 1),
+        )
         ax.plot(q, e, color=color, ls="", marker=marker, ms=5, label=ccd_data.energy_label(state))
-        ax.plot(q, ccd["%s_fit_energies" % state], color=color, ls="--", lw=1.0, label="%s fit" % name)
         ax.text(
-            0.46,
-            0.6 if state == "es" else 0.4,
-            "%s phonon: %.2f meV\n%s HRF: %.2f" % (name, ccd["%s_phonon" % state], name, ccd["%s_hrf" % state]),
+            0.97 if state == "es" else 0.03,
+            0.92,
+            r"%s: $\hbar\omega$ = %.2f meV, $S$ = %.2f"
+            % (ccd_data.STATE_NAMES[state], ccd["%s_phonon" % state], ccd["%s_hrf" % state]),
             color=color,
             transform=ax.transAxes,
+            ha="right" if state == "es" else "left",
+            va="top",
         )
-    ax.axvline(0.0, color="gray", ls="--", lw=1)
-    ax.axvline(ccd["delta_q"], color="gray", ls="--", lw=1)
-    ax.legend(loc="center left", edgecolor="black")
-    ax.set_xlim((-0.2, 0.9))
-    ax.set_xlabel(r"Q (amu$^{1/2}$ $\AA$)")
-    ax.set_ylabel("Total energy (eV)")
-    style(ax, grid=False)
+        e_min = ccd["%s_params" % state][1]
+        span = max(e.max(), pot(x).min()) - e_min
+        ax.set_ylim(e_min - 0.08 * span, e_min + 1.25 * span)
+        for xv in (0.0, ccd["delta_q"]):
+            ax.axvline(xv, color="0.6", ls="--", lw=0.8, zorder=0)
+        style(ax, grid=False)
+    # Broken-axis marks.
+    for ax, y in ((top, 0.0), (bottom, 1.0)):
+        kw = dict(transform=ax.transAxes, color="k", clip_on=False, lw=0.8)
+        ax.plot((-0.015, 0.015), (y - 0.015, y + 0.015), **kw)
+        ax.plot((0.985, 1.015), (y - 0.015, y + 0.015), **kw)
+    top.spines["bottom"].set_visible(False)
+    bottom.spines["top"].set_visible(False)
+    top.tick_params(bottom=False, labelbottom=False, labeltop=False)
+    bottom.tick_params(top=False)
+    top.tick_params(labeltop=False)
+    bottom.set_xlabel(Q_LABEL)
+    fig.supylabel(ENERGY_LABEL, fontsize=FIGURE["font_size"], x=-0.03)
+    top.set_title(r"%s: 1D CCD, $\Delta Q$ = %.4f %s" % (ccd_data.active().title, ccd["delta_q"], Q_UNIT))
+    handles, labels = [], []
+    for ax in (top, bottom):
+        h, l = ax.get_legend_handles_labels()
+        handles += h
+        labels += l
+    legend_below(fig, handles, labels, ncol=1, y=0.0)
     return fig
 
 
 def draw_spectra(plt, pl, pl_norm, ab, ab_norm, temp):
-    fig, ax = plt.subplots(figsize=(12, 4))
-    ax.plot(pl[0] * 1e-3, pl_norm * 1e3, color=RED, lw=1, label="PL")
-    ax.plot(ab[0] * 1e-3, ab_norm * 1e3, color=BLUE, lw=1, label="Abs")
+    fig, ax = plt.subplots(figsize=(7.2, 3.2))
+    ax.plot(pl[0] * 1e-3, pl_norm * 1e3, color=RED, lw=1.2, label="Photoluminescence")
+    ax.plot(ab[0] * 1e-3, ab_norm * 1e3, color=BLUE, lw=1.2, label="Absorption")
     ax.set_xlim((1.5, 2.4))
-    ax.set_ylim((0.0, 6))
-    ax.legend(loc="upper right", edgecolor="black")
+    window = (pl[0] * 1e-3 > 1.5) & (pl[0] * 1e-3 < 1.9)
+    sideband = float(np.max(pl_norm[window] * 1e3))
+    ax.set_ylim((0.0, 1.35 * sideband))
+    zpl = max(float(np.max(pl_norm)), float(np.max(ab_norm))) * 1e3
+    if zpl > 1.35 * sideband:
+        off_scale_note(ax, zpl, x=pl[0][np.argmax(pl_norm)] * 1e-3)
+    ax.legend(loc="upper right")
     ax.set_xlabel(r"$\hbar\omega$ (eV)")
-    ax.set_ylabel("PL / Abs (arb. unit)")
-    ax.set_title("NV$^-$ in diamond, 1D CCD, T = %g K" % temp)
+    ax.set_ylabel(r"Normalized intensity (eV$^{-1}$)")
+    ax.set_title(r"%s: 1D CCD spectra, $T$ = %g K" % (ccd_data.active().title, temp))
     style(ax)
     return fig
 
 
 def main():
     args = parse_args()
+    ccd_data.use_dataset(args.dataset)
+    plots.configure(args)
     if not args.show:
         matplotlib.use("Agg")
     import matplotlib.pyplot as plt

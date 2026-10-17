@@ -20,7 +20,7 @@ from typing import Callable
 
 import numpy as np
 
-from harness import ccd_data, fits
+from harness import ccd_data, fits, plots
 from pypl.config_coord_1d_vof_solver import FD_STENCIL_NAMES, FD_STENCILS, KINETIC, config_coord_1d_vof_solver
 
 DIRECTIONS = ("emission", "absorption")
@@ -49,13 +49,20 @@ class VOFParams:
     order_gs: int = 60  # GS vibrational levels
     ene_range: tuple = (-200.0, 1200.0)  # meV, relative to the ZPL
     resol: int = 1401  # axis points (1 meV steps resolve the 0.3 meV ZPL)
-    npts: int = 100001  # quadrature points (hermite)
+    npts: int = 100001  # quadrature points (hermite, cubic)
+    hermite_h: float = None  # quadrature grid spacing instead of npts (amu^0.5 A)
+    hermite_margin: float = 6.0  # quadrature half-width beyond delta_q + the outermost turning point (amu^0.5 A)
     fd_npts: int = 20001  # grid points (fd)
-    fd_stencil: int = 5  # 3- or 5-point second derivative (fd)
+    fd_h: float = None  # grid spacing instead of fd_npts (amu^0.5 A)
+    fd_range: tuple = None  # (Q_min, Q_max) of the fd grid on the CCD axis, instead of turning points + margin
+    fd_stencil: int = 5  # 3-, 5- or 7-point second derivative (fd)
     fd_margin: float = 2.0  # amu^0.5 A of grid beyond the outermost turning point (fd)
+    fd_shift: float = None  # shift-invert target of the eigensolver (eV); default min(V) - 1 eV
     fd_fit: str = fits.DEFAULT_FIT  # fitted wells (fd), a fits.py spec
+    line_positions: str = "harmonic"  # VOF lines at harmonic ladders (bulid_fc_lsp) or at the fd levels
     cubic_fit: str = "cubic"  # cubic fit giving b (cubic method): cubic[-near][-free]
     cubic_normalize: bool = False  # renormalize the first-order states (cubic method)
+    cubic_warn: float = 0.1  # mixing / |xi| above which the cubic method warns
 
     def axis(self):
         return np.linspace(self.ene_range[0], self.ene_range[1], self.resol)
@@ -70,8 +77,13 @@ class VOFParams:
 
         zpl = "Lorentzian, gamma = %g meV" % self.gamma if self.zpl_lorentzian else "Gaussian (no Lorentzian ZPL)"
         axis = self.axis()
+        lines_at = (
+            "harmonic ladders (bulid_fc_lsp)"
+            if self.line_positions == "harmonic"
+            else ("fd levels for fd (build_fc_lsp_from_levels), harmonic ladders otherwise")
+        )
         return [
-            "bulid_fc_lsp: T = %g K, sigma = %s meV, ZPL %s" % (self.temp, list(self.sigma), zpl),
+            "lineshape: T = %g K, sigma = %s meV, ZPL %s; lines at %s" % (self.temp, list(self.sigma), zpl, lines_at),
             "lineshape axis: %g..%g meV from the ZPL, %d points, step %.4g meV"
             % (axis[0], axis[-1], len(axis), axis[1] - axis[0]),
             "basis: %d ES x %d GS levels (emission ni x nf = %d x %d, absorption %d x %d)"
@@ -108,12 +120,48 @@ def add_vof_args(parser):
         "--ene-range", type=float, nargs=2, default=list(d.ene_range), metavar=("LO", "HI"), help="axis in meV"
     )
     g.add_argument("--resol", type=int, default=d.resol, help="points on that axis")
-    g.add_argument("--npts", type=int, default=d.npts, help="quadrature points (hermite method)")
-    g.add_argument("--fd-npts", type=int, default=d.fd_npts, help="grid points (fd method)")
     g.add_argument(
-        "--fd-stencil", type=int, choices=sorted(FD_STENCILS), default=d.fd_stencil, help="d^2/dQ^2 stencil (fd)"
+        "--line-positions",
+        choices=("harmonic", "levels"),
+        default=d.line_positions,
+        help="where the VOF lines sit: harmonic ladders (bulid_fc_lsp, default) or, for fd, the fd level energies "
+        "(build_fc_lsp_from_levels)",
     )
-    g.add_argument("--fd-margin", type=float, default=d.fd_margin, help="grid padding beyond the turning points (fd)")
+    q = parser.add_argument_group("quadrature grid (hermite and cubic methods)")
+    q.add_argument("--npts", type=int, default=d.npts, help="quadrature points (default %d)" % d.npts)
+    q.add_argument("--hermite-h", type=float, metavar="H", help="quadrature spacing in amu^0.5 A, instead of --npts")
+    q.add_argument(
+        "--hermite-margin",
+        type=float,
+        default=d.hermite_margin,
+        help="half-width beyond delta_q + the outermost turning point, amu^0.5 A (default %g)" % d.hermite_margin,
+    )
+    f = parser.add_argument_group("finite-difference grid (fd method)")
+    f.add_argument("--fd-npts", type=int, default=d.fd_npts, help="grid points (default %d)" % d.fd_npts)
+    f.add_argument("--fd-h", type=float, metavar="H", help="grid spacing in amu^0.5 A, instead of --fd-npts")
+    f.add_argument(
+        "--fd-range",
+        type=float,
+        nargs=2,
+        metavar=("QMIN", "QMAX"),
+        help="grid limits on the CCD axis (amu^0.5 A), instead of the turning points + --fd-margin",
+    )
+    f.add_argument(
+        "--fd-margin",
+        type=float,
+        default=d.fd_margin,
+        help="padding beyond the outermost harmonic turning points, amu^0.5 A (default %g)" % d.fd_margin,
+    )
+    f.add_argument(
+        "--fd-stencil",
+        type=int,
+        choices=sorted(FD_STENCILS),
+        default=d.fd_stencil,
+        help="second-derivative stencil: " + "; ".join("%d = %s" % kv for kv in sorted(FD_STENCIL_NAMES.items())),
+    )
+    f.add_argument(
+        "--fd-shift", type=float, metavar="EV", help="eigensolver shift-invert target in eV (default min V - 1)"
+    )
     g.add_argument(
         "--fd-fit",
         default=d.fd_fit,
@@ -158,6 +206,13 @@ def add_vof_args(parser):
     c.add_argument(
         "--cubic-normalize", action="store_true", help="renormalize the first-order states (default: norm 1 + O(xi^2))"
     )
+    c.add_argument(
+        "--cubic-warn",
+        type=float,
+        default=d.cubic_warn,
+        help="warn when |xi| or the mixing 3|xi|(n+1)^1.5 exceeds this (default %g)" % d.cubic_warn,
+    )
+    plots.add_figure_args(parser)
     return g
 
 
@@ -175,6 +230,8 @@ def fd_q_range(ccd, params):
     of the other (diamond: GS left, ES right; MgO: 3E left, 1A1 right).
     """
 
+    if params.fd_range is not None:
+        return tuple(sorted(params.fd_range))
     tp = config_coord_1d_vof_solver.classical_turning_point
     half = {"gs": tp(params.order_gs - 1, ccd["gs_phonon"]), "es": tp(params.order_es - 1, ccd["es_phonon"])}
     return ccd_data.q_span(ccd, half, params.fd_margin)
@@ -205,7 +262,12 @@ def params_from_args(args):
 
     if len(args.sigma) not in (1, 2):
         raise SystemExit("--sigma takes one or two values")
+    if args.fd_h is not None and args.fd_h <= 0:
+        raise SystemExit("--fd-h must be positive")
+    if args.hermite_h is not None and args.hermite_h <= 0:
+        raise SystemExit("--hermite-h must be positive")
     ccd_data.use_dataset(args.dataset)
+    plots.configure(args)
     args.fd_fit = resolve_fd_fit(args)
     return VOFParams(
         temp=args.temp,
@@ -217,12 +279,19 @@ def params_from_args(args):
         ene_range=tuple(args.ene_range),
         resol=args.resol,
         npts=args.npts,
+        hermite_h=args.hermite_h,
+        hermite_margin=args.hermite_margin,
         fd_npts=args.fd_npts,
+        fd_h=args.fd_h,
+        fd_range=tuple(args.fd_range) if args.fd_range else None,
         fd_stencil=args.fd_stencil,
         fd_margin=args.fd_margin,
+        fd_shift=args.fd_shift,
         fd_fit=args.fd_fit,
+        line_positions=args.line_positions,
         cubic_fit=cubic_spec(args),
         cubic_normalize=args.cubic_normalize,
+        cubic_warn=args.cubic_warn,
     )
 
 
@@ -254,12 +323,21 @@ def run_pypl(solver, ni, nf, params, ccd, direction):
 
 
 def run_hermite(solver, ni, nf, params, ccd, direction):
-    solver.compute_franck_condon_integrals_hermite(ni, nf, npts=params.npts)
+    solver.compute_franck_condon_integrals_hermite(
+        ni, nf, npts=params.npts, h=params.hermite_h, margin=params.hermite_margin
+    )
     q = solver.hermite_grid
     return [
         "method: compute_franck_condon_integrals_hermite, <chi_i(Q + dQ) | chi_j(Q)> of harmonic eigenfunctions",
-        "grid: %d points, Q = %.4f..%.4f amu^0.5 A, h = %.3e amu^0.5 A; composite Simpson"
-        % (len(q), q[0], q[-1], q[1] - q[0]),
+        "grid: %d points, Q = %.4f..%.4f amu^0.5 A, h = %.3e amu^0.5 A (%s), margin %g; composite Simpson"
+        % (
+            len(q),
+            q[0],
+            q[-1],
+            q[1] - q[0],
+            "set by --hermite-h" if params.hermite_h else "from --npts",
+            params.hermite_margin,
+        ),
     ] + harmonic_source_lines(ccd, direction)
 
 
@@ -274,9 +352,12 @@ def run_fd(solver, ni, nf, params, ccd, direction):
         pot_f,
         q_i=ccd_data.center(ccd, initial),
         q_f=ccd_data.center(ccd, final),
-        npts=params.fd_npts,
+        npts=None if params.fd_h else params.fd_npts,
         stencil=params.fd_stencil,
         margin=params.fd_margin,
+        h=params.fd_h,
+        q_range=params.fd_range,
+        shift=params.fd_shift,
     )
     info = solver.fd_info
     lines = [
@@ -287,12 +368,26 @@ def run_fd(solver, ni, nf, params, ccd, direction):
         % (ccd_data.STATE_NAMES[initial], fits.images(ccd, initial, params.fd_fit), pot_i.describe()),
         "potential (final, %s) [%s]: %s"
         % (ccd_data.STATE_NAMES[final], fits.images(ccd, final, params.fd_fit), pot_f.describe()),
-        "grid: %d points, frame %s, x = %.4f..%.4f (Q = %.4f..%.4f amu^0.5 A), h = %.4e amu^0.5 A"
-        % (info["npts"], info["frame"], *info["x_range"], *info["q_range"], info["h"]),
-        "padding: %.2f amu^0.5 A beyond the harmonic turning points of v = %d (%.4f) and v = %d (%.4f)"
-        % (info["margin"], ni - 1, info["turning_points"][0], nf - 1, info["turning_points"][1]),
+        "grid: %d points, frame %s, x = %.4f..%.4f (Q = %.4f..%.4f amu^0.5 A), h = %.4e amu^0.5 A (%s); "
+        "%.0f points per shortest wavelength"
+        % (
+            info["npts"],
+            info["frame"],
+            *info["x_range"],
+            *info["q_range"],
+            info["h"],
+            "set by --fd-h" if params.fd_h else "from --fd-npts",
+            info["points_per_wavelength"],
+        ),
+        (
+            "limits: --fd-range %s" % (params.fd_range,)
+            if params.fd_range
+            else "padding: %.2f amu^0.5 A beyond the harmonic turning points of v = %d (%.4f) and v = %d (%.4f)"
+            % (info["margin"], ni - 1, info["turning_points"][0], nf - 1, info["turning_points"][1])
+        ),
         "stencil: %s; hard walls" % FD_STENCIL_NAMES[info["stencil"]],
-        "eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest %d and %d states" % (ni, nf),
+        "eigensolver: scipy.sparse.linalg.eigsh, shift-invert at %s, lowest %d and %d states"
+        % ("%g eV" % params.fd_shift if params.fd_shift is not None else "min(V) - 1 eV", ni, nf),
         "checks: |psi| at walls / peak = %.2e, orthonormality = %.2e, ladder |E_v - E_0 - v hbar w| = %.2e (i) "
         "/ %.2e (f) meV" % (info["wall"], info["orthonormality"], info["ladder_i"], info["ladder_f"]),
     ]
@@ -318,6 +413,9 @@ def run_cubic(solver, ni, nf, params, ccd, direction):
             q_f=ccd_data.center(ccd, final),
             npts=params.npts,
             normalize=params.cubic_normalize,
+            warn_threshold=params.cubic_warn,
+            h=params.hermite_h,
+            margin=params.hermite_margin,
         )
     info, q = solver.cubic_info, solver.cubic_grid
     lines = [
@@ -486,8 +584,11 @@ def compute_vof(ccd, direction, method, params, log=print):
 
     # bulid_fc_lsp prints its own "Integral check"; capture it so it can carry a label.
     captured = io.StringIO()
+    build = solver.bulid_fc_lsp
+    if params.line_positions == "levels" and method == "fd":
+        build = solver.build_fc_lsp_from_levels
     with contextlib.redirect_stdout(captured):
-        axis, lineshape = solver.bulid_fc_lsp(
+        axis, lineshape = build(
             eneaxis=params.axis(),
             temp=params.temp,
             sigma=list(params.sigma),

@@ -11,17 +11,63 @@ AMU = constants.physical_constants["atomic mass constant"][0]
 KINETIC = constants.hbar**2 / (2 * AMU * 1e-20 * constants.eV)
 
 # Central-difference stencils for d^2/dQ^2: coefficients for offsets 0, 1, 2, ..., in units of 1 / h^2.
-FD_STENCILS = {3: (-2.0, 1.0), 5: (-30.0 / 12, 16.0 / 12, -1.0 / 12)}
+FD_STENCILS = {
+    3: (-2.0, 1.0),
+    5: (-30.0 / 12, 16.0 / 12, -1.0 / 12),
+    7: (-490.0 / 180, 270.0 / 180, -27.0 / 180, 2.0 / 180),
+}
 FD_STENCIL_NAMES = {
     3: "3-point central, O(h^2): (1, -2, 1) / h^2",
     5: "5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2)",
+    7: "7-point central, O(h^6): (2, -27, 270, -490, 270, -27, 2) / (180 h^2)",
 }
+FD_DEFAULT_NPTS = 20001
+QUADRATURE_DEFAULT_NPTS = 100001
 
 
 def grid_spacing(q):
     """Spacing of a uniform grid. ``q[1] - q[0]`` loses ~5 digits to cancellation far from Q = 0."""
 
     return (q[-1] - q[0]) / (len(q) - 1)
+
+
+def uniform_grid(lo, hi, npts=None, h=None, odd=False):
+    r"""
+    Uniform grid on :math:`[lo, hi]`, given either the number of points or the spacing.
+
+    Parameters
+    ----------
+    lo, hi : float
+        Grid limits.
+    npts : int, optional
+        Number of points. Exactly one of ``npts`` and ``h`` must be given.
+    h : float, optional
+        Grid spacing. The grid starts at ``lo`` with exactly this spacing and is extended past ``hi`` to the next
+        whole step, so it always covers :math:`[lo, hi]`.
+    odd : bool, optional
+        Round the number of points up to an odd number (composite Simpson rule). Default is False.
+
+    Returns
+    -------
+    ndarray
+        The grid.
+    """
+
+    if (npts is None) == (h is None):
+        raise ValueError("give exactly one of npts and h")
+    if h is not None:
+        if h <= 0:
+            raise ValueError("the grid spacing h must be positive, got %r" % (h,))
+        npts = int(np.ceil((hi - lo) / h - 1e-9)) + 1
+        if odd and npts % 2 == 0:
+            npts += 1
+        return lo + h * np.arange(npts)
+    npts = int(npts)
+    if npts < 3:
+        raise ValueError("a grid needs at least 3 points, got %d" % npts)
+    if odd and npts % 2 == 0:
+        npts += 1
+    return np.linspace(lo, hi, npts)
 
 
 class config_coord_1d_vof_solver(config_coord_1d_solver):
@@ -199,7 +245,7 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
 
         return np.sqrt((2 * n + 1) / config_coord_1d_vof_solver.harmonic_alpha(omega))
 
-    def compute_franck_condon_integrals_hermite(self, ni, nf, npts=100001):
+    def compute_franck_condon_integrals_hermite(self, ni, nf, npts=QUADRATURE_DEFAULT_NPTS, h=None, margin=6.0):
         r"""
         Compute Franck-Condon integrals by numerical quadrature of harmonic eigenfunctions.
 
@@ -218,14 +264,19 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
         nf : int
             Number of vibrational states in the final potential.
         npts : int, optional
-            Quadrature points; rounded up to an odd number. Default is 100001.
+            Quadrature points; rounded up to an odd number. Default is 100001. Ignored if ``h`` is given.
+        h : float, optional
+            Quadrature grid spacing (in Å·amu^{1/2}) instead of ``npts``.
+        margin : float, optional
+            Grid half-width beyond :math:`\Delta Q` plus the outermost classical turning point (in Å·amu^{1/2}).
+            Default is 6.0.
 
         Notes
         -----
         Sets ``self.fc_ints`` (shape ``(ni, nf)``), ``self.ni``, ``self.nf`` and ``self.hermite_grid``.
         """
 
-        q, weights = self._simpson_grid(ni - 1, nf - 1, npts)
+        q, weights = self._simpson_grid(ni - 1, nf - 1, npts, h, margin)
         chi_i = self.harmonic_wavefunctions(q, ni - 1, self.omega_i, -self.delta_q)
         chi_f = self.harmonic_wavefunctions(q, nf - 1, self.omega_f, 0.0)
 
@@ -234,12 +285,16 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
         self.nf = nf
         self.hermite_grid = q
 
-    def _simpson_grid(self, top_i, top_f, npts):
+    def _simpson_grid(self, top_i, top_f, npts=QUADRATURE_DEFAULT_NPTS, h=None, margin=6.0):
         """Symmetric quadrature grid wide enough for levels ``top_i`` / ``top_f``, and its Simpson weights."""
 
         tp = max(self.classical_turning_point(top_i, self.omega_i), self.classical_turning_point(top_f, self.omega_f))
-        span = 6.0 + self.delta_q + tp
-        q = np.linspace(-span, span, npts + 1 - npts % 2)
+        span = margin + self.delta_q + tp
+        if h is None:
+            q = np.linspace(-span, span, npts + 1 - npts % 2)
+        else:
+            q = uniform_grid(-span, span, h=h, odd=True)
+            q -= 0.5 * (q[0] + q[-1])  # keep the grid symmetric
         weights = np.ones(len(q))
         weights[1:-1:2] = 4.0
         weights[2:-1:2] = 2.0
@@ -348,7 +403,18 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
         return sum(c * chi[m] for m, c in enumerate(row) if c != 0.0)
 
     def compute_franck_condon_integrals_cubic(
-        self, ni, nf, b_i, b_f, q_i=None, q_f=0.0, npts=100001, normalize=False, warn_threshold=0.1
+        self,
+        ni,
+        nf,
+        b_i,
+        b_f,
+        q_i=None,
+        q_f=0.0,
+        npts=QUADRATURE_DEFAULT_NPTS,
+        normalize=False,
+        warn_threshold=0.1,
+        h=None,
+        margin=6.0,
     ):
         r"""
         Compute Franck-Condon integrals with a first-order cubic anharmonic correction.
@@ -398,6 +464,10 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
             :math:`1 + O(\xi^2)`).
         warn_threshold : float, optional
             Limit on :math:`|\xi|` and on the mixing coefficients before a warning. Default is 0.1.
+        h : float, optional
+            Quadrature grid spacing (in Å·amu^{1/2}) instead of ``npts``.
+        margin : float, optional
+            Quadrature grid half-width beyond :math:`\Delta Q` and the outermost turning point. Default is 6.0.
 
         Notes
         -----
@@ -422,7 +492,7 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
         coeffs_i = self.cubic_correction_coefficients(ni, xi_i)
         coeffs_f = self.cubic_correction_coefficients(nf, xi_f)
 
-        q, weights = self._simpson_grid(ni + 2, nf + 2, npts)
+        q, weights = self._simpson_grid(ni + 2, nf + 2, npts, h, margin)
         chi_i = self.harmonic_wavefunctions(q, ni + 2, self.omega_i, -self.delta_q)
         chi_f = self.harmonic_wavefunctions(q, nf + 2, self.omega_f, 0.0)
         psi_i, psi_f = coeffs_i @ chi_i, coeffs_f @ chi_f
@@ -465,7 +535,7 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
         self.cubic_info = info
 
     @staticmethod
-    def solve_schrodinger_fd(potential, q, n, stencil=5):
+    def solve_schrodinger_fd(potential, q, n, stencil=5, shift=None):
         r"""
         Lowest eigenstates of a 1D Hamiltonian by finite differences.
 
@@ -486,8 +556,10 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
             Uniform grid (in Å·amu^{1/2}).
         n : int
             Number of eigenstates.
-        stencil : {3, 5}, optional
-            Points in the second-derivative stencil, O(h^2) or O(h^4). Default is 5.
+        stencil : {3, 5, 7}, optional
+            Points in the second-derivative stencil, O(h^2), O(h^4) or O(h^6). Default is 5.
+        shift : float, optional
+            Shift-invert target of the eigensolver (in eV). Default is :math:`\min V - 1` eV, below every state.
 
         Returns
         -------
@@ -505,7 +577,13 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
         offsets = list(range(1, len(coeffs)))
         hamiltonian = sparse.diags(bands[:0:-1] + bands, [-k for k in offsets[::-1]] + [0] + offsets, format="csc")
 
-        energies, vectors = eigsh(hamiltonian, k=n, sigma=float(np.min(potential)) - 1.0, which="LM")
+        if stencil not in FD_STENCILS:
+            raise ValueError("stencil must be one of %s, got %r" % (sorted(FD_STENCILS), stencil))
+        if n >= len(q) - 1:
+            raise ValueError("%d eigenstates need more than %d grid points" % (n, len(q)))
+        if shift is None:
+            shift = float(np.min(potential)) - 1.0
+        energies, vectors = eigsh(hamiltonian, k=n, sigma=shift, which="LM")
         order = np.argsort(energies)
         energies, psi = energies[order], vectors[:, order].T / np.sqrt(h)
         for v in range(n):
@@ -514,8 +592,82 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
             psi[v] *= np.sign(psi[v, tail])
         return energies, psi
 
+    def fd_grid(self, ni, nf, q_i=None, q_f=0.0, npts=None, h=None, margin=2.0, q_range=None):
+        r"""
+        The finite-difference grid that ``compute_franck_condon_integrals_fd`` would use, without solving.
+
+        By default the grid spans, in the solver frame (final minimum at 0, initial at :math:`-\Delta Q`), from the
+        initial well's outermost classical turning point of level ``ni - 1`` to the final well's of level ``nf - 1``,
+        plus ``margin`` on each side, with ``npts`` points (default 20001). ``h`` sets the spacing instead of the
+        number of points, and ``q_range`` sets the limits on the :math:`Q` axis of the potentials instead of the
+        turning points and the margin.
+
+        Parameters
+        ----------
+        ni, nf : int
+            Vibrational states of the initial and final potential.
+        q_i, q_f : float, optional
+            Minima of the initial and final potential. Default: ``q_f - delta_q`` and 0.0.
+        npts : int, optional
+            Grid points. Default is 20001 (if ``h`` is not given).
+        h : float, optional
+            Grid spacing (in Å·amu^{1/2}) instead of ``npts``.
+        margin : float, optional
+            Padding beyond the outermost harmonic turning points (in Å·amu^{1/2}). Default is 2.0.
+        q_range : tuple of float, optional
+            ``(q_min, q_max)``: explicit grid limits on the :math:`Q` axis of the potentials.
+
+        Returns
+        -------
+        x : ndarray
+            Grid in the solver frame.
+        q : ndarray
+            The same points on the :math:`Q` axis of the potentials.
+        info : dict
+            ``sign`` (+1 or -1, the frame), ``delta`` (:math:`|Q_f - Q_i|`), ``turning_points`` and ``grid_from``
+            (``'turning points + margin'`` or ``'q_range'``).
+        """
+
+        if q_i is None:
+            q_i = q_f - self.delta_q
+        if npts is not None and h is not None:
+            raise ValueError("give npts or h, not both")
+        if npts is None and h is None:
+            npts = FD_DEFAULT_NPTS
+        sign = 1.0 if q_f >= q_i else -1.0
+        delta = abs(q_f - q_i)
+        turn_i = self.classical_turning_point(ni - 1, self.omega_i)
+        turn_f = self.classical_turning_point(nf - 1, self.omega_f)
+        if q_range is None:
+            lo, hi = -delta - turn_i - margin, turn_f + margin
+            grid_from = "turning points + margin"
+        else:
+            ends = sorted(sign * (np.asarray(q_range, dtype=float) - q_f))
+            lo, hi = ends
+            grid_from = "q_range"
+            if not (lo < -delta and hi > 0.0):
+                raise ValueError("q_range %s must contain both minima (%g and %g)" % (tuple(q_range), q_i, q_f))
+        x = uniform_grid(lo, hi, npts=npts, h=h)
+        return (
+            x,
+            q_f + sign * x,
+            {"sign": sign, "delta": delta, "turning_points": (turn_i, turn_f), "grid_from": grid_from},
+        )
+
     def compute_franck_condon_integrals_fd(
-        self, ni, nf, potential_i, potential_f, q_i=None, q_f=0.0, npts=20001, stencil=5, margin=2.0
+        self,
+        ni,
+        nf,
+        potential_i,
+        potential_f,
+        q_i=None,
+        q_f=0.0,
+        npts=None,
+        stencil=5,
+        margin=2.0,
+        h=None,
+        q_range=None,
+        shift=None,
     ):
         r"""
         Compute Franck-Condon integrals from finite-difference eigenstates of two potentials.
@@ -551,11 +703,18 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
         q_f : float, optional
             Minimum of the final potential. Default is 0.0.
         npts : int, optional
-            Grid points. Default is 20001.
-        stencil : {3, 5}, optional
-            Second-derivative stencil. Default is 5.
+            Grid points. Default is 20001 (if ``h`` is not given).
+        stencil : {3, 5, 7}, optional
+            Second-derivative stencil, O(h^2), O(h^4) or O(h^6). Default is 5.
         margin : float, optional
             Grid padding beyond the outermost harmonic turning point (in Å·amu^{1/2}). Default is 2.0.
+        h : float, optional
+            Grid spacing (in Å·amu^{1/2}) instead of ``npts``.
+        q_range : tuple of float, optional
+            ``(q_min, q_max)``: explicit grid limits on the :math:`Q` axis of the potentials, instead of the turning
+            points and ``margin``. See ``fd_grid``.
+        shift : float, optional
+            Shift-invert target of the eigensolver (eV). Default is :math:`\min V - 1` eV.
 
         Notes
         -----
@@ -565,22 +724,23 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
         - ``self.fd_q`` : the same points on the :math:`Q` axis of the potentials.
         - ``self.fd_energies_i``, ``self.fd_energies_f`` : eigenvalues (in eV).
         - ``self.fd_wavefunctions_i``, ``self.fd_wavefunctions_f`` : eigenfunctions on ``fd_grid``.
-        - ``self.fd_info`` : dict of grid and accuracy diagnostics.
+        - ``self.fd_info`` : dict of grid and accuracy diagnostics, including ``points_per_wavelength``, the
+          number of grid points per shortest local de Broglie wavelength :math:`2\pi\sqrt{K/(E_\mathrm{max} -
+          V_\mathrm{min})}` of the highest level (a few tens or more for a converged result).
         """
 
-        if q_i is None:
-            q_i = q_f - self.delta_q
-        sign = 1.0 if q_f >= q_i else -1.0
-        delta = abs(q_f - q_i)
-
-        turn_i = self.classical_turning_point(ni - 1, self.omega_i)
-        turn_f = self.classical_turning_point(nf - 1, self.omega_f)
-        x = np.linspace(-delta - turn_i - margin, turn_f + margin, npts)
-        q = q_f + sign * x
+        x, q, grid = self.fd_grid(ni, nf, q_i, q_f, npts=npts, h=h, margin=margin, q_range=q_range)
+        sign, (turn_i, turn_f) = grid["sign"], grid["turning_points"]
+        npts = len(x)
         h = grid_spacing(x)
 
-        e_i, psi_i = self.solve_schrodinger_fd(potential_i(q), x, ni, stencil)
-        e_f, psi_f = self.solve_schrodinger_fd(potential_f(q), x, nf, stencil)
+        v_i, v_f = potential_i(q), potential_f(q)
+        e_i, psi_i = self.solve_schrodinger_fd(v_i, x, ni, stencil, shift)
+        e_f, psi_f = self.solve_schrodinger_fd(v_f, x, nf, stencil, shift)
+
+        def per_wavelength(energies, potential):
+            kinetic = max(float(energies[-1] - np.min(potential)), 1e-300)
+            return float(2 * np.pi * np.sqrt(KINETIC / kinetic) / h)
 
         def wall(psi):
             return float(np.max(np.abs(psi[:, [0, -1]]) / np.max(np.abs(psi), axis=1)[:, None]))
@@ -603,6 +763,8 @@ class config_coord_1d_vof_solver(config_coord_1d_solver):
             "h": h,
             "stencil": stencil,
             "margin": margin,
+            "grid_from": grid["grid_from"],
+            "points_per_wavelength": min(per_wavelength(e_i, v_i), per_wavelength(e_f, v_f)),
             "frame": "x = Q - Q_f" if sign > 0 else "x = -(Q - Q_f)",
             "x_range": (x[0], x[-1]),
             "q_range": (min(q[0], q[-1]), max(q[0], q[-1])),

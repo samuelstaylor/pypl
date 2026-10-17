@@ -1,0 +1,16 @@
+$ python validation/compare_vof.py --reference pypl --test cubic --dataset nv_diamond --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit parabola --fd-npts 20001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --cubic-points all --cubic-free-a --tol-fc 1e-07 --tol-vof 1e-08
+
+Comparing VOFs: PyPL (Ruhoff) (reference) vs Hermite + cubic PT [cubic (a fitted, all images)]
+  lineshape: T = 5 K, sigma = [8.0, 25.0] meV, ZPL Lorentzian, gamma = 0.3 meV; lines at harmonic ladders (bulid_fc_lsp)
+  lineshape axis: -200..1200 meV from the ZPL, 1401 points, step 1 meV
+  basis: 50 ES x 60 GS levels (emission ni x nf = 50 x 60, absorption 60 x 50)
+
+direction   test                                               reference      max dF_ij  at (i, j)  max dF_ij (i,j<30)  max dVOF / peak  rms dVOF / peak  F_ij time (s)  verdict
+----------  -------------------------------------------------  -------------  ---------  ---------  ------------------  ---------------  ---------------  -------------  -------
+emission    Hermite + cubic PT [cubic (a fitted, all images)]  PyPL (Ruhoff)  9.81e-01   (43, 59)   3.19e-01            3.28e-02         1.23e-03         0.76           FAIL   
+absorption  Hermite + cubic PT [cubic (a fitted, all images)]  PyPL (Ruhoff)  9.81e-01   (59, 43)   3.19e-01            3.28e-02         1.76e-03         0.80           FAIL   
+
+FAIL: the lineshapes differ.
+NOTE: Hermite + cubic PT [cubic (a fitted, all images)] solve(s) an anharmonic problem, not the harmonic wells pypl / hermite use; differences from them are the anharmonicity, not an error. For a like-for-like test use the default methods and --fd-fit parabola.
+
+Outputs in validation\outputs\suite\default\compare_vof\pypl_vs_cubic_cubicfit-cubic-free (see index.md)

@@ -15,5 +15,11 @@
   "resol": 1401,
   "tdm": 1.0,
   "tag": "",
-  "show": false
+  "show": false,
+  "dataset": "nv_diamond",
+  "dpi": 300,
+  "fig_format": [
+    "png"
+  ],
+  "font_size": 9.0
 }

@@ -1,7 +1,7 @@
-$ python testing/run_1d_ccd.py --temp 5.0 --ezpl 1945.0 --order-es 50 --order-gs 60 --sigma 8.0 25.0 --gamma 0.3 --ene-range -200.0 1200.0 --resol 1401 --tdm 1.0
+$ python validation/run_1d_ccd.py --temp 5.0 --ezpl 1945.0 --order-es 50 --order-gs 60 --sigma 8.0 25.0 --gamma 0.3 --ene-range -200.0 1200.0 --resol 1401 --tdm 1.0 --dataset nv_diamond --dpi 300 --fig-format png --font-size 9.0
 
 [1/3] Constructing the 1D configurational coordinate diagram
-1D CCD constructed from doc\tutorials\002_nv_diamond_1d_ccd
+1D CCD constructed from doc\tutorials\002_nv_diamond_1d_ccd (nv_diamond)
   images (GS / ES)  : 15 / 11
   delta_q           :  0.695732 amu^0.5 Angstrom
   GS phonon         :  59.08890 meV   (HRF  3.4211)
@@ -16,4 +16,4 @@ $ python testing/run_1d_ccd.py --temp 5.0 --ezpl 1945.0 --order-es 50 --order-gs
 
 [3/3] Writing outputs
 
-Outputs in testing\outputs\suite\default\run_1d_ccd\default (see index.md)
+Outputs in validation\outputs\suite\default\run_1d_ccd\default (see index.md)

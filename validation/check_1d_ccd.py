@@ -32,6 +32,49 @@ REFERENCE = {
     "es_hrf": 3.7235,
 }
 
+# Pass criteria of every check, by name. Override any of them without editing this file:
+#   python validation/check_1d_ccd.py --tol fd_vs_ruhoff=1e-7 --tol closure_row0=1e-9
+#   python validation/check_1d_ccd.py --list-tolerances
+# or in a run_all.py config: [checks.tolerances] fd_vs_ruhoff = 1e-7
+TOLERANCES = {
+    "reference_delta_q": (1e-5, "delta_q against tutorial 002 (amu^0.5 A)"),
+    "reference_phonon": (1e-3, "phonon energies against tutorial 002 (meV)"),
+    "reference_hrf": (1e-3, "Huang-Rhys factors against tutorial 002"),
+    "closure_row0": (1e-8, "|sum_j |F_0j|^2 - 1| with 300 final levels"),
+    "closure_rows": (1e-6, "|sum_j |F_ij|^2 - 1| for i < 10"),
+    "identity": (1e-10, "|F - I| at delta_q = 0"),
+    "lineshape_integral": (0.05, "|integral of the lineshape - 1| (Lorentzian ZPL sampled on the grid)"),
+    "boltzmann_sum": (1e-12, "|sum of the Boltzmann weights - 1|"),
+    "ground_population": (1e-6, "1 - p_0 at 5 K"),
+    "hot_population": (1e-3, "minimum p_1 at 800 K"),
+    "basis_convergence": (1e-4, "max |lineshape(50x60) - lineshape(80x100)| / peak"),
+    "symmetry": (1e-9, "|F_ij - (-1)^(i+j) F_ji| at equal frequencies"),
+    "pl_abs_equal": (1e-14, "|PL - Abs lineshape| at equal frequencies"),
+    "zpl_peak": (1.0, "distance of the spectrum maximum from the ZPL (meV)"),
+    "hermite_recurrence": (1e-12, "relative |recurrence - explicit H_n formula|, n <= 20"),
+    "orthonormality": (1e-9, "|Gram matrix - I| of the harmonic functions up to n = 300"),
+    "hermite_closure": (1e-10, "|sum_j |F_0j|^2 - 1| of the Hermite route at S ~ 50"),
+    "mgo_delta_q": (1e-6, "MgO delta_q against ccd_nv_mgo.py (amu^0.5 A)"),
+    "mgo_image_q": (1e-12, "MgO position of the lowest 1A1 image (amu^0.5 A)"),
+    "mgo_energy": (5e-5, "MgO 3E minimum against ccd_nv_mgo.py (eV)"),
+    "mgo_zpl": (0.05, "MgO ZPL against ccd_nv_mgo.py (meV)"),
+    "smooth_c2": (1e-3, "slope / curvature jumps of the smooth tails (finite-difference estimate)"),
+    "levels_lineshape": (1e-14, "build_fc_lsp_from_levels vs bulid_fc_lsp, relative to the peak"),
+    "fd_orientation": (1e-7, "fd vs hermite F_ij with the wells mirrored (MgO)"),
+    "hermite_vs_ruhoff": (1e-10, "max |F_ij(hermite) - F_ij(Ruhoff)|, 20 x 20"),
+    "fd_vs_ruhoff": (1e-8, "max |F_ij(fd) - F_ij(Ruhoff)|, 20 x 20"),
+    "fd_wall": (1e-12, "|psi| at the grid walls / peak"),
+    "interpolation": (1e-12, "spline residual at the images (eV)"),
+    "phonon_identity": (1e-12, "parabola / cubic phonon_energy against the solver's omega (meV)"),
+    "xi_si": (1e-12, "relative |xi - xi(SI)|"),
+    "cubic_b0": (1e-13, "|F(cubic, b = 0) - F(hermite)|"),
+    "cubic_norms": (1e-12, "|norm - (1 + sum c^2)|"),
+    "pt_ratio_min": (3.5, "minimum error ratio when b halves (2^2 = 4 for first order)"),
+    "pt_ratio_max": (4.5, "maximum error ratio when b halves"),
+    "sign_factor": (10.0, "how much worse the wrong frame sign of b must be"),
+}
+TOL = {name: value for name, (value, _) in TOLERANCES.items()}
+
 ENE_AXIS = np.linspace(-200.0, 1200.0, 1401)
 SIGMA = [8.0, 25.0]
 GAMMA = 0.3
@@ -85,7 +128,26 @@ def make_solver(omega_i, omega_f, delta_q, ni, nf, temp=TEMP, eneaxis=ENE_AXIS):
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("-v", "--verbose", action="store_true", help="print passing checks too")
+    p.add_argument(
+        "--tol",
+        action="append",
+        default=[],
+        metavar="NAME=VALUE",
+        help="override one pass criterion (repeatable); --list-tolerances shows the names and defaults",
+    )
+    p.add_argument("--list-tolerances", action="store_true", help="print every pass criterion and exit")
     args = p.parse_args()
+    if args.list_tolerances:
+        print("%-20s %10s  %s" % ("name", "default", "meaning"))
+        for name, (value, meaning) in TOLERANCES.items():
+            print("%-20s %10g  %s" % (name, value, meaning))
+        return 0
+    for item in args.tol:
+        name, _, value = item.partition("=")
+        if name not in TOL or not value:
+            raise SystemExit("--tol %s: expected NAME=VALUE with NAME one of %s" % (item, ", ".join(TOL)))
+        TOL[name] = float(value)
+        print("pass criterion %s = %g (default %g)" % (name, TOL[name], TOLERANCES[name][0]))
     c = Checker(args.verbose)
     # The reference numbers are tutorial 002's, whatever PYPL_VALIDATION_DATASET says.
     ccd_data.use_dataset("nv_diamond")
@@ -93,11 +155,11 @@ def main():
     # -------------------------------------------------- CCD construction
     print("CCD construction (parsers + parabolic fits)")
     ccd = quiet(ccd_data.build_ccd)
-    c.close("delta_q", ccd["delta_q"], REFERENCE["delta_q"], 1e-5, " amu^0.5 A")
-    c.close("gs_phonon", ccd["gs_phonon"], REFERENCE["gs_phonon"], 1e-3, " meV")
-    c.close("es_phonon", ccd["es_phonon"], REFERENCE["es_phonon"], 1e-3, " meV")
-    c.close("gs_hrf", ccd["gs_hrf"], REFERENCE["gs_hrf"], 1e-3)
-    c.close("es_hrf", ccd["es_hrf"], REFERENCE["es_hrf"], 1e-3)
+    c.close("delta_q", ccd["delta_q"], REFERENCE["delta_q"], TOL["reference_delta_q"], " amu^0.5 A")
+    c.close("gs_phonon", ccd["gs_phonon"], REFERENCE["gs_phonon"], TOL["reference_phonon"], " meV")
+    c.close("es_phonon", ccd["es_phonon"], REFERENCE["es_phonon"], TOL["reference_phonon"], " meV")
+    c.close("gs_hrf", ccd["gs_hrf"], REFERENCE["gs_hrf"], TOL["reference_hrf"])
+    c.close("es_hrf", ccd["es_hrf"], REFERENCE["es_hrf"], TOL["reference_hrf"])
     c.check("ES frequency exceeds GS frequency", ccd["es_phonon"] > ccd["gs_phonon"])
 
     delta_q, w_gs, w_es = ccd["delta_q"], ccd["gs_phonon"], ccd["es_phonon"]
@@ -108,9 +170,11 @@ def main():
     solver.compute_franck_condon_integrals(ni=10, nf=300)
     # Completeness: each initial state must have unit total overlap with the final basis.
     row_sums = np.sum(solver.fc_ints**2, axis=1)
-    c.close("closure sum_j |F_0j|^2", row_sums[0], 1.0, 1e-8)
+    c.close("closure sum_j |F_0j|^2", row_sums[0], 1.0, TOL["closure_row0"])
     c.check(
-        "closure holds for i < 10", np.allclose(row_sums, 1.0, atol=1e-6), "max dev %.2e" % np.max(np.abs(row_sums - 1))
+        "closure holds for i < 10",
+        np.allclose(row_sums, 1.0, rtol=0, atol=TOL["closure_rows"]),
+        "max dev %.2e" % np.max(np.abs(row_sums - 1)),
     )
     c.check("all FC integrals finite", np.all(np.isfinite(solver.fc_ints)))
     # |F_00|^2 is the Debye-Waller factor; for a displaced oscillator it is well below 1.
@@ -121,7 +185,7 @@ def main():
     undisplaced.compute_franck_condon_integrals(ni=8, nf=8)
     c.check(
         "delta_q = 0 gives identity overlap",
-        np.allclose(undisplaced.fc_ints, np.eye(8), atol=1e-10),
+        np.allclose(undisplaced.fc_ints, np.eye(8), rtol=0, atol=TOL["identity"]),
         "max dev %.2e" % np.max(np.abs(undisplaced.fc_ints - np.eye(8))),
     )
 
@@ -129,21 +193,25 @@ def main():
     print("\nFC lineshape")
     pl = make_solver(w_es, w_gs, delta_q, 50, 60)
     integral = np.sum(pl.fc_lineshape) * (ENE_AXIS[1] - ENE_AXIS[0])
-    c.close("lineshape integrates to 1", integral, 1.0, 0.05)
+    c.close("lineshape integrates to 1", integral, 1.0, TOL["lineshape_integral"])
     c.check("lineshape is non-negative", np.all(pl.fc_lineshape >= 0.0), "min %.3e" % pl.fc_lineshape.min())
-    c.close("Boltzmann weights sum to 1", float(np.sum(pl.prefactors)), 1.0, 1e-12)
+    c.close("Boltzmann weights sum to 1", float(np.sum(pl.prefactors)), 1.0, TOL["boltzmann_sum"])
     c.check(
         "T = 5 K populates only the lowest level",
-        pl.prefactors[0] > 1.0 - 1e-6,
+        pl.prefactors[0] > 1.0 - TOL["ground_population"],
         "p_0 = %.8f" % pl.prefactors[0],
     )
     hot = make_solver(w_es, w_gs, delta_q, 50, 60, temp=800.0)
-    c.check("T = 800 K populates excited levels", hot.prefactors[1] > 1e-3, "p_1 = %.4e" % hot.prefactors[1])
+    c.check(
+        "T = 800 K populates excited levels",
+        hot.prefactors[1] > TOL["hot_population"],
+        "p_1 = %.4e" % hot.prefactors[1],
+    )
 
     # Convergence: raising the vibrational basis must not move the spectrum.
     converged = make_solver(w_es, w_gs, delta_q, 80, 100)
     rel = np.max(np.abs(converged.fc_lineshape - pl.fc_lineshape)) / np.max(pl.fc_lineshape)
-    c.check("order (50,60) is converged vs (80,100)", rel < 1e-4, "max rel dev %.2e" % rel)
+    c.check("order (50,60) is converged vs (80,100)", rel < TOL["basis_convergence"], "max rel dev %.2e" % rel)
 
     # Equal frequencies collapse the recurrences to a = c = 0, b = -d, so the FC matrix
     # must satisfy F_ij = (-1)^(i+j) F_ji. This catches index slips in the recursion.
@@ -151,7 +219,7 @@ def main():
     eq.compute_franck_condon_integrals(ni=30, nf=30)
     signs = np.fromfunction(lambda i, j: (-1.0) ** (i + j), eq.fc_ints.shape)
     dev = np.max(np.abs(eq.fc_ints - signs * eq.fc_ints.T))
-    c.check("equal frequencies give F_ij = (-1)^(i+j) F_ji", dev < 1e-9, "max dev %.2e" % dev)
+    c.check("equal frequencies give F_ij = (-1)^(i+j) F_ji", dev < TOL["symmetry"], "max dev %.2e" % dev)
 
     # With equal frequencies the two transition directions are the same problem, so the
     # emission and absorption lineshapes must agree point by point.
@@ -159,7 +227,7 @@ def main():
     eq_ab = make_solver(w_gs, w_gs, delta_q, 60, 60)
     c.check(
         "equal frequencies give identical PL and Abs lineshapes",
-        np.allclose(eq_pl.fc_lineshape, eq_ab.fc_lineshape, rtol=0, atol=1e-14),
+        np.allclose(eq_pl.fc_lineshape, eq_ab.fc_lineshape, rtol=0, atol=TOL["pl_abs_equal"]),
     )
 
     # -------------------------------------------------- spectra
@@ -172,8 +240,8 @@ def main():
     c.check("Abs axis runs upward from the ZPL", ab_axis[0] < ab_axis[-1] and ab_axis.min() < EZPL)
     c.check("PL is non-negative", np.all(pl_spec >= 0.0))
     c.check("Abs is non-negative", np.all(ab_spec >= 0.0))
-    c.close("PL peaks at the ZPL", pl_axis[np.argmax(pl_spec)], EZPL, 1.0, " meV")
-    c.close("Abs peaks at the ZPL", ab_axis[np.argmax(ab_spec)], EZPL, 1.0, " meV")
+    c.close("PL peaks at the ZPL", pl_axis[np.argmax(pl_spec)], EZPL, TOL["zpl_peak"], " meV")
+    c.close("Abs peaks at the ZPL", ab_axis[np.argmax(ab_spec)], EZPL, TOL["zpl_peak"], " meV")
 
     # The phonon sideband sits below the ZPL in emission and above it in absorption.
     pl_norm = ccd_data.normalize(pl_axis, pl_spec)
@@ -213,22 +281,26 @@ def check_datasets(c):
         ]
     )
     dev = np.max(np.abs(chi - explicit)) / np.max(np.abs(explicit))
-    c.check("recurrence = explicit H_n formula (n <= 20)", dev < 1e-12, "max rel dev %.1e" % dev)
+    c.check("recurrence = explicit H_n formula (n <= 20)", dev < TOL["hermite_recurrence"], "max rel dev %.1e" % dev)
     q = np.linspace(-30, 30, 200001)
     chi = sub.harmonic_wavefunctions(q, 300, 43.8)
     gram = (chi * (q[1] - q[0])) @ chi.T
     dev = np.max(np.abs(gram - np.eye(301)))
-    c.check("harmonic functions orthonormal up to n = 300", np.isfinite(dev) and dev < 1e-9, "max dev %.1e" % dev)
+    c.check(
+        "harmonic functions orthonormal up to n = 300",
+        np.isfinite(dev) and dev < TOL["orthonormality"],
+        "max dev %.1e" % dev,
+    )
     s = sub(74.07, 43.77, 3.0979)
     s.compute_franck_condon_integrals_hermite(2, 200, npts=100001)
     c.check("hermite F_ij finite with 200 levels (no 2^n n! overflow)", np.all(np.isfinite(s.fc_ints)))
-    c.close("hermite closure of row 0, S ~ 50", np.sum(s.fc_ints[0] ** 2), 1.0, 1e-10)
+    c.close("hermite closure of row 0, S ~ 50", np.sum(s.fc_ints[0] ** 2), 1.0, TOL["hermite_closure"])
 
     if not os.path.isdir(ccd_data.MGO_DATA_DIR):
         print("  (doc/tutorials/003_nv_mgo_isc not present: MgO loader checks skipped)")
         return
     mgo = quiet(ccd_data.build_ccd, dataset="nv_mgo")
-    c.close("MgO delta_q (ccd_nv_mgo.py: 3.097879)", mgo["delta_q"], 3.097879, 1e-6, " amu^0.5 A")
+    c.close("MgO delta_q (ccd_nv_mgo.py: 3.097879)", mgo["delta_q"], 3.097879, TOL["mgo_delta_q"], " amu^0.5 A")
     c.check(
         "MgO images: every one, 30 x 1A1 (no sf +2.00), 33 x 3E",
         (mgo["n_gs_images"], mgo["n_es_images"]) == (30, 33),
@@ -240,9 +312,17 @@ def check_datasets(c):
         (ccd_data.center(mgo, "es"), ccd_data.center(mgo, "gs")) == (0.0, mgo["delta_q"]),
     )
     c.check("MgO 3E lowest image at Q = 0 (q = +0.00)", q_es[np.argmin(e_es)] == 0.0)
-    c.close("MgO 1A1 lowest image at Q = delta_q (q = +1.00)", q_gs[np.argmin(e_gs)], mgo["delta_q"], 1e-12)
-    c.close("MgO 3E minimum vs 3A2 zero (ccd_nv_mgo.py: 3.1376 eV)", e_es.min(), 3.1376, 5e-5, " eV")
-    c.close("MgO ZPL from the images (ccd_nv_mgo.py: 554.4 meV)", 1e3 * (e_es.min() - e_gs.min()), 554.4, 0.05, " meV")
+    c.close(
+        "MgO 1A1 lowest image at Q = delta_q (q = +1.00)", q_gs[np.argmin(e_gs)], mgo["delta_q"], TOL["mgo_image_q"]
+    )
+    c.close("MgO 3E minimum vs 3A2 zero (ccd_nv_mgo.py: 3.1376 eV)", e_es.min(), 3.1376, TOL["mgo_energy"], " eV")
+    c.close(
+        "MgO ZPL from the images (ccd_nv_mgo.py: 554.4 meV)",
+        1e3 * (e_es.min() - e_gs.min()),
+        554.4,
+        TOL["mgo_zpl"],
+        " meV",
+    )
     c.check("dataset choice leaves STATE_NAMES on the active one", ccd_data.STATE_NAMES == {"gs": "GS", "es": "ES"})
     q_es_path, q_gs_path = mgo["es_path_q"], mgo["gs_path_q"]
     par_es, par_gs = q_es_path[mgo["es_potential"].index], q_gs_path[mgo["gs_potential"].index]
@@ -281,7 +361,7 @@ def check_datasets(c):
     ]
     c.check(
         "smooth tails are C2 at both end images",
-        smooth.params["junction"] == "C2" and max(jumps) < 1e-3,
+        smooth.params["junction"] == "C2" and max(jumps) < TOL["smooth_c2"],
         "max jump %.1e" % max(jumps),
     )
     c.check(
@@ -311,7 +391,7 @@ def check_datasets(c):
     )[1]
     c.check(
         "build_fc_lsp_from_levels(harmonic ladders) = bulid_fc_lsp",
-        np.max(np.abs(lev_ls - ref_ls)) <= 1e-14 * ref_ls.max(),
+        np.max(np.abs(lev_ls - ref_ls)) <= TOL["levels_lineshape"] * ref_ls.max(),
         "max dev %.1e" % np.max(np.abs(lev_ls - ref_ls)),
     )
 
@@ -324,7 +404,9 @@ def check_datasets(c):
         12, 12, mgo["es_potential"], mgo["gs_potential"], q_i=ccd_data.center(mgo, "es"), q_f=ccd_data.center(mgo, "gs")
     )
     dev = np.max(np.abs(fd.fc_ints - ref.fc_ints))
-    c.check("fd = hermite with the 3E well left of 1A1 (MgO orientation)", dev < 1e-7, "max dF %.1e" % dev)
+    c.check(
+        "fd = hermite with the 3E well left of 1A1 (MgO orientation)", dev < TOL["fd_orientation"], "max dF %.1e" % dev
+    )
 
 
 def check_extension(c, ccd):
@@ -355,13 +437,15 @@ def check_extension(c, ccd):
     herm = sub(w_es, w_gs, delta_q)
     herm.compute_franck_condon_integrals_hermite(ni=20, nf=20)
     dev = np.max(np.abs(herm.fc_ints - ref.fc_ints))
-    c.check("hermite F_ij matches the Ruhoff recurrences", dev < 1e-10, "max dev %.2e" % dev)
+    c.check("hermite F_ij matches the Ruhoff recurrences", dev < TOL["hermite_vs_ruhoff"], "max dev %.2e" % dev)
     fd = sub(w_es, w_gs, delta_q)
     fd.compute_franck_condon_integrals_fd(20, 20, ccd["es_potential"], ccd["gs_potential"], q_i=delta_q, q_f=0.0)
     dev = np.max(np.abs(fd.fc_ints - ref.fc_ints))
-    c.check("fd F_ij on the parabolas matches the Ruhoff recurrences", dev < 1e-8, "max dev %.2e" % dev)
+    c.check("fd F_ij on the parabolas matches the Ruhoff recurrences", dev < TOL["fd_vs_ruhoff"], "max dev %.2e" % dev)
     c.check(
-        "fd eigenstates are bound (|psi| at the walls < 1e-12)", fd.fd_info["wall"] < 1e-12, "%.1e" % fd.fd_info["wall"]
+        "fd eigenstates are bound (|psi| at the walls < %g)" % TOL["fd_wall"],
+        fd.fd_info["wall"] < TOL["fd_wall"],
+        "%.1e" % fd.fd_info["wall"],
     )
 
     print()
@@ -369,11 +453,17 @@ def check_extension(c, ccd):
     spline = fits.make_potential(ccd, "gs", "spline")
     c.check(
         "spline passes through every image",
-        np.max(np.abs(spline.residuals())) < 1e-12,
+        np.max(np.abs(spline.residuals())) < TOL["interpolation"],
         "max residual %.1e eV" % np.max(np.abs(spline.residuals())),
     )
     c.check("degree-4 polynomial is flagged unbounded", not fits.make_potential(ccd, "gs", "poly4").bounded)
-    c.close("parabola phonon_energy is the solver's omega", ccd["gs_potential"].phonon_energy(), w_gs, 1e-12, " meV")
+    c.close(
+        "parabola phonon_energy is the solver's omega",
+        ccd["gs_potential"].phonon_energy(),
+        w_gs,
+        TOL["phonon_identity"],
+        " meV",
+    )
     check_spline_options(c, ccd)
 
 
@@ -387,10 +477,10 @@ def check_spline_options(c, ccd):
     q, e = ccd_data.samples(ccd, "gs")
     x = np.linspace(q.min(), q.max(), 2001)
     dev = np.max(np.abs(fits.make_potential(ccd, "gs", "spline")(x) - CubicSpline(q, e, bc_type="natural")(x)))
-    c.check("default spline is the natural cubic spline", dev < 1e-12, "max dev %.1e eV" % dev)
+    c.check("default spline is the natural cubic spline", dev < TOL["interpolation"], "max dev %.1e eV" % dev)
     for spec in ("spline3-notaknot", "spline3-clamped", "spline4-notaknot", "spline5-natural", "spline5-clamped"):
         res = np.max(np.abs(fits.make_potential(ccd, "gs", spec).residuals()))
-        c.check("%s passes through every image" % spec, res < 1e-12, "max residual %.1e eV" % res)
+        c.check("%s passes through every image" % spec, res < TOL["interpolation"], "max residual %.1e eV" % res)
     c.check(
         "cubic clamped spline joins its tails in C1",
         fits.make_potential(ccd, "gs", "spline3-clamped").params["junction"] == "C1",
@@ -422,7 +512,7 @@ def check_cubic_correction(c, ccd):
     w_gs, w_es, delta_q = ccd["gs_phonon"], ccd["es_phonon"], ccd["delta_q"]
     gs, es = fits.make_potential(ccd, "gs", "cubic"), fits.make_potential(ccd, "es", "cubic")
     c.check("cubic fit keeps the parabola's a (omega unchanged)", gs.params["a"] == ccd["gs_params"][0])
-    c.close("cubic fit phonon_energy is the harmonic omega", gs.phonon_energy(), w_gs, 1e-12, " meV")
+    c.close("cubic fit phonon_energy is the harmonic omega", gs.phonon_energy(), w_gs, TOL["phonon_identity"], " meV")
 
     # xi against an independent SI evaluation of b / (hbar Omega) (hbar / 2 Omega)^(3/2).
     amu = constants.physical_constants["atomic mass constant"][0]
@@ -430,7 +520,7 @@ def check_cubic_correction(c, ccd):
     b_si = gs.params["b"] * constants.eV / (amu**1.5 * 1e-30)
     xi_si = b_si / (constants.hbar * omega) * (constants.hbar / (2 * omega)) ** 1.5
     xi = sub.anharmonic_strength(gs.params["b"], w_gs)
-    c.check("xi matches the SI formula", abs(xi - xi_si) <= 1e-12 * abs(xi_si), "xi = %.6e" % xi)
+    c.check("xi matches the SI formula", abs(xi - xi_si) <= TOL["xi_si"] * abs(xi_si), "xi = %.6e" % xi)
 
     def solve(scale, sign=1.0, n=12):
         s = sub(w_es, w_gs, delta_q)
@@ -451,20 +541,24 @@ def check_cubic_correction(c, ccd):
     herm = sub(w_es, w_gs, delta_q)
     herm.compute_franck_condon_integrals_hermite(12, 12)
     dev = np.max(np.abs(solve(0.0).fc_ints - herm.fc_ints))
-    c.check("b = 0 reproduces the Hermite route", dev < 1e-13, "max dev %.1e" % dev)
+    c.check("b = 0 reproduces the Hermite route", dev < TOL["cubic_b0"], "max dev %.1e" % dev)
 
     full = solve(1.0, n=40)
     predicted = (sub.cubic_correction_coefficients(40, full.cubic_xi_f) ** 2).sum(axis=1)
     dev = np.max(np.abs(full.cubic_norms_f - predicted))
-    c.check("norms equal 1 + sum of squared PT coefficients", dev < 1e-12, "max dev %.1e" % dev)
+    c.check("norms equal 1 + sum of squared PT coefficients", dev < TOL["cubic_norms"], "max dev %.1e" % dev)
     c.check("norms are 1 + O(xi^2) at n = 0", abs(full.cubic_norms_f[0] - 1) < 10 * full.cubic_xi_f**2,
             "norm - 1 = %.2e, xi^2 = %.2e" % (full.cubic_norms_f[0] - 1, full.cubic_xi_f**2))  # fmt: skip
 
     err_1 = np.max(np.abs(solve(1.0).fc_ints[:8, :8] - exact(1.0)))
     err_half = np.max(np.abs(solve(0.5).fc_ints[:8, :8] - exact(0.5)))
-    c.check("PT error vs the exact cubic falls as b^2", 3.5 < err_1 / err_half < 4.5, "ratio %.2f" % (err_1 / err_half))
+    c.check(
+        "PT error vs the exact cubic falls as b^2",
+        TOL["pt_ratio_min"] < err_1 / err_half < TOL["pt_ratio_max"],
+        "ratio %.2f" % (err_1 / err_half),
+    )
     err_flip = np.max(np.abs(solve(1.0, sign=-1.0).fc_ints[:8, :8] - exact(1.0)))
-    c.check("emission-frame sign of b is right (wrong sign is much worse)", err_flip > 10 * err_1,
+    c.check("emission-frame sign of b is right (wrong sign is much worse)", err_flip > TOL["sign_factor"] * err_1,
             "%.1e vs %.1e" % (err_flip, err_1))  # fmt: skip
 
     captured = io.StringIO()

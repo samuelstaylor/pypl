@@ -1,4 +1,4 @@
-E_minus_EZPL_meV,VOF exact (fd on the cubic),"VOF Hermite + cubic PT [cubic (a fixed, all images)]",VOF PyPL (Ruhoff)
+E_minus_EZPL_meV,VOF exact (fd on the cubic),VOF First-order cubic PT,"VOF PyPL (Ruhoff recurrences), harmonic"
 -200,6.515045166e-08,6.512927666e-08,6.743202636e-08
 -199,6.580687375e-08,6.57854854e-08,6.811143641e-08
 -198,6.647326669e-08,6.645166175e-08,6.880116649e-08

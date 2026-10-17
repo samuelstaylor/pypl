@@ -1,4 +1,4 @@
-$ python testing/plot_ccd_wavefunctions.py --wf-method fd --vof-method pypl fd --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --npts 100001 --fd-npts 20001 --fd-stencil 5 --fd-margin 2.0 --fd-fit spline --n-levels 3
+$ python validation/plot_ccd_wavefunctions.py --wf-method fd --vof-method pypl fd --dataset nv_diamond --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit spline --fd-npts 20001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --n-levels 3 --check-tol 1e-10 1e-08
 
 Finite differences on fit spline (cubic spline (natural)):
   GS well: cubic spline (degree 3, natural ends, 15 knots), harmonic tails a = 0.417627 eV/(amu A^2), C0 junction (slope jumps -1.75e-02 / 2.68e-03 eV/(amu^0.5 A)); fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 4.03e-18 eV
@@ -29,4 +29,4 @@ Franck-Condon lineshapes via bulid_fc_lsp
   absorption Finite difference [cubic spline (natural)] closure 0.9999999999  sideband peak 1.9390 eV  centroid 239.1 meV
     Finite difference [cubic spline (natural)] vs PyPL (Ruhoff): max |difference| / peak = 2.08e-02
 
-Outputs in testing\outputs\suite\default\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-spline (see index.md)
+Outputs in validation\outputs\suite\default\plot_ccd_wavefunctions\wf-fd_vof-pypl-fd_fit-spline (see index.md)

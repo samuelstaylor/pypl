@@ -1,6 +1,7 @@
 {
   "suite": {
     "name": "default",
+    "dataset": "nv_diamond",
     "jobs": 1,
     "steps": {
       "checks": true,
@@ -26,7 +27,8 @@
     ],
     "resol": 1401,
     "ezpl": 1945.0,
-    "tdm": 1.0
+    "tdm": 1.0,
+    "line_positions": "harmonic"
   },
   "methods": {
     "reference": "pypl",
@@ -36,12 +38,17 @@
     ]
   },
   "hermite": {
-    "npts": 100001
+    "npts": 100001,
+    "h": 0.0,
+    "margin": 6.0
   },
   "fd": {
     "npts": 20001,
+    "h": 0.0,
+    "range": [],
     "stencil": 5,
     "margin": 2.0,
+    "shift": "auto",
     "fits": [
       "spline",
       "spline5-clamped",
@@ -51,6 +58,11 @@
       "cubic"
     ],
     "splines": [
+      {
+        "order": 3,
+        "bc": "not-a-knot",
+        "tails": "smooth"
+      },
       {
         "order": 4,
         "bc": "not-a-knot"
@@ -63,6 +75,7 @@
   },
   "cubic": {
     "enabled": true,
+    "warn": 0.1,
     "variants": [
       {
         "points": "all",
@@ -77,12 +90,27 @@
     ]
   },
   "plots": {
-    "n_levels": 3
+    "n_levels": 3,
+    "check_tol": [
+      1e-10,
+      1e-08
+    ]
   },
   "report": {
     "convergence": true,
     "cubic": true,
-    "fits": []
+    "fits": [],
+    "options": []
+  },
+  "figures": {
+    "dpi": 300,
+    "formats": [
+      "png"
+    ],
+    "font_size": 9.0
+  },
+  "checks": {
+    "tolerances": {}
   },
   "tolerances": {
     "fc": 1e-07,
@@ -95,6 +123,7 @@
     "poly2",
     "poly6",
     "cubic",
+    "spline3-notaknot-smooth",
     "spline4-notaknot",
     "spline3-s0.05"
   ],

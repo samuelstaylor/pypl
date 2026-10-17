@@ -160,23 +160,34 @@ class OutputDir:
     def save_fig(self, fig, relpath, description=""):
         """Save a matplotlib figure at ``relpath`` (e.g. ``"05_vof_methods/vof_methods.png"``).
 
-        On a dataset other than the default, the figure is captioned with the dataset and the state roles.
+        The figure is written in every format of ``plots.FIGURE["formats"]`` (``--fig-format``) at
+        ``plots.FIGURE["dpi"]`` (``--dpi``); ``relpath``'s extension is replaced by each format, and the first one is
+        listed in index.md. On a dataset other than the default, a small caption at the top right names the dataset
+        and the state roles.
         """
 
+        from harness import plots
+
         if self.dataset.name != ccd_data.DEFAULT_DATASET:
-            names = self.dataset.state_names
+            labels = self.dataset.state_labels or self.dataset.state_names
             fig.text(
                 0.995,
-                0.002,
-                "%s (%s), %s:  'GS' = %s,  'ES' = %s"
-                % (self.dataset.title, self.dataset.name, self.dataset.transition, names["gs"], names["es"]),
+                1.0,
+                "%s: %s $\\rightarrow$ %s" % (self.dataset.title, labels["es"], labels["gs"]),
                 ha="right",
                 va="bottom",
-                fontsize=8,
-                color="0.35",
+                fontsize=plots.FIGURE["font_size"] - 2,
+                color="0.4",
             )
-        fig.savefig(self._prepare(relpath), dpi=150, bbox_inches="tight")
-        self._register(relpath, description)
+        stem = os.path.splitext(relpath)[0]
+        paths = ["%s.%s" % (stem, fmt) for fmt in plots.FIGURE["formats"]]
+        for path in paths:
+            fig.savefig(self._prepare(path), dpi=plots.FIGURE["dpi"], bbox_inches="tight", pad_inches=0.04)
+        self._register(paths[0], description)
+        for path in paths[1:]:
+            self._register(
+                path, "The same figure as %s, in %s format." % (os.path.basename(paths[0]), path.rsplit(".", 1)[1])
+            )
         if not self.keep_figures:
             import matplotlib.pyplot as plt
 

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Thorough, sectioned comparison of every route to the 1D CCD vibrational overlap function (VOF).
 
-    python validation/vof_report.py                          # everything, ~4 min
-    python validation/vof_report.py --skip-convergence       # without the grid-convergence scan, ~2.5 min
+    python validation/vof_report.py                          # everything, ~8 min
+    python validation/vof_report.py --skip-convergence       # without the grid-convergence scan
     python validation/vof_report.py --fits parabola spline morse --tag three-fits
     python validation/vof_report.py --temp 300 --tag 300K
+    python validation/vof_report.py --wf-levels 0 1 2 3 --convergence-stencils 3 5 7 --tag stencils
 
 Writes ``validation/outputs/vof_report/<tag or default>/``. Open ``index.md`` first: it lists the
 headline numbers and every file with a one-line description. The sections are:
@@ -17,11 +18,14 @@ headline numbers and every file with a one-line description. The sections are:
     04_fc_matrix        the Franck-Condon matrix of each method and its error against the reference
     05_vof_methods      VOF of every F_ij method on the harmonic wells (the like-for-like test)
     06_vof_fits         VOF of the finite-difference method on every fit, against the harmonic reference
+    07_cubic_perturbation  the first-order cubic correction against the exact solution of the same cubic
 
 The harmonic methods (``pypl``, ``hermite``) only know the parabola near each minimum, so in
 sections 03 and 06 every non-parabola difference is the anharmonicity of that fit, not an error.
 All VOF parameters (``--temp``, ``--sigma``, ``--fd-npts``, ...) are the shared flags of
 ``harness.methods`` and mean the same as in ``compare_vof.py`` and ``plot_ccd_wavefunctions.py``.
+The report's own settings (levels drawn, convergence grids and stencils, cubic fits and b scales)
+are the flags of the "report settings" group; every value used is printed and saved in settings.json.
 """
 
 import argparse
@@ -32,6 +36,7 @@ import time
 
 import matplotlib
 import numpy as np
+from matplotlib.patches import Patch
 
 from harness import ccd_data, fits, plots
 from harness.ccd_data import STATE_LABELS, STATE_NAMES, STATES
@@ -52,9 +57,23 @@ SECTIONS = {
     "07_cubic_perturbation": "The first-order cubic anharmonic correction (method cubic): the cubic fits, its "
     "validation against the exact solution of the same cubic, wavefunctions, F_ij and VOF.",
 }
-# Levels drawn individually in the grid and wavefunction figures (clipped to the basis size).
-SHOWN_LEVELS = (0, 1, 2, 5, 10, 20, 30, 40)
+# Defaults of the report settings (each one a command-line option, see parse_args).
+SHOWN_LEVELS = (0, 1, 2, 5, 10, 20, 30, 40)  # levels drawn individually (clipped to the basis; the last is added)
 CONVERGENCE_NPTS = (2001, 4001, 8001, 16001, 32001)
+CONVERGENCE_STENCILS = (3, 5)
+CUBIC_SPECS = ("cubic", "cubic-near", "cubic-free", "cubic-near-free")
+CUBIC_SCALES = (1.0, 0.5, 0.25, 0.125, 0.0625)
+
+# Short legend labels of the methods in the report's figures.
+REPORT_LABELS = {
+    "pypl": "PyPL (Ruhoff recurrences)",
+    "hermite": "Hermite quadrature",
+    "fd": "FD",
+    "cubic": "First-order cubic PT",
+}
+WIDTH = 7.2  # in, double column
+RES_FLOOR = 1e-6  # meV: rms residuals below this are a machine-precision interpolation
+MINUS = "\N{MINUS SIGN}"
 
 
 @dataclasses.dataclass
@@ -70,6 +89,11 @@ class Report:
     reference: str
     tol_fc: float
     tol_vof: float
+    shown_levels: tuple = SHOWN_LEVELS
+    convergence_npts: tuple = CONVERGENCE_NPTS
+    convergence_stencils: tuple = CONVERGENCE_STENCILS
+    cubic_specs: tuple = CUBIC_SPECS
+    cubic_scales: tuple = CUBIC_SCALES
     wells: dict = dataclasses.field(default_factory=dict)  # (state, spec) -> (q, energies, psi), from 03
     headline: list = dataclasses.field(default_factory=list)
 
@@ -85,10 +109,184 @@ class Report:
         return fd_q_range(self.ccd, self.params)
 
     def levels(self, n):
-        return sorted({v for v in SHOWN_LEVELS if v < n} | {n - 1})
+        return sorted({v for v in self.shown_levels if v < n} | {n - 1})
+
+
+# ---------------------------------------------------------------------------------- figure helpers
+
+
+def new_figure(plt, nrows, ncols, height, width=WIDTH, **kw):
+    """A constrained-layout figure of ``nrows x ncols`` panels (``axes`` always 2D)."""
+
+    return plt.subplots(nrows, ncols, figsize=(width, height), squeeze=False, constrained_layout=True, **kw)
+
+
+def unique_handles(axes):
+    """Legend handles and labels of every axis in ``axes``, each label once, in drawing order."""
+
+    handles, labels = [], []
+    for ax in np.ravel(axes):
+        for h, lab in zip(*ax.get_legend_handles_labels()):
+            if lab not in labels and not lab.startswith("_"):
+                handles.append(h)
+                labels.append(lab)
+    return handles, labels
+
+
+def shared_legend(fig, axes=None, ncol=3, handles=None, labels=None):
+    """One legend for the figure, below the panels (``plots.legend_below``)."""
+
+    if handles is None:
+        handles, labels = unique_handles(axes)
+    if handles:
+        plots.legend_below(fig, handles, labels, ncol=ncol, y=0.0, frameon=False, columnspacing=1.4)
+
+
+def symlog_if_wide(ax, values, threshold, linthresh):
+    """Use a symmetric-log y axis when ``max |values|`` exceeds ``threshold`` (linear otherwise)."""
+
+    values = np.asarray([v for v in np.ravel(values) if np.isfinite(v)])
+    if values.size and np.max(np.abs(values)) > threshold:
+        ax.set_yscale("symlog", linthresh=linthresh)
+        tight_symlog_limits(ax, [values], linthresh)
+        return True
+    return False
+
+
+def tight_symlog_limits(ax, values, linthresh):
+    """y limits of a symlog axis that cover ``values`` without an empty half."""
+
+    values = np.asarray([v for v in np.concatenate([np.ravel(v) for v in values]) if np.isfinite(v)])
+    lo, hi = float(values.min()), float(values.max())
+    bottom = 2.0 * lo if lo < -linthresh else (-linthresh if lo < -0.1 * linthresh else -0.1 * linthresh)
+    top = 2.0 * hi if hi > linthresh else (linthresh if hi > 0.1 * linthresh else 0.1 * linthresh)
+    ax.set_ylim(bottom, top)
+    symlog_ticks(ax, linthresh)
+
+
+def symlog_ticks(ax, linthresh):
+    """At most ~4 decades labelled per sign on a symlog y axis, as 0 and +-10^k (no crowded or duplicate labels)."""
+
+    lo, hi = ax.get_ylim()
+    k0 = int(np.ceil(np.log10(linthresh)))
+    k_hi = int(np.floor(np.log10(max(abs(lo), abs(hi), linthresh))))
+    step = max(1, int(np.ceil((k_hi - k0 + 1) / 4)))
+    ticks = [0.0]
+    # +-linthresh itself sits right next to 0, so label it only when there is little else to label.
+    for k in range(k_hi, k0 if k_hi > k0 + 1 else k0 - 1, -step):
+        ticks += [t for t in (10.0**k, -(10.0**k)) if lo <= t <= hi]
+    ax.yaxis.set_major_locator(matplotlib.ticker.FixedLocator(sorted(ticks)))
+    ax.yaxis.set_major_formatter(
+        matplotlib.ticker.FuncFormatter(
+            lambda t, _: "0" if t == 0 else r"$%s10^{%d}$" % (MINUS if t < 0 else "", round(np.log10(abs(t))))
+        )
+    )
+    ax.yaxis.set_minor_locator(matplotlib.ticker.NullLocator())
+
+
+def sci_tex(x, digits=2):
+    """``x`` as math text, e.g. ``-1.15\\times10^{-3}``."""
+
+    if x == 0:
+        return "0"
+    k = int(np.floor(np.log10(abs(x))))
+    return r"%.*f\times10^{%d}" % (digits, x / 10.0**k, k)
+
+
+def direction_title(direction):
+    """``Emission, ES -> GS`` with the dataset's math-text state labels (e.g. ``$^3E$ -> $^1A_1$``)."""
+
+    initial, final = direction_states(direction)
+    return r"%s, %s $\rightarrow$ %s" % (direction.capitalize(), STATE_LABELS[initial], STATE_LABELS[final])
+
+
+def log_ticks_125(axis):
+    """Ticks at 1, 2 and 5 x 10^k on a log axis spanning about a decade, labelled as math text."""
+
+    def label(x, _):
+        k = int(np.floor(np.log10(x) + 1e-9))
+        m = x / 10.0**k
+        return r"$10^{%d}$" % k if abs(m - 1) < 1e-6 else r"$%g\times10^{%d}$" % (round(m, 3), k)
+
+    axis.set_major_locator(matplotlib.ticker.LogLocator(subs=(1.0, 2.0, 5.0), numticks=12))
+    axis.set_major_formatter(matplotlib.ticker.FuncFormatter(label))
+    axis.set_minor_locator(matplotlib.ticker.NullLocator())
+
+
+def integer_maps(fig):
+    """Integer level ticks on every image panel of ``fig`` (the shared ``plots.fc_error_figure``); returns ``fig``."""
+
+    for ax in fig.axes:
+        if ax.images:
+            integer_ticks(ax, y=True)
+    return fig
+
+
+def integer_ticks(*axes, x=True, y=False):
+    """Integer tick positions (vibrational levels)."""
+
+    for ax in axes:
+        if x:
+            ax.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
+        if y:
+            ax.yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(integer=True))
+
+
+def fraction_label(s):
+    """``1``, ``1/2``, ``1/4`` ... for powers of two, otherwise ``%g``."""
+
+    if s > 0 and s < 1 and abs(np.log2(1 / s) - round(np.log2(1 / s))) < 1e-9:
+        return "1/%d" % round(1 / s)
+    return "%g" % s
+
+
+def method_label(method):
+    return REPORT_LABELS.get(method, METHODS[method].label)
+
+
+def fd_kwargs(params, npts=None, stencil=None):
+    """Grid keywords of ``compute_franck_condon_integrals_fd`` from ``params``.
+
+    ``npts`` / ``stencil`` override the parameters (convergence scan). The grid spacing, Q range and eigensolver shift
+    are passed only when the harness's VOFParams has them (``fd_h``, ``fd_range``, ``fd_shift``) and they are set.
+    """
+
+    kw = {"stencil": stencil or params.fd_stencil, "margin": params.fd_margin}
+    h = getattr(params, "fd_h", None)
+    if npts is not None or not h:
+        kw["npts"] = npts or params.fd_npts
+    else:
+        kw["h"] = h
+    q_range = getattr(params, "fd_range", None)
+    if q_range is not None:
+        kw["q_range"] = tuple(q_range)
+    shift = getattr(params, "fd_shift", None)
+    if shift is not None:
+        kw["shift"] = shift
+    return kw
+
+
+def quadrature_kwargs(params):
+    """``npts`` and, when the harness has them, ``h`` / ``margin`` of the Hermite (Simpson) quadrature grid."""
+
+    kw = {"npts": params.npts}
+    if getattr(params, "hermite_h", None):
+        kw["h"] = params.hermite_h
+    if getattr(params, "hermite_margin", None) is not None:
+        kw["margin"] = params.hermite_margin
+    return kw
 
 
 # ---------------------------------------------------------------------------------- 01
+
+
+def fit_legend_label(ccd, spec, pots):
+    """``fits.label(spec)``, noting the wells where the fit is unbounded."""
+
+    unbounded = [STATE_LABELS[s] for s in STATES if not pots[s].bounded]
+    if not unbounded:
+        return fits.label(spec)
+    return "%s (unbounded%s)" % (fits.label(spec), "" if len(unbounded) == len(STATES) else ": " + unbounded[0])
 
 
 def section_potential_fits(rep):
@@ -98,11 +296,14 @@ def section_potential_fits(rep):
     rep.out.section(name, SECTIONS[name])
     rep.out.log("\n[%s] %d fits of the computed images" % (name, len(rep.fits)))
     plt, ccd = rep.plt, rep.ccd
-    fig, axes = plt.subplots(2, 4, figsize=(23, 9.5), gridspec_kw={"width_ratios": [1, 1.25, 1, 1]})
+    pots = {spec: {s: fits.make_potential(ccd, s, spec) for s in STATES} for spec in rep.fits}
+    labels = {spec: fit_legend_label(ccd, spec, pots[spec]) for spec in rep.fits}
+    fig, axes = new_figure(plt, 4, 2, 9.4)
     rows = []
     q_lo, q_hi = rep.fd_q_range()
     q_grid = np.linspace(q_lo, q_hi, 2001)
-    for row, state in enumerate(STATES):
+    letters = iter("abcdefgh")
+    for col, state in enumerate(STATES):
         q, e = ccd_data.samples(ccd, state)
         center = ccd_data.center(ccd, state)
         harmonic = fits.make_potential(ccd, state, "parabola")
@@ -111,31 +312,24 @@ def section_potential_fits(rep):
         q_near = np.linspace(q.min() - 0.05, q.max() + 0.05, 600)
         q_far = np.linspace(center - tp - 0.3, center + tp + 0.3, 1200)
         others = np.setdiff1d(np.arange(len(q)), used)
-
-        ax_fit, ax_full, ax_res, ax_far = axes[row]
+        ax_fit, ax_full, ax_res, ax_far = axes[:, col]
         for ax in (ax_fit, ax_full):
-            ax.plot(
-                q[used],
-                e[used],
-                "o",
-                color="black",
-                ms=6,
-                zorder=5,
-                label="images used by the parabola [%s]" % fits.images(ccd, state, "parabola"),
-            )
-            ax.plot(q[others], e[others], "o", mfc="white", mec="black", ms=6, zorder=5, label="other images")
+            ax.plot(q[used], e[used], "o", color="black", ms=4, zorder=5, label="images used by the parabola")
+            ax.plot(q[others], e[others], "o", mfc="white", mec="black", ms=4, mew=0.8, zorder=5, label="other images")
         for ax in (ax_full, ax_far):
-            ax.axvspan(q.min(), q.max(), color="gold", alpha=0.18, lw=0, label="sampled range")
-        wall_values = []
+            ax.axvspan(q.min(), q.max(), color=plots.OKABE_ITO["yellow"], alpha=0.3, lw=0, label="sampled range")
+        residuals, departures = [], []
         for spec in rep.fits:
-            pot = fits.make_potential(ccd, state, spec)
-            c, ls = plots.fit_color(spec), "-" if pot.bounded else "--"
-            tag = "" if pot.bounded else " (unbounded)"
-            ax_fit.plot(q_near, pot(q_near), color=c, ls=ls, lw=1.2, label=fits.state_label(ccd, state, spec) + tag)
-            ax_full.plot(q_grid, pot(q_grid), color=c, ls=ls, lw=1.2, label=fits.state_label(ccd, state, spec) + tag)
-            ax_res.plot(q, pot.residuals() * 1e3, marker="o", ms=3.5, color=c, ls=ls, lw=0.9, label=fits.label(spec))
-            ax_far.plot(q_far, (pot(q_far) - harmonic(q_far)) * 1e3, color=c, ls=ls, lw=1.2, label=fits.label(spec))
-            wall_values.append("%-9s %10.4g %10.4g" % (spec, pot(q_lo), pot(q_hi)))
+            pot = pots[spec][state]
+            st = plots.fit_style(spec, rep.fits)
+            kw = dict(color=st["color"], ls=st["ls"], lw=1.1, alpha=1.0 if pot.bounded else 0.55, label=labels[spec])
+            ax_fit.plot(q_near, pot(q_near), **kw)
+            ax_full.plot(q_grid, pot(q_grid), **kw)
+            ax_res.plot(q, pot.residuals() * 1e3, marker="o", ms=2.5, **dict(kw, lw=0.8))
+            dv = (pot(q_far) - harmonic(q_far)) * 1e3
+            ax_far.plot(q_far, dv, **kw)
+            residuals.append(pot.residuals() * 1e3)
+            departures.append(dv)
             q_min, e_min = pot.minimum()
             rows.append(
                 {
@@ -151,98 +345,114 @@ def section_potential_fits(rep):
                     "hbar_omega_at_min_meV": pot.phonon_energy(),
                     "q_min": q_min,
                     "e_min_eV": e_min,
+                    "V_left_wall_eV": float(pot(q_lo)),
+                    "V_right_wall_eV": float(pot(q_hi)),
                     "dV_left_turning_point_meV": (pot(center - tp) - harmonic(center - tp)) * 1e3,
                     "dV_right_turning_point_meV": (pot(center + tp) - harmonic(center + tp)) * 1e3,
                     "description": pot.describe(),
                 }
             )
             rep.out.detail("  %s %-10s %s" % (STATE_NAMES[state], spec, pot.describe()))
+            rep.out.detail(
+                "  %s %-10s V at the FD walls: %.4g eV (Q = %.2f), %.4g eV (Q = %.2f)"
+                % (STATE_NAMES[state], spec, pot(q_lo), q_lo, pot(q_hi), q_hi)
+            )
 
-        # Full FD range: the parabola sets the scale; diverging fits run off it, so print V at both walls.
+        span = e.max() - e.min()
+        ax_fit.set_ylim(e.min() - 0.12 * span, e.max() + 0.15 * span)
+        ax_fit.set_xlim(q_near[0], q_near[-1])
         for wall in (q_lo, q_hi):
-            ax_full.axvline(wall, color="black", lw=2)
+            ax_full.axvline(wall, color="black", lw=1.4, label="FD grid walls")
         top = 1.15 * max(harmonic(q_lo), harmonic(q_hi))
         ax_full.set_ylim(e.min() - 0.08 * (top - e.min()), top)
         ax_full.set_xlim(q_lo - 0.25, q_hi + 0.25)
-        ax_full.text(
-            0.5,
-            0.97,
-            "V at the FD walls (eV)\n%-9s %10s %10s\n" % ("fit", "Q=%.2f" % q_lo, "Q=%.2f" % q_hi)
-            + "\n".join(wall_values),
-            transform=ax_full.transAxes,
-            ha="center",
-            va="top",
-            fontsize=6.5,
-            family="monospace",
-            bbox={"facecolor": "white", "edgecolor": "gray", "alpha": 0.9},
-        )
-        ax_full.set_title(
-            "%s: every fit over the full FD grid, Q = %.2f..%.2f (walls in black)" % (STATE_LABELS[state], q_lo, q_hi),
-            fontsize=10,
-        )
-        ax_full.set_ylabel("E (eV)")
-        for a in (ax_far,):
-            a.axvline(center - tp, color="gray", ls=":", lw=1)
-            a.axvline(center + tp, color="gray", ls=":", lw=1)
-        ax_res.axhline(0.0, color="gray", lw=0.8)
+        ax_res.axhline(0.0, color="0.5", lw=0.6)
+        symlog_if_wide(ax_res, residuals, 20.0, 1.0)
+        for side in (-1, 1):
+            ax_far.axvline(center + side * tp, color="0.4", ls=":", lw=0.9, label="turning points of the highest level")
         ax_far.set_yscale("symlog", linthresh=1.0)
-        ax_fit.set_title(
-            "%s: images (%s) and fits" % (STATE_LABELS[state], ccd_data.ENERGY_METHODS[state]), fontsize=10
-        )
-        ax_res.set_title("%s: residual at every image" % STATE_LABELS[state])
-        ax_far.set_title(
-            "%s: V_fit - V_parabola out to the v = %d turning points (dotted)"
-            % (STATE_LABELS[state], rep.order(state) - 1),
-            fontsize=10,
-        )
-        ax_fit.set_ylabel("E (eV)")
-        ax_res.set_ylabel("fit - computed (meV)")
-        ax_far.set_ylabel("V_fit - V_parabola (meV, symlog)")
-        for a in axes[row]:
-            a.set_xlabel(r"Q (amu$^{1/2}$ $\AA$)")
+        tight_symlog_limits(ax_far, departures, 1.0)
+        ax_far.yaxis.set_minor_locator(matplotlib.ticker.NullLocator())
+        ax_far.set_xlim(q_far[0], q_far[-1])
+
+        ax_fit.set_title("%s: fits near the images" % STATE_LABELS[state])
+        ax_full.set_title("%s: full FD grid" % STATE_LABELS[state])
+        ax_res.set_title("%s: residuals" % STATE_LABELS[state])
+        ax_far.set_title("%s: departure from the parabola" % STATE_LABELS[state])
+        ax_fit.set_ylabel(plots.ENERGY_LABEL)
+        ax_full.set_ylabel(plots.ENERGY_LABEL)
+        ax_res.set_ylabel("Fit %s computed (meV)" % MINUS)
+        ax_far.set_ylabel(r"$V_\mathrm{fit} - V_\mathrm{parabola}$ (meV)")
+        for a in axes[:, col]:
+            a.set_xlabel(plots.Q_LABEL)
             plots.style(a)
-        ax_fit.legend(fontsize=7, edgecolor="black")
-        ax_far.legend(fontsize=7, edgecolor="black", loc="lower center")
-    fig.suptitle("Potential fits of the 1D CCD wells", fontsize=13)
-    fig.tight_layout()
+    for a in axes.T.ravel():
+        plots.panel_label(a, next(letters))
+    shared_legend(fig, axes, ncol=3)
     rep.out.save_fig(
         fig,
         name + "/fits_overview.png",
-        "Per well: the computed images with every fit near the samples (filled points are the parabola's); every fit "
-        "over the full Q range of the finite-difference grid, with the images, the sampled range (gold), the "
-        "walls (black) and V at the walls; the residual at each image; and V_fit - V_parabola out to the turning "
-        "points of the highest level (symlog). Dashed = unbounded.",
+        "Per well (columns): (a, e) the computed images (filled = used by the parabola) with every fit near the "
+        "samples; (b, f) every fit over the full Q range of the finite-difference grid (%.2f..%.2f), with the sampled "
+        "range shaded and the grid walls in black (V at the walls is in fit_summary.csv and log.txt); (c, g) the "
+        "residual at each image (symmetric-log axis when a fit misses by more than 20 meV); (d, h) V_fit - "
+        "V_parabola out to the classical turning points of the highest level (dotted), symmetric-log axis. "
+        "Faded curves are unbounded fits; spline variants share one colour and differ by line style." % (q_lo, q_hi),
     )
 
-    fig, ax = plt.subplots(figsize=(10, 4.5))
-    width = 0.8 / len(rep.fits)
-    for k, spec in enumerate(rep.fits):
-        values = [r["rms_all_images_meV"] for r in rows if r["fit"] == spec]
-        bounded = [r["bounded"] for r in rows if r["fit"] == spec]
-        bars = ax.bar(
-            np.arange(2) + (k - (len(rep.fits) - 1) / 2) * width,
-            values,
-            width,
-            color=plots.fit_color(spec),
-            label=fits.label(spec),
+    # rms residual per fit: horizontal bars with the fit names on the axis.
+    n_fits = len(rep.fits)
+    fig, axes = new_figure(plt, 1, 2, 0.24 * n_fits + 1.3, sharey=True)
+    y = np.arange(n_fits)[::-1]
+    for ax, state in zip(axes[0], STATES):
+        for k, spec in enumerate(rep.fits):
+            r = next(r for r in rows if r["fit"] == spec and r["state"] == STATE_NAMES[state])
+            value, color = r["rms_all_images_meV"], plots.fit_style(spec, rep.fits)["color"]
+            if value < RES_FLOOR:
+                ax.plot(RES_FLOOR, y[k], marker="|", ms=8, mew=1.5, color=color)
+                ax.text(
+                    RES_FLOOR * 1.6, y[k], "exact interpolation", va="center", fontsize=plots.FIGURE["font_size"] - 2
+                )
+                continue
+            ax.barh(
+                y[k],
+                value - RES_FLOOR / 3,
+                left=RES_FLOOR / 3,
+                height=0.7,
+                color=color,
+                alpha=1.0 if r["bounded"] else 0.45,
+                hatch=None if r["bounded"] else "////",
+                edgecolor="white" if r["bounded"] else color,
+                lw=0.4,
+            )
+        ax.set_xscale("log")
+        ax.set_xlim(RES_FLOOR / 3, None)
+        ax.set_title("%s well (%d images)" % (STATE_LABELS[state], ccd["n_%s_images" % state]))
+        ax.set_xlabel("rms residual over all images (meV)")
+        plots.style(ax)
+        ax.grid(axis="y", visible=False)
+        ax.tick_params(axis="y", which="both", length=0)
+    axes[0, 0].set_yticks(y)
+    axes[0, 0].set_yticklabels([fits.label(s) for s in rep.fits])
+    if any(not r["bounded"] for r in rows):
+        shared_legend(
+            fig,
+            handles=[Patch(facecolor="0.6", alpha=0.45, hatch="////", edgecolor="0.6")],
+            labels=["unbounded in that well (no bound states)"],
+            ncol=1,
         )
-        for bar, ok in zip(bars, bounded):
-            if not ok:
-                bar.set_hatch("//")
-                bar.set_alpha(0.5)
-    ax.set_xticks(np.arange(2))
-    ax.set_xticklabels(["GS well (%d images)" % ccd["n_gs_images"], "ES well (%d images)" % ccd["n_es_images"]])
-    ax.set_yscale("log")
-    ax.set_ylabel("rms residual over all images (meV)")
-    ax.set_title("Fit quality (hatched = unbounded, unusable for the Schroedinger solve)")
-    ax.legend(fontsize=8, edgecolor="black", ncol=2)
-    plots.style(ax)
-    rep.out.save_fig(fig, name + "/fit_residual_rms.png", "rms residual over all images, per fit and well.")
+    rep.out.save_fig(
+        fig,
+        name + "/fit_residual_rms.png",
+        "rms residual over all images, per fit and well (log scale). Hatched = unbounded, so unusable for the "
+        "finite-difference solve; fits with an rms below %g meV interpolate the images to machine precision and "
+        "are marked 'exact interpolation'." % RES_FLOOR,
+    )
 
     for state in STATES:
         q, e = ccd_data.samples(ccd, state)
         columns = {"Q": q, "E_eV": e}
-        columns.update({"residual_%s_meV" % s: fits.make_potential(ccd, state, s).residuals() * 1e3 for s in rep.fits})
+        columns.update({"residual_%s_meV" % s: pots[s][state].residuals() * 1e3 for s in rep.fits})
         rep.out.save_csv(
             name + "/residuals_%s.csv" % state,
             columns,
@@ -251,9 +461,9 @@ def section_potential_fits(rep):
     rep.out.save_table(
         name + "/fit_summary.csv",
         rows,
-        "Per well and fit: images fitted, rms / max residual, hbar*omega "
-        "at the minimum, the minimum, the departure from harmonic at the outer turning points, and the "
-        "full description.",
+        "Per well and fit: images fitted, rms / max residual, hbar*omega at the minimum, the minimum, V at the two "
+        "walls of the finite-difference grid, the departure from harmonic at the outer turning points, and the full "
+        "description.",
     )
 
     columns = [
@@ -264,6 +474,8 @@ def section_potential_fits(rep):
         ("max_abs_residual_meV", "max |res| (meV)", "%.3f"),
         ("hbar_omega_at_min_meV", "hbar w at min (meV)", "%.3f"),
         ("dV_right_turning_point_meV", "dV at right turning pt (meV)", "%.3g"),
+        ("V_left_wall_eV", "V left wall (eV)", "%.4g"),
+        ("V_right_wall_eV", "V right wall (eV)", "%.4g"),
         ("bounded", "bounded", "%s"),
     ]
     for line in text_table(rows, columns):
@@ -290,9 +502,7 @@ def fd_solve(rep, direction, npts=None, stencil=None):
         fits.make_potential(rep.ccd, final),
         q_i=ccd_data.center(rep.ccd, initial),
         q_f=ccd_data.center(rep.ccd, final),
-        npts=npts or rep.params.fd_npts,
-        stencil=stencil or rep.params.fd_stencil,
-        margin=rep.params.fd_margin,
+        **fd_kwargs(rep.params, npts, stencil),
     )
     return solver, time.perf_counter() - start
 
@@ -303,8 +513,9 @@ def draw_grid_direction(rep, direction):
     plt, ccd = rep.plt, rep.ccd
     solver, seconds = fd_solve(rep, direction)
     info, q = solver.fd_info, solver.fd_q
-    fig, axes = plt.subplots(2, 3, figsize=(18, 10), gridspec_kw={"width_ratios": [2.2, 1, 1.3]})
+    fig, axes = new_figure(plt, 2, 3, 5.6, gridspec_kw={"width_ratios": [1.7, 1, 1]})
     stats = []
+    tail_colors = (plots.OKABE_ITO["blue"], plots.OKABE_ITO["orange"], plots.OKABE_ITO["vermillion"])
     for row, (role, state, energies, psi) in enumerate(
         (
             ("initial", direction_states(direction)[0], solver.fd_energies_i, solver.fd_wavefunctions_i),
@@ -319,61 +530,85 @@ def draw_grid_direction(rep, direction):
         ax_all, ax_zoom, ax_tail = axes[row]
 
         # (a) the shown levels at their eigenvalues, each scaled to the gap to the next shown level
-        ax_all.plot(q, v_grid, color=color, lw=1.4, label="%s parabola sampled on the grid" % STATE_LABELS[state])
+        ax_all.plot(q, v_grid, color=color, lw=1.3, label="parabola, %s" % STATE_LABELS[state])
         shown = rep.levels(n)
+        y_lo, y_hi = v_grid.min() - 1.0 * spacing, energies[-1] + 1.5 * spacing
+        last_label = -np.inf
+        label_x = ccd_data.center(ccd, state) + rep.turning_point(state, n - 1) + 0.4
         for k, v in enumerate(shown):
             gap = energies[shown[k + 1]] - energies[v] if k + 1 < len(shown) else energies[v] - energies[shown[k - 1]]
             amp = 0.45 * gap * psi[v] / np.max(np.abs(psi[v]))
-            ax_all.fill_between(q, energies[v], energies[v] + amp, color="dimgray", alpha=0.45, lw=0)
-            ax_all.text(q.max(), energies[v], " v=%d" % v, fontsize=7, va="center")
+            # Drawn only where the level lives (its turning points plus its decaying tails), clear of the labels.
+            near = np.abs(q - ccd_data.center(ccd, state)) < rep.turning_point(state, v) + 0.3
+            ax_all.fill_between(
+                q[near],
+                energies[v],
+                energies[v] + amp[near],
+                color="0.45",
+                alpha=0.5,
+                lw=0,
+                label=r"$\psi_v$ drawn at $E_v$",
+            )
+            # Label only levels far enough apart to stay legible (the lowest ones crowd at this scale).
+            if energies[v] - last_label > 0.06 * (y_hi - y_lo) or v == shown[-1]:
+                ax_all.text(
+                    label_x,
+                    energies[v],
+                    "$v = %d$" % v,
+                    ha="left",
+                    va="center",
+                    fontsize=plots.FIGURE["font_size"] - 2,
+                    # The padding colour (yellow at alpha 0.3 on white), so grid lines do not cross the label.
+                    bbox={"facecolor": "#FBF7C6", "edgecolor": "none", "pad": 0.6},
+                )
+                last_label = energies[v]
         tp = rep.turning_point(state, n - 1)
         center = ccd_data.center(ccd, state)
         for side in (-1, 1):
             edge = center + side * tp
             outer = q.min() if side < 0 else q.max()
-            ax_all.axvspan(min(edge, outer), max(edge, outer), color="gold", alpha=0.12, lw=0)
-        ax_all.axvline(q.min(), color="black", lw=2)
-        ax_all.axvline(q.max(), color="black", lw=2)
-        ax_all.set_ylim(v_grid.min() - 0.3 * spacing, energies[-1] + 1.5 * spacing)
-        ax_all.set_title(
-            "%s state (%s): %d levels on %d points, walls in black, padding beyond the v = %d turning "
-            "points in gold" % (role, STATE_LABELS[state], n, info["npts"], n - 1),
-            fontsize=9,
-        )
-        ax_all.set_ylabel("E (eV)")
+            ax_all.axvspan(
+                min(edge, outer),
+                max(edge, outer),
+                color=plots.OKABE_ITO["yellow"],
+                alpha=0.3,
+                lw=0,
+                label="padding beyond the turning points",
+            )
+        for a in (ax_all, ax_tail):
+            a.axvline(q.min(), color="black", lw=1.4, label="grid walls")
+            a.axvline(q.max(), color="black", lw=1.4)
+        ax_all.set_ylim(y_lo, y_hi)
+        ax_all.set_xlim(q.min() - 0.02 * np.ptp(q), q.max() + 0.02 * np.ptp(q))
+        ax_all.set_title("%s state, %s" % (role.capitalize(), STATE_LABELS[state]))
+        ax_all.set_ylabel(plots.ENERGY_LABEL)
 
         # (b) the highest level at the well centre, where its wavelength is shortest, point by point
         k_max = np.sqrt((energies[-1] - v_grid.min()) / KINETIC)
         wavelength = 2 * np.pi / k_max
         ppw = wavelength / info["h"]
         nodes = np.nonzero(np.diff(np.sign(psi[-1])))[0]
-        node = nodes[np.argmin(np.abs(q[nodes] - center))]
+        node = nodes[np.argmin(np.abs(q[nodes] - center))] if len(nodes) else int(np.argmin(np.abs(q - center)))
         window = np.abs(q - q[node]) < wavelength / 8
         ax_zoom.plot(q[window], psi[-1][window], "-", color=color, lw=0.6, alpha=0.6)
-        ax_zoom.plot(q[window], psi[-1][window], "o", color=color, ms=3.2, label="grid points")
-        ax_zoom.axhline(0.0, color="gray", lw=0.6)
-        ax_zoom.set_title(
-            "v = %d at the well centre, a quarter of its shortest wavelength\nh = %.2e: %.0f points "
-            "per wavelength (%d shown)" % (n - 1, info["h"], ppw, window.sum()),
-            fontsize=9,
-        )
-        ax_zoom.set_ylabel(r"$\psi_{%d}$ on the grid points" % (n - 1))
-        ax_zoom.legend(fontsize=7, edgecolor="black")
+        ax_zoom.plot(q[window], psi[-1][window], "o", color=color, ms=1.6, label="grid points")
+        ax_zoom.axhline(0.0, color="0.5", lw=0.6)
+        ax_zoom.set_title(r"$\psi_{%d}$ at the well centre" % (n - 1))
+        ax_zoom.set_ylabel(r"$\psi_{%d}$" % (n - 1))
+        ax_zoom.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(3))
 
         # (c) decay to the walls on a log scale
-        for v in sorted({0, n // 2, n - 1}):
-            ax_tail.semilogy(q, np.maximum(np.abs(psi[v]) / np.max(np.abs(psi[v])), 1e-20), lw=0.8, label="v = %d" % v)
-        ax_tail.axvline(q.min(), color="black", lw=2)
-        ax_tail.axvline(q.max(), color="black", lw=2)
+        for (v, tag), c in zip(((0, "0"), (n // 2, "n/2"), (n - 1, "n-1")), tail_colors):
+            ax_tail.semilogy(
+                q, np.maximum(np.abs(psi[v]) / np.max(np.abs(psi[v])), 1e-20), lw=0.8, color=c, label="$v = %s$" % tag
+            )
         ax_tail.set_ylim(1e-20, 3)
-        ax_tail.set_title(
-            "|psi| / peak, decay to the walls: %.1e at the walls\n(the ~1e-16 floor is the "
-            "eigensolver's float64 precision)" % info["wall"],
-            fontsize=9,
-        )
-        ax_tail.legend(fontsize=7, edgecolor="black")
+        ax_tail.yaxis.set_major_locator(matplotlib.ticker.LogLocator(numticks=6))
+        ax_tail.yaxis.set_minor_locator(matplotlib.ticker.NullLocator())
+        ax_tail.set_title("Decay to the walls")
+        ax_tail.set_ylabel(r"$|\psi_v|\,/\,\max|\psi_v|$")
         for a in axes[row]:
-            a.set_xlabel(r"Q (amu$^{1/2}$ $\AA$)")
+            a.set_xlabel(plots.Q_LABEL)
             plots.style(a)
         stats.append(
             {
@@ -383,33 +618,42 @@ def draw_grid_direction(rep, direction):
                 "levels": n,
                 "npts": info["npts"],
                 "h": info["h"],
+                "stencil": info["stencil"],
+                "frame": info["frame"],
                 "q_lo": q.min(),
                 "q_hi": q.max(),
                 "points_per_shortest_wavelength": ppw,
+                "zoom_points": int(window.sum()),
                 "wall_amplitude": info["wall"],
                 "orthonormality": info["orthonormality"],
                 "ladder_error_meV": info["ladder_i" if role == "initial" else "ladder_f"],
                 "seconds": seconds,
             }
         )
-    fig.suptitle(
-        "Finite-difference grid, %s (%s): %s, %s, F_ij in %.1f s"
-        % (
-            direction,
-            "ES to GS" if direction == "emission" else "GS to ES",
-            info["frame"],
-            "%d-point stencil" % info["stencil"],
-            seconds,
-        ),
-        fontsize=13,
-    )
-    fig.tight_layout()
+    for a, letter in zip(axes.ravel(), "abcdef"):
+        plots.panel_label(a, letter)
+    shared_legend(fig, axes, ncol=4)
+    fig.suptitle("FD grid, %s" % direction_title(direction))
+    s_i, s_f = stats
     rep.out.save_fig(
         fig,
         "02_fd_grid/fd_grid_%s.png" % direction,
-        "%s: both wells on the grid with levels at their "
-        "eigenvalues, the highest level point by point near its turning point, and |psi| decaying to the "
-        "walls." % direction,
+        "%s: (a, d) both wells on the shared grid (%d points, h = %.2e, %d-point stencil, frame %s) with selected "
+        "levels drawn at their eigenvalues, the padding beyond the turning points of the highest level shaded, the "
+        "walls in black; (b, e) a quarter of the shortest wavelength of the highest level at the well centre, point by "
+        "point (%.0f / %.0f points per wavelength); (c, f) |psi| / peak decaying to the walls (%.1e at the walls; "
+        "the ~1e-16 floor is the float64 precision of the eigensolver). F_ij took %.1f s."
+        % (
+            direction.capitalize(),
+            info["npts"],
+            info["h"],
+            info["stencil"],
+            info["frame"],
+            s_i["points_per_shortest_wavelength"],
+            s_f["points_per_shortest_wavelength"],
+            info["wall"],
+            seconds,
+        ),
     )
     return stats
 
@@ -437,6 +681,7 @@ def section_fd_grid(rep, convergence=True):
             ("points_per_shortest_wavelength", "pts/wavelength", "%.0f"),
             ("wall_amplitude", "|psi| at walls", "%.1e"),
             ("ladder_error_meV", "ladder err (meV)", "%.1e"),
+            ("seconds", "F_ij time (s)", "%.1f"),
         ],
     ):
         rep.out.log("  " + line)
@@ -445,74 +690,109 @@ def section_fd_grid(rep, convergence=True):
 
     # Convergence of F_ij against the Hermite quadrature (accurate to ~1e-12), emission only.
     ref = config_coord_1d_vof_solver(rep.ccd["es_phonon"], rep.ccd["gs_phonon"], rep.ccd["delta_q"])
-    ref.compute_franck_condon_integrals_hermite(*rep.params.orders("emission"), npts=rep.params.npts)
+    ref.compute_franck_condon_integrals_hermite(*rep.params.orders("emission"), **quadrature_kwargs(rep.params))
+    rep.out.log(
+        "  convergence scan (emission, parabola wells): stencils %s, grid points %s; reference Hermite quadrature, "
+        "%d points" % (list(rep.convergence_stencils), list(rep.convergence_npts), len(ref.hermite_grid))
+    )
     rows = []
-    for stencil in sorted(FD_STENCILS):
-        for npts in CONVERGENCE_NPTS:
+    for stencil in rep.convergence_stencils:
+        for npts in rep.convergence_npts:
             solver, seconds = fd_solve(rep, "emission", npts=npts, stencil=stencil)
             rows.append(
                 {
                     "stencil": stencil,
                     "npts": npts,
                     "h": solver.fd_info["h"],
+                    "q_lo": float(solver.fd_q.min()),
+                    "q_hi": float(solver.fd_q.max()),
                     "max_dF_vs_hermite": float(np.max(np.abs(solver.fc_ints - ref.fc_ints))),
                     "ladder_error_meV": max(solver.fd_info["ladder_i"], solver.fd_info["ladder_f"]),
                     "seconds": seconds,
                 }
             )
             rep.out.detail(
-                "  convergence: stencil %d, %6d points, max dF %.2e, %.1f s"
-                % (stencil, npts, rows[-1]["max_dF_vs_hermite"], seconds)
+                "  convergence: stencil %d, %6d points, max dF %.2e, ladder %.2e meV, %.1f s"
+                % (stencil, npts, rows[-1]["max_dF_vs_hermite"], rows[-1]["ladder_error_meV"], seconds)
             )
-    fig, axes = rep.plt.subplots(1, 3, figsize=(17, 5.2))
     keys = ("max_dF_vs_hermite", "ladder_error_meV", "seconds")
-    for stencil, marker in zip(sorted(FD_STENCILS), ("s", "o")):
+    for stencil in rep.convergence_stencils:
         sub = [r for r in rows if r["stencil"] == stencil]
         h = np.array([r["h"] for r in sub])
-        for ax, key in zip(axes, keys):
+        for key in keys:
             values = np.array([r[key] for r in sub])
             # The measured order is the log-log slope; skip points already at the float64 floor.
             ok = values > (1e-12 if key != "seconds" else 0)
-            slope = np.polyfit(np.log(h[ok]), np.log(values[ok]), 1)[0]
-            ax.loglog(h, values, marker=marker, label="%d-point stencil: slope %.2f" % (stencil, slope))
+            slope = float(np.polyfit(np.log(h[ok]), np.log(values[ok]), 1)[0]) if ok.sum() >= 2 else float("nan")
             for r in sub:
                 r["slope_" + key] = slope
-        order = 2 if stencil == 3 else 4
-        # The data follow the guides so closely that they would hide them, so draw each 5x higher.
-        anchor = 5 * sub[-1]["max_dF_vs_hermite"]
-        axes[0].loglog(h, anchor * (h / h[-1]) ** order, color="gray", ls=":", lw=1.0, label="h^%d guide" % order)
-    default_h = next(s["h"] for s in stats if s["direction"] == "emission")
-    h_ticks = sorted({r["h"] for r in rows}, reverse=True)
-    npts_ticks = [next(r["npts"] for r in rows if r["h"] == hv) for hv in h_ticks]
-    labels = ("max |F_ij(fd) - F_ij(hermite)|", "max |E_v - E_0 - v hbar w| (meV)", "F_ij time (s)")
-    for ax, label in zip(axes, labels):
-        ax.axvline(default_h, color="black", ls="--", lw=0.8, label="default: %d points" % rep.params.fd_npts)
+        rep.out.log(
+            "  %d-point stencil: F_ij error slope %.2f, ladder error slope %.2f (expected %d)"
+            % (stencil, sub[0]["slope_max_dF_vs_hermite"], sub[0]["slope_ladder_error_meV"], stencil - 1)
+        )
+
+    fig, axes = new_figure(plt=rep.plt, nrows=1, ncols=2, height=3.2)
+    axes = axes[0]
+    markers = ("s", "o", "^", "D", "v")
+    for n_st, stencil in enumerate(rep.convergence_stencils):
+        sub = [r for r in rows if r["stencil"] == stencil]
+        h = np.array([r["h"] for r in sub])
+        color = plots.OKABE_ITO[("blue", "vermillion", "green", "orange", "purple")[n_st % 5]]
+        for ax, key in zip(axes, keys[:2]):
+            ax.loglog(
+                h,
+                [r[key] for r in sub],
+                marker=markers[n_st % len(markers)],
+                color=color,
+                ms=4,
+                label="%d-point stencil" % stencil,
+            )
+        # Order guides, drawn 5x above the data so they do not hide it.
+        order = stencil - 1
+        anchor = 5 * sub[0]["max_dF_vs_hermite"]
+        axes[0].loglog(
+            h, anchor * (h / h[0]) ** order, color=color, ls=":", lw=0.9, alpha=0.8, label=r"$\propto h^{%d}$" % order
+        )
+    default = next(s for s in stats if s["direction"] == "emission")
+    default_h = default["h"]
+    span = rows[0]["h"] * (rows[0]["npts"] - 1)
+    for ax in axes:
+        if default_h:
+            ax.axvline(default_h, color="black", ls="--", lw=0.8, label="default grid (%d points)" % default["npts"])
         ax.invert_xaxis()
-        # A labelled tick at every measured h, and the matching grid size on a top axis.
-        ax.set_xticks(h_ticks)
-        ax.set_xticklabels(["%.1e" % hv for hv in h_ticks], rotation=30, fontsize=8)
-        ax.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
-        top = ax.secondary_xaxis("top")
-        top.set_xticks(h_ticks)
-        top.set_xticklabels([str(n) for n in npts_ticks], fontsize=8)
-        top.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
-        top.set_xlabel("grid points", fontsize=9)
-        ax.set_xlabel(r"grid spacing h (amu$^{1/2}$ $\AA$)")
-        ax.set_ylabel(label)
-        ax.legend(fontsize=8, edgecolor="black")
+        log_ticks_125(ax.xaxis)
+        top = ax.secondary_xaxis(
+            "top", functions=(lambda x: span / np.maximum(x, 1e-300), lambda n: span / np.maximum(n, 1e-300))
+        )
+        log_ticks_125(top.xaxis)
+        top.set_xlabel("Grid points")
+        top.tick_params(direction="in", which="both")
+        ax.set_xlabel(r"Grid spacing $h$ (%s)" % plots.Q_UNIT)
         plots.style(ax)
         ax.xaxis.set_ticks_position("bottom")
-    fig.suptitle(
-        "Finite-difference convergence, emission (reference: Hermite quadrature, %d points)" % len(ref.hermite_grid)
-    )
-    fig.tight_layout()
+    axes[0].set_ylabel(r"$\max\,|F_{ij}^\mathrm{FD} - F_{ij}^\mathrm{Hermite}|$")
+    axes[1].set_ylabel(r"$\max_v\,|E_v - E_0 - v\hbar\omega|$ (meV)")
+    for a, letter in zip(axes, "ab"):
+        plots.panel_label(a, letter, y=1.17)
+    shared_legend(fig, axes, ncol=4)
     rep.out.save_fig(
         fig,
         name + "/fd_convergence.png",
-        "Emission: F_ij error against the Hermite quadrature, level "
-        "ladder error and time vs grid spacing, for the 3- and 5-point stencils, with O(h^2) / O(h^4) guides.",
+        "Emission, parabola wells: (a) max |F_ij(FD) - F_ij(Hermite quadrature, %d points)| and (b) the level-ladder "
+        "error vs grid spacing, for the %s-point stencils, with O(h^n) guides (dotted). Measured log-log slopes "
+        "(F_ij): %s. The F_ij timings are in fd_convergence.csv."
+        % (
+            len(ref.hermite_grid),
+            ", ".join(str(s) for s in rep.convergence_stencils),
+            ", ".join(
+                "%d-point %.2f" % (s, next(r["slope_max_dF_vs_hermite"] for r in rows if r["stencil"] == s))
+                for s in rep.convergence_stencils
+            ),
+        ),
     )
-    rep.out.save_table(name + "/fd_convergence.csv", rows, "The convergence scan behind fd_convergence.png.")
+    rep.out.save_table(
+        name + "/fd_convergence.csv", rows, "The convergence scan behind fd_convergence.png, with timings and slopes."
+    )
 
 
 # ---------------------------------------------------------------------------------- 03
@@ -524,10 +804,46 @@ def solve_well(rep, state, spec):
     n = rep.order(state)
     center = ccd_data.center(rep.ccd, state)
     span = rep.turning_point(state, n - 1) + rep.params.fd_margin
-    q = np.linspace(center - span, center + span, rep.params.fd_npts)
+    h = getattr(rep.params, "fd_h", None)
+    npts = int(np.ceil(2 * span / h)) + 1 if h else rep.params.fd_npts
+    q = np.linspace(center - span, center + span, npts)
     pot = fits.make_potential(rep.ccd, state, spec)
-    energies, psi = config_coord_1d_vof_solver.solve_schrodinger_fd(pot(q), q, n, rep.params.fd_stencil)
+    shift = getattr(rep.params, "fd_shift", None)
+    extra = {} if shift is None else {"shift": shift}
+    energies, psi = config_coord_1d_vof_solver.solve_schrodinger_fd(pot(q), q, n, rep.params.fd_stencil, **extra)
     return q, energies, psi
+
+
+def wavefunction_rows_figure(rep, state, shown, window_of, left, right, titles, suptitle):
+    """One row per level: curves on the left, differences on the right, each row scaled by its own power of ten.
+
+    ``left(v)`` / ``right(v)`` return ``[(x, y, style dict), ...]`` for level ``v``.
+    """
+
+    plt = rep.plt
+    fig, axes = new_figure(plt, len(shown), 2, 0.95 * len(shown) + 1.0)
+    for k, v in enumerate(shown):
+        window = window_of(v)
+        for x, y, kw in left(v):
+            axes[k, 0].plot(x[window], y[window], **kw)
+        curves = right(v)
+        _, exp = plots.scaled(np.concatenate([y[window] for _, y, _ in curves]))
+        for x, y, kw in curves:
+            axes[k, 1].plot(x[window], y[window] / 10.0**exp, **kw)
+        axes[k, 1].axhline(0.0, color="0.6", lw=0.5)
+        axes[k, 0].set_ylabel("$v = %d$" % v)
+        axes[k, 1].set_ylabel(r"$\times 10^{%d}$" % exp if exp else "")
+        for a in axes[k]:
+            a.yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(3))
+            a.xaxis.set_major_locator(matplotlib.ticker.MaxNLocator(5))
+            plots.style(a)
+    axes[0, 0].set_title(titles[0])
+    axes[0, 1].set_title(titles[1])
+    for a in axes[-1]:
+        a.set_xlabel(plots.Q_LABEL)
+    shared_legend(fig, axes, ncol=3)
+    fig.suptitle(suptitle)
+    return fig
 
 
 def section_wavefunctions(rep):
@@ -545,9 +861,6 @@ def section_wavefunctions(rep):
         h = grid_spacing(q)
         n = rep.order(state)
         chi = config_coord_1d_vof_solver.harmonic_wavefunctions(q, n - 1, phonon, center)
-
-        shown = rep.levels(n)
-        fig, axes = plt.subplots(len(shown), 2, figsize=(14, 2.1 * len(shown)), squeeze=False)
         for spec in rep.bounded:
             _, energies, psi = rep.wells[(state, spec)]
             for v in range(n):
@@ -558,91 +871,71 @@ def section_wavefunctions(rep):
                         "v": v,
                         "E_v_minus_E_0_meV": (energies[v] - energies[0]) * 1e3,
                         "ladder_dev_meV": (energies[v] - energies[0]) * 1e3 - v * phonon,
+                        "max_abs_dpsi": float(np.max(np.abs(psi[v] - chi[v]))),
                         "max_abs_dpsi_rel": float(np.max(np.abs(psi[v] - chi[v])) / np.max(np.abs(chi[v]))),
                         "infidelity": float(1.0 - abs(np.sum(psi[v] * chi[v]) * h)),
                     }
                 )
-            for k, v in enumerate(shown):
-                window = np.abs(q - center) < rep.turning_point(state, v) + 0.45
-                axes[k, 0].plot(
-                    q[window], psi[v][window], color=plots.fit_color(spec), lw=1.0, label="fd, " + fits.label(spec)
-                )
-                axes[k, 1].plot(
-                    q[window],
-                    psi[v][window] - chi[v][window],
-                    color=plots.fit_color(spec),
-                    lw=0.9,
-                    label="fd, " + fits.label(spec),
-                )
-        for k, v in enumerate(shown):
-            window = np.abs(q - center) < rep.turning_point(state, v) + 0.45
-            axes[k, 0].plot(q[window], chi[v][window], color="#DB4437", lw=2.4, alpha=0.4, label="Hermite (analytic)")
-            axes[k, 0].set_ylabel(r"$\chi_{%d}$" % v)
-            axes[k, 1].set_ylabel(r"$\psi_{%d} - \chi_{%d}$" % (v, v))
-            axes[k, 1].axhline(0.0, color="gray", lw=0.6)
-            # The parabola's difference is ~1e-9 and invisible at this scale, so print every fit's maximum.
-            maxima = [
-                "%s: %.1e" % (spec, np.max(np.abs(rep.wells[(state, spec)][2][v] - chi[v]))) for spec in rep.bounded
-            ]
-            axes[k, 1].text(
-                0.01,
-                0.95,
-                "max |diff|  " + ",  ".join(maxima),
-                transform=axes[k, 1].transAxes,
-                fontsize=7,
-                va="top",
-                family="monospace",
-                bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.8},
-            )
-            for a in axes[k]:
-                plots.style(a)
-        axes[0, 0].legend(fontsize=7, edgecolor="black", ncol=2)
-        axes[0, 0].set_title("%s wavefunctions (pypl has none: its F_ij never forms them)" % STATE_LABELS[state])
-        axes[0, 1].set_title("difference from the analytic Hermite function")
-        for a in axes[-1]:
-            a.set_xlabel(r"Q (amu$^{1/2}$ $\AA$)")
-        fig.tight_layout()
+
+        def styled(spec, lw):
+            st = plots.fit_style(spec, rep.bounded)
+            return dict(color=st["color"], ls=st["ls"], lw=lw, label="FD, " + fits.label(spec))
+
+        fig = wavefunction_rows_figure(
+            rep,
+            state,
+            rep.levels(n),
+            lambda v: np.abs(q - center) < rep.turning_point(state, v) + 0.45,
+            lambda v: [(q, chi[v], dict(color="0.7", lw=2.6, label=r"Hermite (analytic), $\chi_v$"))]
+            + [(q, rep.wells[(state, s)][2][v], styled(s, 0.9)) for s in rep.bounded],
+            lambda v: [(q, rep.wells[(state, s)][2][v] - chi[v], styled(s, 0.9)) for s in rep.bounded],
+            (r"$\chi_v$ and $\psi_v$", r"$\psi_v - \chi_v$"),
+            "%s well: vibrational wavefunctions" % STATE_LABELS[state],
+        )
         rep.out.save_fig(
             fig,
             name + "/wavefunctions_%s.png" % state,
-            "%s: selected levels from the analytic Hermite "
-            "function and from finite differences on every bounded fit, and their difference." % STATE_NAMES[state],
+            "%s: selected levels v (rows) from the analytic Hermite function (grey) and from finite differences on "
+            "every bounded fit (left), and their difference psi_v - chi_v (right, each row scaled by the power of "
+            "ten on its axis). On the parabola the difference is numerical (~1e-9, invisible next to the anharmonic "
+            "fits); every per-level maximum is in wavefunction_errors.csv." % STATE_NAMES[state],
         )
 
-    fig, axes = plt.subplots(2, 2, figsize=(14, 8), sharex="col")
+    fig, axes = new_figure(plt, 2, 2, 5.0, sharex="col")
     for col, state in enumerate(STATES):
         for spec in rep.bounded:
             sub = [r for r in rows if r["fit"] == spec and r["state"] == STATE_NAMES[state]]
             v = [r["v"] for r in sub]
-            c = plots.fit_color(spec)
-            axes[0, col].semilogy(
-                v, [max(r["infidelity"], 1e-17) for r in sub], marker=".", color=c, label=fits.label(spec)
-            )
-            axes[1, col].semilogy(
-                v, [max(r["max_abs_dpsi_rel"], 1e-17) for r in sub], marker=".", color=c, label=fits.label(spec)
-            )
-        axes[0, col].set_title("%s: 1 - |<chi_v | psi_v>|" % STATE_LABELS[state])
-        axes[1, col].set_title("%s: max |psi_v - chi_v| / max |chi_v|" % STATE_LABELS[state])
-        axes[1, col].set_xlabel("vibrational level v")
+            st = plots.fit_style(spec, rep.bounded)
+            kw = dict(color=st["color"], ls=st["ls"], lw=1.0, marker=".", ms=3, label="FD, " + fits.label(spec))
+            axes[0, col].semilogy(v, [max(r["infidelity"], 1e-17) for r in sub], **kw)
+            axes[1, col].semilogy(v, [max(r["max_abs_dpsi_rel"], 1e-17) for r in sub], **kw)
+        axes[0, col].set_title("%s well" % STATE_LABELS[state])
+        axes[1, col].set_xlabel("Vibrational level $v$")
         for a in axes[:, col]:
-            a.legend(fontsize=7, edgecolor="black")
+            a.set_ylim(bottom=1e-17)
+            integer_ticks(a)
+            a.yaxis.set_major_locator(matplotlib.ticker.LogLocator(numticks=6))
+            a.yaxis.set_minor_locator(matplotlib.ticker.NullLocator())
             plots.style(a)
-    fig.suptitle(
-        "Wavefunction differences from the analytic Hermite functions (parabola = numerical error; "
-        "other fits = anharmonicity)",
-        fontsize=12,
-    )
-    fig.tight_layout()
+    axes[0, 0].set_ylabel(r"$1 - |\langle\chi_v|\psi_v\rangle|$")
+    axes[1, 0].set_ylabel(r"$\max|\psi_v - \chi_v|\,/\,\max|\chi_v|$")
+    for a, letter in zip(axes.ravel(), "abcd"):
+        plots.panel_label(a, letter)
+    shared_legend(fig, axes, ncol=2)
+    fig.suptitle("Wavefunction differences from the Hermite functions")
     rep.out.save_fig(
         fig,
         name + "/wavefunction_errors.png",
-        "Per level, well and fit: infidelity 1 - |<chi|psi>| and " "max |psi - chi| relative to the Hermite function.",
+        "Per level, well and fit: (a, b) the infidelity 1 - |<chi_v|psi_v>| and (c, d) max |psi_v - chi_v| relative to "
+        "the analytic Hermite function (floored at 1e-17). On the parabola this is the numerical error of the "
+        "finite-difference solve; on the other fits it is their anharmonicity.",
     )
     rep.out.save_table(
         name + "/wavefunction_errors.csv",
         rows,
         "Per well, fit and level: E_v - E_0, its departure "
-        "from v hbar w, max |psi - chi| / max |chi| and the infidelity.",
+        "from v hbar w, max |psi - chi| (absolute and / max |chi|) and the infidelity.",
     )
 
     summary = []
@@ -684,9 +977,11 @@ def section_methods(rep):
     comparison = {}
     for direction in DIRECTIONS:
         ref = compute_vof(rep.ccd, direction, rep.reference, params, log=rep.out.detail)
+        ref.label = method_label(ref.method)
         tested = []
         for m in tests:
             tst = compute_vof(rep.ccd, direction, m, params, log=rep.out.detail)
+            tst.label = method_label(m)
             tested.append((tst, compare_results(ref, tst, rep.tol_fc, rep.tol_vof)))
         comparison[direction] = (ref, tested)
         columns = {"E_minus_EZPL_meV": ref.axis, "VOF %s" % ref.label: ref.lineshape}
@@ -707,52 +1002,77 @@ def section_methods(rep):
             )
 
     plt = rep.plt
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.6))
-    for ax, (direction, (ref, _)) in zip(axes, comparison.items()):
+    fig, axes = new_figure(plt, 1, 2, 3.2)
+    vmin, vmax = -12.0, 0.0
+    top = max(float(np.log10(np.max(np.abs(r.solver.fc_ints)))) for r, _ in comparison.values())
+    for ax, (direction, (ref, _)) in zip(axes[0], comparison.items()):
         im = ax.imshow(
             np.log10(np.maximum(np.abs(ref.solver.fc_ints), 1e-18)),
             origin="lower",
             aspect="auto",
-            cmap="magma",
-            vmin=-12,
-            vmax=0,
+            cmap="viridis",
+            vmin=vmin,
+            vmax=vmax,
         )
-        ax.set_title("%s: log10 |F_ij| from %s" % (direction, ref.label), fontsize=10)
-        ax.set_xlabel("j (final level)")
-        ax.set_ylabel("i (initial level)")
-        fig.colorbar(im, ax=ax)
-    fig.tight_layout()
+        ax.set_title(direction_title(direction))
+        ax.set_xlabel(r"$j$ (final level)")
+        ax.set_ylabel(r"$i$ (initial level)")
+        plots.style(ax, grid=False)
+        integer_ticks(ax, y=True)
+    fig.colorbar(im, ax=axes[0].tolist(), label=r"$\log_{10}|F_{ij}|$", extend="both" if top > vmax else "min")
+    fig.suptitle("Franck%sCondon matrix, %s" % ("\N{EN DASH}", ref.label))
     rep.out.save_fig(
-        fig, "04_fc_matrix/fc_matrix.png", "The reference Franck-Condon matrix, log10 |F_ij|, per direction."
+        fig,
+        "04_fc_matrix/fc_matrix.png",
+        "The reference Franck-Condon matrix, log10 |F_ij|, per direction (clipped at 1e-12%s)."
+        % (
+            "; values above 1, impossible for an overlap, are the float64 instability of the reference"
+            if top > 0
+            else ""
+        ),
     )
     rep.out.save_fig(
-        plots.fc_error_figure(plt, comparison, "F_ij error vs %s (parabola wells)" % ref.label),
+        integer_maps(plots.fc_error_figure(plt, comparison, r"$F_{ij}$ error vs %s, parabola wells" % ref.label)),
         "04_fc_matrix/fc_error_maps.png",
-        "log10 |F_ij(method) - F_ij(reference)| per method and direction.",
+        "log10 |F_ij(method) - F_ij(reference)| per method and direction; the cross marks the maximum.",
     )
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.2))
-    for ax, (direction, (ref, tested)) in zip(axes, comparison.items()):
+    fig, axes = new_figure(plt, 1, 2, 3.0, sharey=True)
+    for ax, (direction, (ref, tested)) in zip(axes[0], comparison.items()):
         for tst, _ in tested:
             dev = np.max(np.abs(tst.solver.fc_ints - ref.solver.fc_ints), axis=1)
             ax.semilogy(
-                np.arange(len(dev)), np.maximum(dev, 1e-18), marker=".", color=plots.result_color(tst), label=tst.label
+                np.arange(len(dev)),
+                np.maximum(dev, 1e-18),
+                marker=".",
+                ms=3,
+                lw=1.0,
+                color=plots.result_color(tst),
+                ls=plots.METHOD_STYLES.get(tst.method, "-"),
+                label=tst.label,
             )
-        ax.set_title("%s: max_j |dF_ij| vs initial level i" % direction, fontsize=10)
-        ax.set_xlabel("i (initial level)")
-        ax.set_ylabel("max_j |dF_ij|")
-        ax.legend(fontsize=8, edgecolor="black")
+        ax.set_title(direction_title(direction))
+        ax.set_xlabel(r"$i$ (initial level)")
+        integer_ticks(ax)
         plots.style(ax)
-    fig.suptitle("Where the F_ij differences sit: they grow with the level (float64 drift of the reference recurrence)")
-    fig.tight_layout()
-    rep.out.save_fig(fig, "04_fc_matrix/fc_error_by_level.png", "Largest F_ij difference in each row i, per method.")
+    axes[0, 0].set_ylabel(r"$\max_j\,|\Delta F_{ij}|$")
+    for a, letter in zip(axes[0], "ab"):
+        plots.panel_label(a, letter)
+    shared_legend(fig, axes, ncol=3)
+    fig.suptitle(r"$F_{ij}$ error by initial level, vs %s" % ref.label)
+    rep.out.save_fig(
+        fig,
+        "04_fc_matrix/fc_error_by_level.png",
+        "Largest F_ij difference from the reference in each row i, per method. With the PyPL reference the "
+        "difference grows with the level: the float64 drift of its recurrence.",
+    )
 
-    title = "VOF on the harmonic wells: every method vs %s" % comparison["emission"][0].label
+    title = "VOF on the harmonic wells, reference: %s" % comparison["emission"][0].label
     rep.out.save_fig(
         plots.vof_comparison_figure(plt, comparison, params, rep.tol_vof, title),
         "05_vof_methods/vof_methods.png",
-        "Per direction: every method's VOF overlaid, signed and log error "
-        "against the reference, and every method's settings.",
+        "Per direction: every method's VOF overlaid on the reference, and the signed and absolute error relative to "
+        "the reference peak, with the tolerance (dashed). Every method's settings are in log.txt.",
     )
     rows = [stats for _, tested in comparison.values() for _, stats in tested]
     rep.out.save_table(
@@ -775,6 +1095,51 @@ def section_methods(rep):
 # ---------------------------------------------------------------------------------- 06
 
 
+def fits_vof_figure(rep, comparison, title):
+    """Like ``plots.vof_comparison_figure``, with each fit drawn in its ``plots.fit_style`` (colour and line style)."""
+
+    fig = rep.plt.figure(figsize=(WIDTH, 6.6), constrained_layout=True)
+    grid = fig.add_gridspec(3, 2, height_ratios=(2.2, 1, 1))
+    axes = []
+    for col, (ref, tested) in enumerate(comparison.values()):
+        top = fig.add_subplot(grid[0, col])
+        mid = fig.add_subplot(grid[1, col], sharex=top)
+        bottom = fig.add_subplot(grid[2, col], sharex=top)
+        axes += [top, mid, bottom]
+        peak = np.max(ref.lineshape)
+        color = plots.DIRECTION_COLORS[ref.direction]
+        top.fill_between(ref.axis, 0.0, ref.lineshape, color=color, alpha=0.18, linewidth=0)
+        top.plot(ref.axis, ref.lineshape, color=color, lw=2.4, alpha=0.55, label="reference: %s" % ref.label)
+        errors = [(tst.lineshape - ref.lineshape) / peak for tst, _ in tested]
+        _, k = plots.scaled(np.concatenate(errors))
+        for (tst, _), err in zip(tested, errors):
+            st = plots.fit_style(tst.fit, rep.bounded)
+            top.plot(tst.axis, tst.lineshape, color=st["color"], ls=st["ls"], lw=1.1, label=tst.label)
+            mid.plot(ref.axis, err / 10.0**k, color=st["color"], ls=st["ls"], lw=0.9)
+            bottom.semilogy(ref.axis, np.maximum(np.abs(err), 1e-18), color=st["color"], ls=st["ls"], lw=0.9)
+        mid.axhline(0.0, color="0.6", lw=0.6)
+        sideband = max([ref.sideband_max, 1e-30] + [t.sideband_max for t, _ in tested])
+        top.set_ylim(0.0, 1.3 * sideband)
+        if peak > top.get_ylim()[1]:
+            plots.off_scale_note(top, peak)
+        top.set_title(direction_title(ref.direction))
+        bottom.set_ylim(1e-12, None)
+        bottom.yaxis.set_major_locator(matplotlib.ticker.LogLocator(numticks=5))
+        bottom.yaxis.set_minor_locator(matplotlib.ticker.NullLocator())
+        if col == 0:
+            top.set_ylabel(plots.VOF_LABEL)
+            mid.set_ylabel(r"$\Delta$VOF / peak" + plots.times_ten(k))
+            bottom.set_ylabel(r"$|\Delta$VOF$|$ / peak")
+        bottom.set_xlabel(plots.E_ZPL_LABEL)
+        for a in (top, mid, bottom):
+            plots.style(a)
+        for a in (top, mid):
+            a.tick_params(labelbottom=False)
+    shared_legend(fig, axes, ncol=2)
+    fig.suptitle(title)
+    return fig
+
+
 def section_vof_fits(rep):
     name = "06_vof_fits"
     rep.out.section(name, SECTIONS[name])
@@ -783,9 +1148,12 @@ def section_vof_fits(rep):
     comparison, rows = {}, []
     for direction in DIRECTIONS:
         ref = compute_vof(ccd, direction, rep.reference, rep.params, log=rep.out.detail)
+        ref.label = method_label(ref.method)
         tested = []
         for spec in rep.bounded:
             tst = compute_vof(ccd, direction, "fd", dataclasses.replace(rep.params, fd_fit=spec), log=rep.out.detail)
+            tst.label = "FD, " + fits.label(spec)
+            tst.fit = spec
             stats = compare_results(ref, tst, rep.tol_fc, rep.tol_vof)
             stats["fit"] = fits.label(spec)
             tested.append((tst, stats))
@@ -797,43 +1165,43 @@ def section_vof_fits(rep):
             name + "/vof_%s.csv" % direction, columns, "%s: VOF of the reference and of fd on every fit." % direction
         )
 
-    title = "VOF of finite differences on each fit vs %s (differences = anharmonicity of the fit)" % ref.label
     rep.out.save_fig(
-        plots.vof_comparison_figure(plt, comparison, rep.params, rep.tol_vof, title, with_settings=False),
+        fits_vof_figure(rep, comparison, "VOF of FD on each fit, reference: %s" % ref.label),
         name + "/vof_fits.png",
-        "Per direction: fd on every fit overlaid on the harmonic reference, with " "signed and log differences.",
+        "Per direction: FD on every bounded fit overlaid on the harmonic reference (%s), with the signed and absolute "
+        "differences relative to the reference peak. The differences are the anharmonicity of each fit, not errors. "
+        "Spline variants share one colour and differ by line style." % ref.label,
     )
 
-    fig, axes = plt.subplots(1, 2, figsize=(13, 4.6))
-    for ax, state in zip(axes, STATES):
+    fig, axes = new_figure(plt, 1, 2, 3.2)
+    for ax, state in zip(axes[0], STATES):
         phonon = ccd["%s_phonon" % state]
+        values = []
         for spec in rep.bounded:
             energies = rep.wells[(state, spec)][1]
             v = np.arange(len(energies))
-            ax.plot(
-                v,
-                (energies - energies[0]) * 1e3 - v * phonon,
-                marker=".",
-                color=plots.fit_color(spec),
-                label=fits.label(spec),
-            )
-        ax.axhline(0.0, color="gray", lw=0.8)
+            dev = (energies - energies[0]) * 1e3 - v * phonon
+            values.append(dev)
+            st = plots.fit_style(spec, rep.bounded)
+            ax.plot(v, dev, marker=".", ms=3, lw=1.0, color=st["color"], ls=st["ls"], label="FD, " + fits.label(spec))
+        ax.axhline(0.0, color="0.5", lw=0.6)
         ax.set_yscale("symlog", linthresh=1.0)
-        ax.set_title(
-            "%s: E_v - E_0 - v hbar w (hbar w = %.3f meV), the anharmonicity of each fit"
-            % (STATE_LABELS[state], phonon),
-            fontsize=10,
-        )
-        ax.set_xlabel("vibrational level v")
-        ax.set_ylabel("meV (symlog)")
-        ax.legend(fontsize=8, edgecolor="black")
+        tight_symlog_limits(ax, values, 1.0)
+        ax.yaxis.set_minor_locator(matplotlib.ticker.NullLocator())
+        ax.set_title(r"%s well, $\hbar\omega$ = %.2f meV" % (STATE_LABELS[state], phonon))
+        ax.set_xlabel("Vibrational level $v$")
+        integer_ticks(ax)
         plots.style(ax)
-    fig.tight_layout()
+    axes[0, 0].set_ylabel(r"$E_v - E_0 - v\hbar\omega$ (meV)")
+    for a, letter in zip(axes[0], "ab"):
+        plots.panel_label(a, letter)
+    shared_legend(fig, axes, ncol=2)
     rep.out.save_fig(
         fig,
         name + "/level_ladders.png",
-        "Per well and fit: how far the FD level ladder departs from "
-        "the harmonic v hbar w. bulid_fc_lsp still uses the harmonic positions; only F_ij follows the fit.",
+        "Per well and fit: how far the FD level ladder departs from the harmonic v hbar omega (symmetric-log axis, "
+        "linear within +-1 meV). With the default line positions the VOF still places its lines on the harmonic "
+        "ladder; only F_ij follows the fit.",
     )
 
     keys = (
@@ -880,9 +1248,6 @@ def section_vof_fits(rep):
 
 # ---------------------------------------------------------------------------------- 07
 
-CUBIC_SPECS = ("cubic", "cubic-near", "cubic-free", "cubic-near-free")
-CUBIC_SCALES = (1.0, 0.5, 0.25, 0.125, 0.0625)
-
 
 def cubic_potential(ccd, state, spec, scale=1.0):
     """The cubic fit ``spec`` of ``state`` as a callable, with its b multiplied by ``scale``."""
@@ -903,7 +1268,14 @@ def cubic_solve(rep, direction, scale=1.0, orders=None):
     pt = config_coord_1d_vof_solver(ccd["%s_phonon" % initial], ccd["%s_phonon" % final], ccd["delta_q"])
     with contextlib.redirect_stdout(io.StringIO()):
         pt.compute_franck_condon_integrals_cubic(
-            ni, nf, b[initial], b[final], q_i=q_i, q_f=q_f, npts=rep.params.npts, normalize=rep.params.cubic_normalize
+            ni,
+            nf,
+            b[initial],
+            b[final],
+            q_i=q_i,
+            q_f=q_f,
+            normalize=rep.params.cubic_normalize,
+            **quadrature_kwargs(rep.params),
         )
     fd = config_coord_1d_vof_solver(ccd["%s_phonon" % initial], ccd["%s_phonon" % final], ccd["delta_q"])
     fd.compute_franck_condon_integrals_fd(
@@ -913,12 +1285,10 @@ def cubic_solve(rep, direction, scale=1.0, orders=None):
         cubic_potential(ccd, final, spec, scale),
         q_i=q_i,
         q_f=q_f,
-        npts=rep.params.fd_npts,
-        stencil=rep.params.fd_stencil,
-        margin=rep.params.fd_margin,
+        **fd_kwargs(rep.params),
     )
     harmonic = config_coord_1d_vof_solver(ccd["%s_phonon" % initial], ccd["%s_phonon" % final], ccd["delta_q"])
-    harmonic.compute_franck_condon_integrals_hermite(ni, nf, npts=rep.params.npts)
+    harmonic.compute_franck_condon_integrals_hermite(ni, nf, **quadrature_kwargs(rep.params))
     return pt, fd, harmonic
 
 
@@ -938,7 +1308,8 @@ def cubic_fit_figure(rep, name):
 
     plt, ccd = rep.plt, rep.ccd
     q_lo, q_hi = rep.fd_q_range()
-    fig, axes = plt.subplots(2, 3, figsize=(19, 9.5))
+    specs = list(rep.cubic_specs)
+    fig, axes = new_figure(plt, 2, 3, 5.4)
     rows = []
     for row, state in enumerate(STATES):
         q, e = ccd_data.samples(ccd, state)
@@ -946,28 +1317,31 @@ def cubic_fit_figure(rep, name):
         q_near, q_grid = np.linspace(q.min() - 0.05, q.max() + 0.05, 600), np.linspace(q_lo, q_hi, 2001)
         harmonic = fits.make_potential(ccd, state, "parabola")
         ax_fit, ax_full, ax_res = axes[row]
-        for ax in (ax_fit, ax_full):
-            ax.plot(q, e, "o", color="black", ms=5, zorder=5, label="images")
-            ax.plot(q_near if ax is ax_fit else q_grid, harmonic(q_near if ax is ax_fit else q_grid), color="gray",
-                    lw=2.2, alpha=0.5, label="parabola (harmonic H0) [%s]" % fits.images(ccd, state, "parabola"))  # fmt: skip
-        ax_full.axvspan(q.min(), q.max(), color="gold", alpha=0.18, lw=0, label="sampled range")
-        for spec in CUBIC_SPECS:
+        for ax, qq in ((ax_fit, q_near), (ax_full, q_grid)):
+            ax.plot(q, e, "o", color="black", ms=3.5, zorder=5, label="images (computed energies)")
+            ax.plot(qq, harmonic(qq), color="0.6", lw=2.2, alpha=0.6, label=r"parabola (harmonic $H_0$)")
+        ax_full.axvspan(q.min(), q.max(), color=plots.OKABE_ITO["yellow"], alpha=0.3, lw=0, label="sampled range")
+        residuals = []
+        for spec in specs:
             pot = fits.make_potential(ccd, state, spec)
             p = pot.params
             xi = config_coord_1d_vof_solver.anharmonic_strength(p["b"], phonon)
             mixing = 3 * abs(xi) * np.arange(1, rep.order(state) + 1) ** 1.5
-            c = plots.fit_color(spec)
-            ls = "-" if spec == rep.params.cubic_fit else "--"
-            ax_fit.plot(q_near, pot(q_near), color=c, ls=ls, lw=1.2, label=fits.state_label(ccd, state, spec))
-            ax_full.plot(q_grid, pot(q_grid), color=c, ls=ls, lw=1.2, label=fits.state_label(ccd, state, spec))
-            ax_res.plot(q, pot.residuals() * 1e3, marker="o", ms=3.5, color=c, ls=ls, lw=0.9, label=fits.label(spec))
+            st = plots.fit_style(spec, specs)
+            used = spec == rep.params.cubic_fit
+            kw = dict(color=st["color"], ls=st["ls"], lw=1.8 if used else 1.0)
+            label = fits.label(spec) + (" (used)" if used else "")
+            ax_fit.plot(q_near, pot(q_near), label=label, **kw)
+            ax_full.plot(q_grid, pot(q_grid), **kw)
+            ax_res.plot(q, pot.residuals() * 1e3, marker="o", ms=2.5, **dict(kw, lw=0.8))
+            residuals.append(pot.residuals() * 1e3)
             rows.append(
                 {
                     "state": STATE_NAMES[state],
                     "fit": spec,
                     "label": fits.label(spec),
                     "images": fits.images(ccd, state, spec),
-                    "used_by_method": spec == rep.params.cubic_fit,
+                    "used_by_method": used,
                     "a": p["a"],
                     "a_fixed": p["a_fixed"],
                     "b": p["b"],
@@ -982,28 +1356,39 @@ def cubic_fit_figure(rep, name):
             )
             rep.out.detail("  %s %-16s %s; xi = %+.3e" % (STATE_NAMES[state], spec, pot.describe(), xi))
         for wall in (q_lo, q_hi):
-            ax_full.axvline(wall, color="black", lw=2)
+            ax_full.axvline(wall, color="black", lw=1.4, label="FD grid walls")
+        span = e.max() - e.min()
+        ax_fit.set_ylim(e.min() - 0.12 * span, e.max() + 0.15 * span)
         ax_full.set_ylim(e.min() - 0.5, 1.15 * max(harmonic(q_lo), harmonic(q_hi)))
-        ax_res.axhline(0.0, color="gray", lw=0.8)
-        ax_fit.set_title("%s: cubic fits near the images (solid = used by the method)" % STATE_LABELS[state],
-                         fontsize=10)  # fmt: skip
-        ax_full.set_title("%s: over the full fd grid, Q = %.2f..%.2f (walls in black)" % (STATE_LABELS[state], q_lo, q_hi),
-                          fontsize=10)  # fmt: skip
-        ax_res.set_title("%s: residual at every image" % STATE_LABELS[state], fontsize=10)
-        ax_fit.set_ylabel("E (eV)")
-        ax_full.set_ylabel("E (eV)")
-        ax_res.set_ylabel("fit - computed (meV)")
+        ax_full.set_xlim(q_lo - 0.25, q_hi + 0.25)
+        ax_res.axhline(0.0, color="0.5", lw=0.6)
+        symlog_if_wide(ax_res, residuals, 20.0, 1.0)
+        ax_fit.set_title("%s: near the images" % STATE_LABELS[state])
+        ax_full.set_title("%s: full FD grid" % STATE_LABELS[state])
+        ax_res.set_title("%s: residuals" % STATE_LABELS[state])
+        ax_fit.set_ylabel(plots.ENERGY_LABEL)
+        ax_res.set_ylabel("Fit %s computed (meV)" % MINUS)
         for a in axes[row]:
-            a.set_xlabel(r"Q (amu$^{1/2}$ $\AA$)")
+            a.set_xlabel(plots.Q_LABEL)
             plots.style(a)
-        ax_fit.legend(fontsize=7, edgecolor="black")
-    fig.suptitle("Cubic fits V = a Q^2 + b Q^3 + c for the perturbative correction (a fixed = the parabola's H0)",
-                 fontsize=13)  # fmt: skip
-    fig.tight_layout()
-    rep.out.save_fig(fig, name + "/cubic_fits.png", "Per well: the four cubic-fit options (a fixed or fitted; all "
-                     "images or the parabola's) against the images, over the full fd grid, and their residuals.")  # fmt: skip
-    rep.out.save_table(name + "/cubic_fits.csv", rows, "Per well and cubic fit: a, b, turnover, xi, the largest "
-                       "first-order mixing 3|xi|(n+1)^1.5, the highest level where it stays <= 0.1, residuals.")  # fmt: skip
+    for a, letter in zip(axes.ravel(), "abcdef"):
+        plots.panel_label(a, letter)
+    shared_legend(fig, axes, ncol=3)
+    fig.suptitle(r"Cubic fits $V = a(Q-Q_0)^2 + b(Q-Q_0)^3 + c$")
+    rep.out.save_fig(
+        fig,
+        name + "/cubic_fits.png",
+        "Per well: the cubic-fit options (%s; a fixed to the parabola's or fitted, all images or the parabola's) "
+        "against the images (a, d), over the full FD grid with its walls (b, e), and their residuals (c, f). The fit "
+        "used by the method (%s) is drawn thicker; b, xi, turnover and mixing are in cubic_fits.csv."
+        % (", ".join(specs), rep.params.cubic_fit),
+    )
+    rep.out.save_table(
+        name + "/cubic_fits.csv",
+        rows,
+        "Per well and cubic fit: a, b, turnover, xi, the largest "
+        "first-order mixing 3|xi|(n+1)^1.5, the highest level where it stays <= 0.1, residuals.",
+    )
     return rows
 
 
@@ -1013,7 +1398,7 @@ def cubic_validation_figure(rep, name):
     plt, ccd = rep.plt, rep.ccd
     block = 8
     scan = []
-    for scale in CUBIC_SCALES:
+    for scale in rep.cubic_scales:
         small_pt, small_fd, small_h = cubic_solve(rep, "emission", scale, orders=(12, 12))
         pt, fd, harmonic = cubic_solve(rep, "emission", scale)
         ls_pt, ls_fd, ls_h = lineshape(rep, pt), lineshape(rep, fd), lineshape(rep, harmonic)
@@ -1037,70 +1422,101 @@ def cubic_validation_figure(rep, name):
     b0_dev = float(np.max(np.abs(zero_pt.fc_ints - zero_h.fc_ints)))
     full_pt, full_fd, _ = cubic_solve(rep, "emission", 1.0)
 
-    fig, axes = plt.subplots(1, 3, figsize=(19, 5.4))
+    fig, axes = new_figure(plt, 1, 3, 3.9)
+    axes = axes[0]
     s = np.array([r["b_scale"] for r in scan])
     ax = axes[0]
-    for key, label, marker in (
-        ("dF_pt_vs_exact_block", "F_ij (i, j < %d): first-order PT vs exact" % block, "o"),
-        ("dF_harmonic_vs_exact_block", "F_ij (i, j < %d): harmonic vs exact" % block, "s"),
-        ("dVOF_pt_vs_exact", "VOF / peak: first-order PT vs exact", "^"),
-        ("dVOF_harmonic_vs_exact", "VOF / peak: harmonic vs exact", "v"),
+    colors = (plots.OKABE_ITO["purple"], "0.45")
+    for key, label, marker, color, fill in (
+        ("dF_pt_vs_exact_block", r"$F_{ij}$, PT", "o", colors[0], True),
+        ("dF_harmonic_vs_exact_block", r"$F_{ij}$, harmonic", "s", colors[1], True),
+        ("dVOF_pt_vs_exact", "VOF, PT", "^", colors[0], False),
+        ("dVOF_harmonic_vs_exact", "VOF, harmonic", "v", colors[1], False),
     ):
         y = np.array([r[key] for r in scan])
-        slope = np.polyfit(np.log(s), np.log(y), 1)[0]
-        ax.loglog(s, y, marker=marker, label="%s: slope %.2f" % (label, slope))
-    ax.set_xlabel("b scale factor (1 = the fitted b)")
-    ax.set_ylabel("max |difference| (exact = fd on the same cubic)")
-    ax.set_title("b -> 0 limit: PT error ~ b^2 (slope 2), the effect itself ~ b (slope 1)\nat b = 0: max |F_PT - "
-                 "F_hermite| = %.1e" % b0_dev, fontsize=10)  # fmt: skip
-    ax.legend(fontsize=7.5, edgecolor="black")
-    plots.style(ax)
+        slope = np.polyfit(np.log(s), np.log(y), 1)[0] if len(s) > 1 else float("nan")
+        ax.loglog(
+            s,
+            y,
+            marker=marker,
+            color=color,
+            mfc=color if fill else "white",
+            ls="-" if fill else "--",
+            lw=0.9,
+            ms=4,
+            label="%s (slope %.2f)" % (label, slope),
+        )
+    ax.xaxis.set_major_locator(matplotlib.ticker.FixedLocator(s))
+    ax.xaxis.set_major_formatter(matplotlib.ticker.FixedFormatter([fraction_label(v) for v in s]))
+    ax.xaxis.set_minor_locator(matplotlib.ticker.NullLocator())
+    ax.set_xlabel(r"$b\,/\,b_\mathrm{fit}$")
+    ax.set_ylabel("max |difference from exact|")
+    ax.set_title(r"$b \rightarrow 0$ scaling")
 
     ax = axes[1]
-    for role, norms, xi, color in (
-        ("initial (ES)", full_pt.cubic_norms_i, full_pt.cubic_xi_i, plots.STATE_COLORS["es"]),
-        ("final (GS)", full_pt.cubic_norms_f, full_pt.cubic_xi_f, plots.STATE_COLORS["gs"]),
+    for role, norms, xi, state in (
+        ("initial", full_pt.cubic_norms_i, full_pt.cubic_xi_i, "es"),
+        ("final", full_pt.cubic_norms_f, full_pt.cubic_xi_f, "gs"),
     ):
+        color = plots.STATE_COLORS[state]
         n = np.arange(len(norms))
         predicted = (config_coord_1d_vof_solver.cubic_correction_coefficients(len(norms), xi) ** 2).sum(axis=1) - 1
-        ax.semilogy(n, norms - 1, "o", ms=3.5, color=color, label="%s: computed <psi~|psi~> - 1" % role)
-        ax.semilogy(n, predicted, "-", lw=0.9, color=color, label="%s: sum of squared PT coefficients" % role)
-    ax.axhline(0.1, color="gray", ls="--", lw=0.9)
-    ax.set_xlabel("vibrational level n")
-    ax.set_ylabel("norm - 1")
-    ax.set_title("Norms are 1 + O(xi^2), exactly as the coefficients predict\n(emission frame, fitted b)", fontsize=10)
-    ax.legend(fontsize=7.5, edgecolor="black")
-    plots.style(ax)
+        ax.semilogy(n, norms - 1, "o", ms=2.5, color=color, label="%s: computed" % STATE_LABELS[state])
+        ax.semilogy(n, predicted, "-", lw=0.9, color=color, label=r"%s: $\sum c^2 - 1$" % STATE_LABELS[state])
+    ax.axhline(0.1, color="0.4", ls="--", lw=0.8, label="0.1")
+    ax.set_xlabel("Vibrational level $n$")
+    integer_ticks(ax)
+    ax.set_ylabel(r"$\langle\tilde\psi_n|\tilde\psi_n\rangle - 1$")
+    ax.set_title("Norms")
 
     ax = axes[2]
     h = grid_spacing(full_fd.fd_grid)
-    for role, xi, psi_fd, color, state in (
-        ("initial (ES)", full_pt.cubic_xi_i, full_fd.fd_wavefunctions_i, plots.STATE_COLORS["es"], "es"),
-        ("final (GS)", full_pt.cubic_xi_f, full_fd.fd_wavefunctions_f, plots.STATE_COLORS["gs"], "gs"),
+    for role, xi, psi_fd, state in (
+        ("initial", full_pt.cubic_xi_i, full_fd.fd_wavefunctions_i, "es"),
+        ("final", full_pt.cubic_xi_f, full_fd.fd_wavefunctions_f, "gs"),
     ):
+        color = plots.STATE_COLORS[state]
         n_levels = len(psi_fd)
         mixing = 3 * abs(xi) * np.arange(1, n_levels + 1) ** 1.5
         x = full_fd.fd_grid
-        center = -ccd["delta_q"] if role.startswith("initial") else 0.0
+        center = -ccd["delta_q"] if role == "initial" else 0.0
         coeffs = config_coord_1d_vof_solver.cubic_correction_coefficients(n_levels, xi)
         chi = config_coord_1d_vof_solver.harmonic_wavefunctions(x, n_levels + 2, ccd["%s_phonon" % state], center)
         psi_pt = coeffs @ chi
         psi_pt /= np.sqrt((psi_pt**2).sum(axis=1) * h)[:, None]
         infidelity = 1 - np.abs((psi_pt * psi_fd).sum(axis=1) * h)
-        ax.semilogy(np.arange(n_levels), mixing, "-", color=color, lw=1.0, label="%s: 3|xi|(n+1)^1.5" % role)
-        ax.semilogy(np.arange(n_levels), np.maximum(infidelity, 1e-16), "o", ms=3, color=color,
-                    label="%s: 1 - |<psi~|psi_exact>|" % role)  # fmt: skip
-    ax.axhline(0.1, color="gray", ls="--", lw=0.9, label="0.1 (warning threshold)")
-    ax.set_xlabel("vibrational level n")
-    ax.set_title("Where first order breaks down: mixing grows as n^1.5\n(infidelity vs the exact eigenstates)",
-                 fontsize=10)  # fmt: skip
-    ax.legend(fontsize=7.5, edgecolor="black")
-    plots.style(ax)
-    fig.suptitle("Validation of the first-order cubic correction (%s)" % fits.label(rep.params.cubic_fit), fontsize=13)
-    fig.tight_layout()
-    rep.out.save_fig(fig, name + "/validation.png", "b -> 0 scaling of the PT error (b^2) and of the effect (b) "
-                     "against fd on the same cubic; norms vs the predicted 1 + sum c^2; mixing and infidelity per "
-                     "level, showing where first order breaks down.")  # fmt: skip
+        ax.semilogy(
+            np.arange(n_levels),
+            mixing,
+            "-",
+            color=color,
+            lw=1.0,
+            label=r"%s: $3|\xi|(n+1)^{3/2}$" % STATE_LABELS[state],
+        )
+        ax.semilogy(np.arange(n_levels), np.maximum(infidelity, 1e-16), "o", ms=2.5, color=color,
+                    label="%s: infidelity" % STATE_LABELS[state])  # fmt: skip
+    ax.axhline(0.1, color="0.4", ls="--", lw=0.8, label="0.1 (warning threshold)")
+    ax.set_xlabel("Vibrational level $n$")
+    integer_ticks(ax)
+    ax.set_ylabel("Mixing, infidelity")
+    ax.set_title("Breakdown of first order")
+    for a, letter in zip(axes, "abc"):
+        plots.style(a)
+        a.yaxis.set_minor_locator(matplotlib.ticker.NullLocator())
+        plots.panel_label(a, letter)
+        # Each panel has its own quantities, so its legend sits directly below it, clear of the data.
+        a.legend(loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol=1, frameon=False)
+    fig.suptitle("First-order cubic correction, %s" % fits.label(rep.params.cubic_fit))
+    rep.out.save_fig(
+        fig,
+        name + "/validation.png",
+        "Emission, against the exact solution of the same cubic (FD): (a) max |difference| of F_ij (i, j < %d, basis "
+        "12 x 12) and of the VOF / peak as b is scaled towards 0; the PT error should fall as b^2 (slope 2) and the "
+        "anharmonic effect (harmonic vs exact) as b (slope 1); at b = 0, max |F_PT - F_Hermite| = %.1e. (b) norm - 1 of "
+        "the corrected states vs the predicted sum of squared PT coefficients - 1. (c) the first-order mixing "
+        "3|xi|(n+1)^1.5 and the infidelity against the exact eigenstates per level: first order breaks down where "
+        "the mixing passes 0.1 (dashed)." % (block, b0_dev),
+    )
     rep.out.save_table(name + "/validation_b_scaling.csv", scan, "The b-scaling scan behind validation.png.")
     return scan, b0_dev, full_pt
 
@@ -1108,48 +1524,65 @@ def cubic_validation_figure(rep, name):
 def cubic_wavefunction_figures(rep, name):
     """Harmonic, first-order corrected and exact (fd on the cubic) wavefunctions, per well."""
 
-    plt, ccd = rep.plt, rep.ccd
+    ccd = rep.ccd
+    purple = plots.METHOD_COLORS["cubic"]
     for state in STATES:
         n = rep.order(state)
         phonon, center = ccd["%s_phonon" % state], ccd_data.center(ccd, state)
         q, _, psi_fd = solve_well(rep, state, rep.params.cubic_fit)
-        xi = config_coord_1d_vof_solver.anharmonic_strength(fits.make_potential(ccd, state, rep.params.cubic_fit).params["b"],
-                                                            phonon)  # fmt: skip
+        b = fits.make_potential(ccd, state, rep.params.cubic_fit).params["b"]
+        xi = config_coord_1d_vof_solver.anharmonic_strength(b, phonon)
         chi = config_coord_1d_vof_solver.harmonic_wavefunctions(q, n + 2, phonon, center)
         psi_pt = config_coord_1d_vof_solver.cubic_correction_coefficients(n, xi) @ chi
         shown = rep.levels(n)
-        fig, axes = plt.subplots(len(shown), 2, figsize=(14, 2.1 * len(shown)), squeeze=False)
-        for k, v in enumerate(shown):
-            window = np.abs(q - center) < rep.turning_point(state, v) + 0.45
-            mix = 3 * abs(xi) * (v + 1) ** 1.5
-            axes[k, 0].plot(q[window], chi[v][window], color="gray", lw=2.4, alpha=0.5, label="harmonic")
-            axes[k, 0].plot(q[window], psi_fd[v][window], color="black", lw=1.0, label="exact (fd on the cubic)")
-            axes[k, 0].plot(q[window], psi_pt[v][window], color=plots.METHOD_COLORS["cubic"], ls="--", lw=1.0,
-                            label="first-order PT")  # fmt: skip
-            axes[k, 1].plot(q[window], psi_pt[v][window] - psi_fd[v][window], color=plots.METHOD_COLORS["cubic"],
-                            lw=0.9, label="PT - exact")  # fmt: skip
-            axes[k, 1].plot(
-                q[window], chi[v][window] - psi_fd[v][window], color="gray", lw=0.9, label="harmonic - exact"
+        rows = []
+        for v in range(n):
+            rows.append(
+                {
+                    "state": STATE_NAMES[state],
+                    "v": v,
+                    "mixing": 3 * abs(xi) * (v + 1) ** 1.5,
+                    "max_abs_pt_minus_exact": float(np.max(np.abs(psi_pt[v] - psi_fd[v]))),
+                    "max_abs_harmonic_minus_exact": float(np.max(np.abs(chi[v] - psi_fd[v]))),
+                }
             )
-            axes[k, 1].axhline(0.0, color="gray", lw=0.6)
-            axes[k, 1].text(0.01, 0.95, "mixing 3|xi|(n+1)^1.5 = %.3g;  max |PT - exact| %.1e, |harmonic - exact| %.1e"
-                            % (mix, np.max(np.abs(psi_pt[v] - psi_fd[v])), np.max(np.abs(chi[v] - psi_fd[v]))),
-                            transform=axes[k, 1].transAxes, fontsize=7, va="top", family="monospace",
-                            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.8})  # fmt: skip
-            axes[k, 0].set_ylabel(r"$\psi_{%d}$" % v)
-            for a in axes[k]:
-                plots.style(a)
-        axes[0, 0].legend(fontsize=7, edgecolor="black", ncol=3)
-        axes[0, 1].legend(fontsize=7, edgecolor="black", ncol=2, loc="lower right")
-        axes[0, 0].set_title("%s wavefunctions, xi = %+.2e (%s)" % (STATE_LABELS[state], xi,
-                             fits.label(rep.params.cubic_fit)))  # fmt: skip
-        axes[0, 1].set_title("difference from the exact eigenstates of the same cubic")
-        for a in axes[-1]:
-            a.set_xlabel(r"Q (amu$^{1/2}$ $\AA$)")
-        fig.tight_layout()
-        rep.out.save_fig(fig, name + "/wavefunctions_%s.png" % state, "%s: harmonic, first-order corrected and exact "
-                         "(fd on the same cubic) wavefunctions for selected levels, and the differences from exact."
-                         % STATE_NAMES[state])  # fmt: skip
+        for r in rows:
+            if r["v"] in shown:
+                rep.out.detail(
+                    "  %s v = %2d: mixing %.3g, max |PT - exact| %.1e, max |harmonic - exact| %.1e"
+                    % (STATE_NAMES[state], r["v"], r["mixing"], r["max_abs_pt_minus_exact"],
+                       r["max_abs_harmonic_minus_exact"])
+                )  # fmt: skip
+        fig = wavefunction_rows_figure(
+            rep,
+            state,
+            shown,
+            lambda v: np.abs(q - center) < rep.turning_point(state, v) + 0.45,
+            lambda v: [
+                (q, chi[v], dict(color="0.7", lw=2.6, label="harmonic")),
+                (q, psi_fd[v], dict(color="black", lw=1.0, label="exact (FD on the cubic)")),
+                (q, psi_pt[v], dict(color=purple, ls="--", lw=1.0, label="first-order PT")),
+            ],
+            lambda v: [
+                (q, chi[v] - psi_fd[v], dict(color="0.55", lw=0.9, label="harmonic %s exact" % MINUS)),
+                (q, psi_pt[v] - psi_fd[v], dict(color=purple, lw=0.9, label="PT %s exact" % MINUS)),
+            ],
+            (r"$\psi_v$", "Difference from exact"),
+            r"%s well: cubic correction, $\xi = %s$" % (STATE_LABELS[state], sci_tex(xi)),
+        )
+        rep.out.save_fig(
+            fig,
+            name + "/wavefunctions_%s.png" % state,
+            "%s, %s: harmonic, first-order corrected and exact (FD on the same cubic) wavefunctions for selected levels "
+            "(left) and their differences from exact (right, each row scaled by the power of ten on its axis). The "
+            "mixing 3|xi|(n+1)^1.5 and the maxima per level are in cubic_wavefunctions_%s.csv."
+            % (STATE_NAMES[state], fits.label(rep.params.cubic_fit), state),
+        )
+        rep.out.save_table(
+            name + "/cubic_wavefunctions_%s.csv" % state,
+            rows,
+            "%s: per level, the first-order mixing and max |PT - exact| and |harmonic - exact|." % STATE_NAMES[state],
+        )
 
 
 def section_cubic(rep):
@@ -1158,6 +1591,10 @@ def section_cubic(rep):
     name = "07_cubic_perturbation"
     rep.out.section(name, SECTIONS[name])
     rep.out.log("\n[%s] first-order cubic correction, %s" % (name, fits.label(rep.params.cubic_fit)))
+    rep.out.log(
+        "  cubic fits drawn: %s; b scales: %s"
+        % (", ".join(rep.cubic_specs), ", ".join("%g" % s for s in rep.cubic_scales))
+    )
     fit_rows = cubic_fit_figure(rep, name)
     scan, b0_dev, _ = cubic_validation_figure(rep, name)
     cubic_wavefunction_figures(rep, name)
@@ -1166,10 +1603,11 @@ def section_cubic(rep):
     comparison, rows = {}, []
     for direction in DIRECTIONS:
         exact = compute_vof(rep.ccd, direction, "fd", exact_params, log=rep.out.detail)
-        exact.label = "exact: fd on the cubic"
+        exact.label = "Exact (FD on the cubic)"
         tested = []
         for method, params in (("cubic", rep.params), (rep.reference, rep.params)):
             tst = compute_vof(rep.ccd, direction, method, params, log=rep.out.detail)
+            tst.label = method_label(method) + (", harmonic" if method == rep.reference else "")
             stats = compare_results(exact, tst, rep.tol_fc, rep.tol_vof)
             tested.append((tst, stats))
             rows.append(stats)
@@ -1178,11 +1616,12 @@ def section_cubic(rep):
         columns.update({"VOF %s" % t.label: t.lineshape for t, _ in tested})
         rep.out.save_csv(name + "/vof_%s.csv" % direction, columns, "%s: VOF of the exact cubic solution, the "
                          "first-order correction and the harmonic reference." % direction)  # fmt: skip
-    title = "VOF on the cubic wells: first-order PT and harmonic %s vs the exact (fd) solution" % rep.reference
-    rep.out.save_fig(plots.vof_comparison_figure(rep.plt, comparison, rep.params, rep.tol_vof, title),
-                     name + "/vof_cubic.png", "Per direction: the exact VOF on the cubic wells (fd), the first-order "
-                     "correction and the harmonic reference, with signed / log differences and every setting.")  # fmt: skip
-    rep.out.save_fig(plots.fc_error_figure(rep.plt, comparison, "F_ij error vs the exact cubic solution"),
+    rep.out.save_fig(plots.vof_comparison_figure(rep.plt, comparison, rep.params, None,
+                                                 "VOF on the cubic wells, reference: exact FD"),
+                     name + "/vof_cubic.png", "Per direction: the exact VOF on the cubic wells (FD), the first-order "
+                     "correction and the harmonic reference, with signed and absolute differences relative to the "
+                     "exact peak.")  # fmt: skip
+    rep.out.save_fig(integer_maps(plots.fc_error_figure(rep.plt, comparison, r"$F_{ij}$ error vs the exact cubic solution")),
                      name + "/fc_error_maps.png", "log10 |F_ij - F_ij(exact cubic)| of the first-order correction and "
                      "of the harmonic reference.")  # fmt: skip
     rep.out.save_table(name + "/summary.csv", [{k: r[k] for k in CSV_KEYS} for r in rows], "F_ij and VOF differences "
@@ -1202,7 +1641,7 @@ def section_cubic(rep):
     slopes = {}
     s = np.log([r["b_scale"] for r in scan])
     for key in ("dF_pt_vs_exact_block", "dVOF_pt_vs_exact", "dF_harmonic_vs_exact_block"):
-        slopes[key] = float(np.polyfit(s, np.log([r[key] for r in scan]), 1)[0])
+        slopes[key] = float(np.polyfit(s, np.log([r[key] for r in scan]), 1)[0]) if len(s) > 1 else float("nan")
     rep.out.log("  b -> 0: PT error slope %.2f (F_ij, i,j<8) / %.2f (VOF), effect slope %.2f; at b = 0 |F_PT - "
                 "F_hermite| = %.1e" % (slopes["dF_pt_vs_exact_block"], slopes["dVOF_pt_vs_exact"],
                                        slopes["dF_harmonic_vs_exact_block"], b0_dev))  # fmt: skip
@@ -1221,6 +1660,35 @@ def section_cubic(rep):
 # -------------------------------------------------------------------------------- main
 
 
+def cubic_spec_arg(text):
+    """argparse type of ``--cubic-specs``: a ``cubic[-near][-free]`` fit spec."""
+
+    try:
+        kind, _ = fits.parse_spec(text)
+    except ValueError as err:
+        raise argparse.ArgumentTypeError(str(err))
+    if kind != "cubic":
+        raise argparse.ArgumentTypeError("%r is not a cubic fit (cubic[-near][-free])" % text)
+    return text
+
+
+def positive(kind):
+    def convert(text):
+        value = kind(text)
+        if value <= 0:
+            raise argparse.ArgumentTypeError("must be positive, got %s" % text)
+        return value
+
+    return convert
+
+
+def non_negative_int(text):
+    value = int(text)
+    if value < 0:
+        raise argparse.ArgumentTypeError("must be >= 0, got %s" % text)
+    return value
+
+
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument(
@@ -1233,17 +1701,70 @@ def parse_args():
     p.add_argument("--reference", choices=sorted(METHODS), default="pypl", help="reference F_ij method (default pypl)")
     p.add_argument("--skip-convergence", action="store_true", help="skip the grid-convergence scan in 02_fd_grid")
     p.add_argument("--skip-cubic", action="store_true", help="skip 07_cubic_perturbation")
+    r = p.add_argument_group("report settings")
+    r.add_argument(
+        "--wf-levels",
+        nargs="+",
+        type=non_negative_int,
+        default=list(SHOWN_LEVELS),
+        metavar="V",
+        help="levels drawn individually in 02, 03 and 07, clipped to the basis; the highest level is always added "
+        "(default: %s)" % " ".join(map(str, SHOWN_LEVELS)),
+    )
+    r.add_argument(
+        "--convergence-npts",
+        nargs="+",
+        type=positive(int),
+        default=list(CONVERGENCE_NPTS),
+        metavar="N",
+        help="grid sizes of the FD convergence scan in 02 (default: %s)" % " ".join(map(str, CONVERGENCE_NPTS)),
+    )
+    r.add_argument(
+        "--convergence-stencils",
+        nargs="+",
+        type=int,
+        choices=sorted(FD_STENCILS),
+        default=list(CONVERGENCE_STENCILS),
+        metavar="S",
+        help="FD stencils of the convergence scan, from %s (default: %s)"
+        % (", ".join(map(str, sorted(FD_STENCILS))), " ".join(map(str, CONVERGENCE_STENCILS))),
+    )
+    r.add_argument(
+        "--cubic-specs",
+        nargs="+",
+        type=cubic_spec_arg,
+        default=list(CUBIC_SPECS),
+        metavar="SPEC",
+        help="cubic fits drawn in 07 (default: %s)" % " ".join(CUBIC_SPECS),
+    )
+    r.add_argument(
+        "--cubic-scales",
+        nargs="+",
+        type=positive(float),
+        default=list(CUBIC_SCALES),
+        metavar="S",
+        help="factors on b of the b -> 0 validation scan in 07, at least two (default: %s)"
+        % " ".join("%g" % s for s in CUBIC_SCALES),
+    )
     add_vof_args(p)
+    if not any(a.dest == "dpi" for a in p._actions):
+        plots.add_figure_args(p)
     p.add_argument("--tol-fc", type=float, default=1e-7, help="max |dF_ij| for OK in 05 (default 1e-7)")
     p.add_argument("--tol-vof", type=float, default=1e-8, help="max |dVOF| / peak for OK in 05 (default 1e-8)")
     p.add_argument("--tag", default="", help="name of the run directory (default: 'default')")
     p.add_argument("-v", "--verbose", action="store_true", help="print every method's settings, not only summaries")
-    return p.parse_args()
+    args = p.parse_args()
+    if len(args.cubic_scales) < 2:
+        p.error("--cubic-scales needs at least two values (the slopes are fitted)")
+    if len(args.convergence_npts) < 2:
+        p.error("--convergence-npts needs at least two values (the slopes are fitted)")
+    return args
 
 
 def main():
     args = parse_args()
     params = params_from_args(args)
+    plots.configure(args)
     try:
         args.fits = list(dict.fromkeys(fits.canonical(spec) for spec in args.fits))
     except ValueError as err:
@@ -1251,6 +1772,15 @@ def main():
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
+    report_settings = {
+        "wf_levels": sorted(set(args.wf_levels)),
+        "convergence_npts": sorted(set(args.convergence_npts)),
+        "convergence_stencils": sorted(set(args.convergence_stencils)),
+        "cubic_specs": list(dict.fromkeys(args.cubic_specs)),
+        "cubic_scales": sorted(set(args.cubic_scales), reverse=True),
+        "skip_convergence": args.skip_convergence,
+        "skip_cubic": args.skip_cubic,
+    }
     start = time.perf_counter()
     out = OutputDir("vof_report", args.tag or "default", title="1D CCD VOF report", verbose=args.verbose)
     for name, description in SECTIONS.items():
@@ -1266,10 +1796,27 @@ def main():
             "reference": args.reference,
             "tol_fc": args.tol_fc,
             "tol_vof": args.tol_vof,
+            "report": report_settings,
+            "figures": {k: plots.FIGURE[k] for k in plots.FIGURE},
             "params": dataclasses.asdict(params),
         },
     )
-    rep = Report(ccd, params, out, plt, args.fits, bounded, args.reference, args.tol_fc, args.tol_vof)
+    rep = Report(
+        ccd,
+        params,
+        out,
+        plt,
+        args.fits,
+        bounded,
+        args.reference,
+        args.tol_fc,
+        args.tol_vof,
+        shown_levels=tuple(report_settings["wf_levels"]),
+        convergence_npts=tuple(report_settings["convergence_npts"]),
+        convergence_stencils=tuple(report_settings["convergence_stencils"]),
+        cubic_specs=tuple(report_settings["cubic_specs"]),
+        cubic_scales=tuple(report_settings["cubic_scales"]),
+    )
 
     out.log(
         "1D CCD VOF report: delta_q = %.6f amu^0.5 A, GS %.5f meV, ES %.5f meV"
@@ -1277,6 +1824,22 @@ def main():
     )
     for line in params.describe():
         out.log("  " + line)
+    out.log(
+        "  report: levels drawn %s; convergence scan %s points x %s-point stencils%s; cubic fits %s, b scales %s%s"
+        % (
+            report_settings["wf_levels"],
+            report_settings["convergence_npts"],
+            "/".join(map(str, report_settings["convergence_stencils"])),
+            " (skipped)" if args.skip_convergence else "",
+            ", ".join(report_settings["cubic_specs"]),
+            ", ".join("%g" % s for s in report_settings["cubic_scales"]),
+            " (section 07 skipped)" if args.skip_cubic else "",
+        )
+    )
+    out.log(
+        "  figures: %g pt base font, %d dpi, %s"
+        % (plots.FIGURE["font_size"], plots.FIGURE["dpi"], ", ".join(plots.FIGURE["formats"]))
+    )
     if skipped:
         out.log("  unbounded fits (01 only, no bound states for 02-06): %s" % ", ".join(skipped))
 
@@ -1308,6 +1871,15 @@ def main():
     out.add_summary(
         "CCD: delta_q = %.6f amu^0.5 A, GS hbar w = %.5f meV, ES hbar w = %.5f meV. %s."
         % (ccd["delta_q"], ccd["gs_phonon"], ccd["es_phonon"], "; ".join(params.describe())),
+        "",
+        "Report settings: levels drawn %s; convergence scan %s points, %s-point stencils; cubic fits %s; b scales %s."
+        % (
+            report_settings["wf_levels"],
+            report_settings["convergence_npts"],
+            "/".join(map(str, report_settings["convergence_stencils"])),
+            ", ".join(report_settings["cubic_specs"]),
+            ", ".join("%g" % s for s in report_settings["cubic_scales"]),
+        ),
         "",
         "**Like-for-like method test (section 05): %s.** Fits compared: %s%s."
         % (

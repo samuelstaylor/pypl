@@ -202,7 +202,10 @@ python validation/compare_vof.py --test fd --fd-fit spline     # anharmonic well
 python validation/plot_ccd_wavefunctions.py --wf-method fd --fd-fit spline --vof-method pypl fd
 ```
 
-Flags: `--fd-npts`, `--fd-stencil {3,5}`, `--fd-margin`, `--fd-fit`.
+Flags: `--fd-npts` or `--fd-h` (spacing), `--fd-range QMIN QMAX` or `--fd-margin`, `--fd-stencil {3,5,7}`,
+`--fd-shift`, `--fd-fit`, `--line-positions {harmonic,levels}`. In code: `compute_franck_condon_integrals_fd(...,
+npts=None, h=None, q_range=None, margin=2.0, stencil=5, shift=None)`; `fd_grid(...)` previews the grid, and
+`fd_info["points_per_wavelength"]` reports the resolution of the highest level (302 at the defaults).
 
 **Accuracy (parabola wells).**
 - vs `hermite`: 3.5e-9 in F_ij.

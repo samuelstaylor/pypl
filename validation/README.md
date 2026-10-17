@@ -78,8 +78,12 @@ python validation/run_all.py --set physics.temp=300 --name 300K               # 
 python validation/run_all.py --dry-run              # list the commands without running them
 ```
 
-Shared flags: `--dataset --temp --sigma --gamma --no-zpl --order-es --order-gs --ene-range --resol --npts --fd-npts
---fd-stencil --fd-margin --fd-fit`, the spline options (`--spline-order --spline-bc --spline-smoothing
+Every setting is a flag or a `run_all.toml` key (table in `doc/validation.rst`, *Configuration*). Shared flags:
+`--dataset --temp --sigma --gamma --no-zpl --order-es --order-gs --ene-range --resol --line-positions`, the
+quadrature grid (`--npts` or `--hermite-h`, `--hermite-margin`), the finite-difference grid (`--fd-npts` or `--fd-h`,
+`--fd-range QMIN QMAX` or `--fd-margin`, `--fd-stencil {3,5,7}`, `--fd-shift`), `--fd-fit`, figures (`--dpi`,
+`--fig-format png pdf svg`, `--font-size`), pass criteria (`--tol-fc`, `--tol-vof`; `check_1d_ccd.py --tol NAME=VALUE`,
+`--list-tolerances`; `plot_ccd_wavefunctions.py --check-tol`), the spline options (`--spline-order --spline-bc --spline-smoothing
 --spline-tails`) and the cubic options (`--cubic-points --cubic-free-a --cubic-normalize`); `--tag` names the run and
 `-v` prints every setting. Fit specs: `parabola`, `polyN`, `morse`, `cubic[-near][-free]`,
 `spline[K][-natural|-notaknot|-clamped|-sRMS][-smooth]`; the recommended anharmonic fit is

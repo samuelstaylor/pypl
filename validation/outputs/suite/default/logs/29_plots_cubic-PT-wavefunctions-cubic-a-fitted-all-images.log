@@ -1,4 +1,4 @@
-$ python testing/plot_ccd_wavefunctions.py --wf-method cubic --vof-method pypl cubic --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --npts 100001 --fd-npts 20001 --fd-stencil 5 --fd-margin 2.0 --fd-fit parabola --cubic-points all --cubic-free-a --n-levels 3
+$ python validation/plot_ccd_wavefunctions.py --wf-method cubic --vof-method pypl cubic --dataset nv_diamond --temp 5.0 --sigma 8.0 25.0 --gamma 0.3 --order-es 50 --order-gs 60 --ene-range -200.0 1200.0 --resol 1401 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit parabola --fd-npts 20001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --cubic-points all --cubic-free-a --n-levels 3 --check-tol 1e-10 1e-08
 
   GS well: cubic a (Q - 0.000000)^2 + b (Q - 0.000000)^3 + c, a = 0.420755 eV/(amu A^2) (fitted), b = +0.005322 eV/(amu^1.5 A^3), c = -0.000085 eV, turnover at Q = -52.70; fitted to samples 1-15 of 15 (Q = -0.139..0.835); rms residual 1.09e-04 eV; unbounded beyond the turnover at Q = -52.70 (perturbative or in-box use only); xi = +5.992e-04
   ES well: cubic a (Q - 0.695732)^2 + b (Q - 0.695732)^3 + c, a = 0.492512 eV/(amu A^2) (fitted), b = -0.016648 eV/(amu^1.5 A^3), c = 1.705864 eV, turnover at Q = 20.42; fitted to samples 1-11 of 11 (Q = 0.139..0.835); rms residual 1.59e-04 eV; unbounded beyond the turnover at Q = 20.42 (perturbative or in-box use only); xi = -1.517e-03
@@ -27,4 +27,4 @@ Franck-Condon lineshapes via bulid_fc_lsp
   absorption Hermite + cubic PT [cubic (a fitted, all images)] closure 1.0009525270  sideband peak 1.9390 eV  centroid 244.8 meV
     Hermite + cubic PT [cubic (a fitted, all images)] vs PyPL (Ruhoff): max |difference| / peak = 3.28e-02
 
-Outputs in testing\outputs\suite\default\plot_ccd_wavefunctions\wf-cubic_vof-pypl-cubic_cubicfit-cubic-free (see index.md)
+Outputs in validation\outputs\suite\default\plot_ccd_wavefunctions\wf-cubic_vof-pypl-cubic_cubicfit-cubic-free (see index.md)
