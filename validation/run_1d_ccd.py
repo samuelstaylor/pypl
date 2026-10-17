@@ -7,7 +7,7 @@ Reproduces doc/tutorials/pypl_002.ipynb as a plain script with PyPL's own, unmod
     data/ccd_summary.csv      delta_q, frequencies, Huang-Rhys factors and the run parameters
     data/pl_spectrum.csv      PL spectrum (normalized)
     data/abs_spectrum.csv     absorption spectrum (normalized)
-    figures/ccd_diagram.png   the DFT images with their parabola fits
+    figures/ccd_diagram.png   the computed images with their parabola fits
     figures/spectra.png       PL and absorption
 
     python validation/run_1d_ccd.py                       # defaults = tutorial 002
@@ -73,7 +73,7 @@ def draw_ccd(plt, ccd):
     for state, color, marker in (("es", BLUE, "s"), ("gs", RED, "o")):
         name = ccd_data.STATE_NAMES[state]
         q, e = ccd_data.samples(ccd, state)
-        ax.plot(q, e, color=color, ls="", marker=marker, ms=5, label="%s energy" % name)
+        ax.plot(q, e, color=color, ls="", marker=marker, ms=5, label=ccd_data.energy_label(state))
         ax.plot(q, ccd["%s_fit_energies" % state], color=color, ls="--", lw=1.0, label="%s fit" % name)
         ax.text(
             0.46,
@@ -153,7 +153,11 @@ def main():
     out.save_table("data/ccd_summary.csv", summary, "delta_q (amu^0.5 A), frequencies (meV), HRFs, run parameters.")
     out.save_csv("data/pl_spectrum.csv", {"energy_meV": pl[0], "PL_normalized_per_meV": pl_norm}, "PL spectrum.")
     out.save_csv("data/abs_spectrum.csv", {"energy_meV": ab[0], "Abs_normalized_per_meV": ab_norm}, "Absorption.")
-    out.save_fig(draw_ccd(plt, ccd), "figures/ccd_diagram.png", "DFT images, parabola fits, frequencies, HRFs.")
+    out.save_fig(
+        draw_ccd(plt, ccd),
+        "figures/ccd_diagram.png",
+        "Computed images (%s), parabola fits, frequencies, HRFs." % "; ".join(ccd_data.ENERGY_METHODS.values()),
+    )
     out.save_fig(draw_spectra(plt, pl, pl_norm, ab, ab_norm, args.temp), "figures/spectra.png", "PL and absorption.")
     out.add_summary("PL peak at %.2f meV, absorption peak at %.2f meV." % (pl_peak, ab_peak))
     out.close()

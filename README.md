@@ -40,7 +40,7 @@ pytest -m "not slow"            # skip the slowest end-to-end test
 python validation/check_1d_ccd.py   # the 1D CCD regression checks of the validation suite
 ```
 
-`tests/test_legacy_tutorials.py` guarantees that the original API is unchanged: it reruns the computations of tutorials 001 and 002 and compares every array with a reference generated from the original code (branch `pypl-original`), and checks the numbers printed in the notebooks. `validation/` holds the method-comparison suite for the 1D CCD (`validation/README.md`, `validation/METHODS.md`).
+`tests/test_legacy_tutorials.py` guarantees that the original API is unchanged: it reruns the computations of tutorials 001 and 002 and compares every array with a reference generated from the original code (branch `pypl-original`), and checks the numbers printed in the notebooks. `validation/` holds the method-comparison suite for the 1D CCD (`validation/README.md`, `validation/METHODS.md`). Everything that is tested, with references and tolerances, is documented in `doc/validation.rst`, and every formula and derivation in `doc/supporting_information.rst` (the *Validation and testing* and *Supporting information* pages of the documentation).
 
 Formatting is checked with `black --check --line-length 120 pypl tests validation`.
 

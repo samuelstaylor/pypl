@@ -7,6 +7,7 @@ Features:
 
    - Calculation of vibrationally resolved photoluminescence and absorption spectra using Huang-Rhys theory and the generating function approach.
    - Calculation of vibrationally resolved optical spectra using the one-dimensional configurational coordinate diagram (1D CCD) approach.
+   - Anharmonic 1D CCD: fits of the potential energy surfaces, finite-difference vibrational states, a perturbative cubic correction, and intersystem crossing rates.
 
 --------
 
@@ -17,6 +18,8 @@ Features:
    installation
    tutorial
    documentation
+   validation
+   supporting_information
    credits
 
 .. glossary::
@@ -29,6 +32,13 @@ Features:
 
    :ref:`documentation`
       Detailed documentation of the **PyPL** package.
+
+   :ref:`validation`
+      What is tested, against which references and tolerances, and how to run the test suite and the validation
+      suite.
+
+   :ref:`supporting_information`
+      Formulas and derivations of every method: Franck-Condon routes, fits, lineshapes, perturbation theory, ISC rates.
 
    :ref:`credits`
       Instructions on how to cite and acknowledge this software in publications.

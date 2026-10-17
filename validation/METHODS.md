@@ -1,12 +1,16 @@
 # VOF methods: a tutorial overview
 
-This file explains every way the test harness can compute the **vibrational overlap function (VOF)** of the
+This file explains every way the validation suite can compute the **vibrational overlap function (VOF)** of the
 1D configuration-coordinate (1D CCD) model: what each method does, the physics behind it, how to run it, how
 to read its output, how accurate it is, and when to use it. Numbers are for the NV⁻ center in diamond
 (tutorial 002) at the default settings, unless noted.
 
 > **Keep this file current.** Whenever a method or fit is added or changed, update the matching section here
 > (and the comparison table at the end).
+
+The complete list of tests, references and tolerances is in `doc/validation.rst`; every formula and derivation is in
+`doc/supporting_information.rst`. The data points of a PES are called *computed energies* or *images*, never "DFT
+energies": their method differs between states and datasets (DFT, ΔSCF, TDDFT, ...; `doc/validation.rst`, Terminology).
 
 Contents:
 
@@ -99,7 +103,7 @@ python validation/compare_vof.py                       # quick PASS/FAIL: pypl v
 python validation/compare_vof.py --test cubic          # any method(s) against the reference
 python validation/plot_ccd_wavefunctions.py --wf-method fd --vof-method pypl hermite fd
 python validation/vof_report.py                        # everything, in seven sections (~8 min)
-python validation/check_1d_ccd.py                      # 59 regression checks (~5 s)
+python validation/check_1d_ccd.py                      # 81 regression and physics checks (~15 s)
 ```
 
 Each run writes `validation/outputs/<script>/<run>/`. Start with its `index.md`; every method's full settings
@@ -119,7 +123,7 @@ from F_00, every other entry is built by recursion. No wavefunction is ever form
 | --- | --- | --- |
 | ħω_GS | 59.089 meV | parabola fitted to GS images 1–5 of 15 (Q = −0.139 … 0.139) |
 | ħω_ES | 64.312 meV | parabola fitted to ES images 5–11 of 11 (Q = 0.417 … 0.835) |
-| ΔQ | 0.6957 amu^½ Å | GS and ES DFT geometries |
+| ΔQ | 0.6957 amu^½ Å | GS (DFT) and ES (ΔSCF) relaxed geometries |
 
 **Accuracy.** Exact for harmonic wells, apart from float64 rounding: the forward recursion accumulates an
 error of up to 1.7e-8 at the highest indices, (49, 48) of a 50 × 60 basis. Below i, j < 30 the error is about
@@ -215,7 +219,7 @@ Flags: `--fd-npts`, `--fd-stencil {3,5}`, `--fd-margin`, `--fd-fit`.
 
 ## 5. Potential fits for `fd`
 
-The DFT images only sample Q = −0.14 … 0.83, but the FD grid, and the high vibrational levels, extend to
+The computed images only sample Q = −0.14 … 0.83, but the FD grid, and the high vibrational levels, extend to
 about ±5. **Every fit is therefore extrapolated over most of the grid**, and how a fit behaves outside the
 data matters as much as how well it passes through it. Report section 01 shows each fit both near the
 data and over the full grid.
@@ -345,7 +349,7 @@ and the smooth tails add nothing artificial at the junctions. Report `spline4-no
 `spline3-s0.05-smooth` as robustness checks. Keep `harmonic` tails only to reproduce older results.
 
 **Wavefunctions.** FD on the parabola reproduces the Hermite functions to an infidelity of about 1e-15. FD
-on the spline changes them by 8e-4 (GS) and 8e-5 (ES); that change is the real anharmonicity of the DFT data.
+on the spline changes them by 8e-4 (GS) and 8e-5 (ES); that change is the real anharmonicity of the computed PES.
 
 ---
 
@@ -366,7 +370,7 @@ for NV⁻ in MgO, where the cubic turns over inside the images and perturbation 
 ### 6.1 Fitting b: "a fixed" vs "a fitted"
 
 - **a fixed** (default): a is set to the parabola's curvature, the one that defines ħω for every method.
-  Only b and c are fitted, to all DFT images. Then H₀ is exactly the harmonic Hamiltonian, and nothing in the
+  Only b and c are fitted, to all images. Then H₀ is exactly the harmonic Hamiltonian, and nothing in the
   potential is dropped.
 - **a fitted** (`--cubic-free-a`): a, b and c are all fitted together. a then differs slightly (GS 0.4208
   vs 0.4176), and the leftover (a_fit − a_parabola)Q² falls into neither H₀ nor the perturbation.
@@ -485,7 +489,7 @@ The PT curves there are not renormalized, so at high n part of PT − exact is j
 
 **When to use.** As a cheap, analytic estimate of cubic anharmonicity when the important levels stay below
 `n_valid`: low temperature, small b. Otherwise use `fd --fd-fit cubic`, which solves the same potential
-exactly, or `fd` on a spline, which follows the DFT data instead of a cubic model.
+exactly, or `fd` on a spline, which follows the computed data instead of a cubic model.
 
 ---
 
@@ -496,13 +500,14 @@ exactly, or `fd` on a spline, which follows the DFT data instead of a cubic mode
 | `pypl` | harmonic | none (float64 drift 1.7e-8; unstable rows i >~ 10 at S ~ 50+) | 0.01 s | the reference at moderate S; production harmonic spectra |
 | `hermite` | harmonic | quadrature (exact to 1e-16) | ~3 s | validating `pypl`; the reference at large S (MgO); harmonic wavefunctions |
 | `fd` + `parabola` | harmonic | grid, O(h⁴) | ~7 s | validating both of the above |
-| `fd` + `spline3-notaknot-smooth` | anharmonic, follows the DFT data, C² everywhere | grid; tails continue the spline | ~7–12 s | **the recommended realistic anharmonic VOF** (§5.1) |
-| `fd` + `spline` | anharmonic, follows the DFT data | grid; harmonic tails with a slope kink | ~7 s | older results; the kink moves the diamond VOF by ~2% |
+| `fd` + `spline3-notaknot-smooth` | anharmonic, follows the computed data, C² everywhere | grid; tails continue the spline | ~7–12 s | **the recommended realistic anharmonic VOF** (§5.1) |
+| `fd` + `spline` | anharmonic, follows the computed data | grid; harmonic tails with a slope kink | ~7 s | older results; the kink moves the diamond VOF by ~2% |
 | `fd` + `cubic` | cubic model | grid; box well inside the turnover | ~7 s | exact solution of the cubic model |
 | `cubic` | cubic model | first-order perturbation | ~2 s | quick anharmonic estimate for low levels |
 
 Two limits apply to every anharmonic option:
-- **Line positions stay harmonic.** `bulid_fc_lsp` puts the lines at harmonic energies, so anharmonicity
-  changes only the intensities.
-- **The DFT data cover only Q = −0.14 … 0.83** (diamond; MgO: Q = −3.10 … 6.20 for both states).
+- **Line positions.** `bulid_fc_lsp`, which the comparison scripts use, puts the lines at harmonic energies, so
+  there anharmonicity changes only the intensities. `build_fc_lsp_from_levels` places them at the actual levels
+  (§5); use it when the energy axis matters (tutorials 003 and 005).
+- **The computed images cover only Q = −0.14 … 0.83** (diamond; MgO: Q = −3.10 … 6.20 for both states).
   Anything a fit does beyond that is a model choice, not data.

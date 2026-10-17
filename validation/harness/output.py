@@ -116,9 +116,10 @@ class OutputDir:
         self.log("# command: %s" % " ".join([os.path.basename(sys.executable)] + sys.argv), detail=True)
         if archived:
             self.log("# previous run with this name moved to %s" % os.path.relpath(archived, REPO_ROOT))
-        if self.dataset.name != ccd_data.DEFAULT_DATASET:
-            for line in self.dataset.describe():
-                self.log("# %s" % line)
+        # Every run records its dataset: data, state roles and how each state's energies were computed. On the
+        # default dataset it goes to log.txt only, to keep the console as before.
+        for line in self.dataset.describe():
+            self.log("# %s" % line, detail=self.dataset.name == ccd_data.DEFAULT_DATASET)
 
     # ------------------------------------------------------------------------ logging
 
@@ -229,8 +230,7 @@ class OutputDir:
             % (datetime.datetime.now().isoformat(timespec="seconds"), " ".join(["python"] + sys.argv)),
             "",
         ]
-        if self.dataset.name != ccd_data.DEFAULT_DATASET:
-            lines += ["**Dataset.**", ""] + ["- %s" % line for line in self.dataset.describe()] + [""]
+        lines += ["**Dataset.**", ""] + ["- %s" % line for line in self.dataset.describe()] + [""]
         if self.summary:
             lines += self.summary + [""]
         lines += [

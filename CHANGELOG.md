@@ -19,6 +19,10 @@ Every existing function behaves exactly as in v1.0; tutorials 001 and 002 give b
 - New tutorial ``pypl_004``: the first-order cubic anharmonic correction, its validity and its derivation.
 - New tutorial ``pypl_004a``: the same analysis for the strongly anharmonic NV- in MgO, where it fails.
 - New tutorial ``pypl_005``: running the tests and comparing potential fits and VOF methods.
+- Documentation pages *Validation and testing* (every test, reference and tolerance) and *Supporting information*
+  (every formula and derivation).
+- Validation suite: data points are labelled with the method of each state's energies (``Dataset.energy_methods``),
+  not "DFT"; every run's index.md records the dataset; the dataset environment variable is ``PYPL_VALIDATION_DATASET``.
 - pytest suite (``tests/``), validation suite for the 1D CCD (``validation/``), CI test job, ``pypl.__version__``.
 - Docstring LaTeX markup fixed; invalid escape sequences in two printed strings made raw (same output).
 

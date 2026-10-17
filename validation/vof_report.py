@@ -9,7 +9,7 @@
 Writes ``validation/outputs/vof_report/<tag or default>/``. Open ``index.md`` first: it lists the
 headline numbers and every file with a one-line description. The sections are:
 
-    01_potential_fits   each fit of the DFT images: residuals, implied hbar*omega, and how far it
+    01_potential_fits   each fit of the computed images: residuals, implied hbar*omega, and how far it
                         departs from the harmonic well where the high levels live
     02_fd_grid          the finite-difference grid drawn point by point, the wavefunctions it gives,
                         their decay to the walls, and convergence with grid points and stencil
@@ -41,7 +41,7 @@ from harness.output import OutputDir, markdown_table, text_table
 from pypl.config_coord_1d_vof_solver import FD_STENCILS, KINETIC, config_coord_1d_vof_solver, grid_spacing
 
 SECTIONS = {
-    "01_potential_fits": "Each fit of the DFT images: residuals, implied hbar*omega, and how far it departs from "
+    "01_potential_fits": "Each fit of the computed images: residuals, implied hbar*omega, and how far it departs from "
     "the harmonic well out where the high vibrational levels live.",
     "02_fd_grid": "The finite-difference grid point by point, the wavefunctions it gives, their decay to the walls, "
     "and convergence with grid points and stencil.",
@@ -96,7 +96,7 @@ def section_potential_fits(rep):
 
     name = "01_potential_fits"
     rep.out.section(name, SECTIONS[name])
-    rep.out.log("\n[%s] %d fits of the DFT images" % (name, len(rep.fits)))
+    rep.out.log("\n[%s] %d fits of the computed images" % (name, len(rep.fits)))
     plt, ccd = rep.plt, rep.ccd
     fig, axes = plt.subplots(2, 4, figsize=(23, 9.5), gridspec_kw={"width_ratios": [1, 1.25, 1, 1]})
     rows = []
@@ -121,11 +121,11 @@ def section_potential_fits(rep):
                 color="black",
                 ms=6,
                 zorder=5,
-                label="DFT images used by the parabola [%s]" % fits.images(ccd, state, "parabola"),
+                label="images used by the parabola [%s]" % fits.images(ccd, state, "parabola"),
             )
-            ax.plot(q[others], e[others], "o", mfc="white", mec="black", ms=6, zorder=5, label="other DFT images")
+            ax.plot(q[others], e[others], "o", mfc="white", mec="black", ms=6, zorder=5, label="other images")
         for ax in (ax_full, ax_far):
-            ax.axvspan(q.min(), q.max(), color="gold", alpha=0.18, lw=0, label="sampled by DFT")
+            ax.axvspan(q.min(), q.max(), color="gold", alpha=0.18, lw=0, label="sampled range")
         wall_values = []
         for spec in rep.fits:
             pot = fits.make_potential(ccd, state, spec)
@@ -186,7 +186,9 @@ def section_potential_fits(rep):
             a.axvline(center + tp, color="gray", ls=":", lw=1)
         ax_res.axhline(0.0, color="gray", lw=0.8)
         ax_far.set_yscale("symlog", linthresh=1.0)
-        ax_fit.set_title("%s: DFT images and fits" % STATE_LABELS[state])
+        ax_fit.set_title(
+            "%s: images (%s) and fits" % (STATE_LABELS[state], ccd_data.ENERGY_METHODS[state]), fontsize=10
+        )
         ax_res.set_title("%s: residual at every image" % STATE_LABELS[state])
         ax_far.set_title(
             "%s: V_fit - V_parabola out to the v = %d turning points (dotted)"
@@ -194,7 +196,7 @@ def section_potential_fits(rep):
             fontsize=10,
         )
         ax_fit.set_ylabel("E (eV)")
-        ax_res.set_ylabel("fit - DFT (meV)")
+        ax_res.set_ylabel("fit - computed (meV)")
         ax_far.set_ylabel("V_fit - V_parabola (meV, symlog)")
         for a in axes[row]:
             a.set_xlabel(r"Q (amu$^{1/2}$ $\AA$)")
@@ -206,8 +208,8 @@ def section_potential_fits(rep):
     rep.out.save_fig(
         fig,
         name + "/fits_overview.png",
-        "Per well: the DFT images with every fit near the samples (filled points are the parabola's); every fit "
-        "over the full Q range of the finite-difference grid, with the DFT images, the sampled range (gold), the "
+        "Per well: the computed images with every fit near the samples (filled points are the parabola's); every fit "
+        "over the full Q range of the finite-difference grid, with the images, the sampled range (gold), the "
         "walls (black) and V at the walls; the residual at each image; and V_fit - V_parabola out to the turning "
         "points of the highest level (symlog). Dashed = unbounded.",
     )
@@ -239,10 +241,12 @@ def section_potential_fits(rep):
 
     for state in STATES:
         q, e = ccd_data.samples(ccd, state)
-        columns = {"Q": q, "E_DFT_eV": e}
+        columns = {"Q": q, "E_eV": e}
         columns.update({"residual_%s_meV" % s: fits.make_potential(ccd, state, s).residuals() * 1e3 for s in rep.fits})
         rep.out.save_csv(
-            name + "/residuals_%s.csv" % state, columns, "%s: fit - DFT at every image, per fit." % STATE_NAMES[state]
+            name + "/residuals_%s.csv" % state,
+            columns,
+            "%s: fit minus computed energy at every image, per fit." % STATE_NAMES[state],
         )
     rep.out.save_table(
         name + "/fit_summary.csv",
@@ -943,10 +947,10 @@ def cubic_fit_figure(rep, name):
         harmonic = fits.make_potential(ccd, state, "parabola")
         ax_fit, ax_full, ax_res = axes[row]
         for ax in (ax_fit, ax_full):
-            ax.plot(q, e, "o", color="black", ms=5, zorder=5, label="DFT images")
+            ax.plot(q, e, "o", color="black", ms=5, zorder=5, label="images")
             ax.plot(q_near if ax is ax_fit else q_grid, harmonic(q_near if ax is ax_fit else q_grid), color="gray",
                     lw=2.2, alpha=0.5, label="parabola (harmonic H0) [%s]" % fits.images(ccd, state, "parabola"))  # fmt: skip
-        ax_full.axvspan(q.min(), q.max(), color="gold", alpha=0.18, lw=0, label="sampled by DFT")
+        ax_full.axvspan(q.min(), q.max(), color="gold", alpha=0.18, lw=0, label="sampled range")
         for spec in CUBIC_SPECS:
             pot = fits.make_potential(ccd, state, spec)
             p = pot.params
@@ -981,14 +985,14 @@ def cubic_fit_figure(rep, name):
             ax_full.axvline(wall, color="black", lw=2)
         ax_full.set_ylim(e.min() - 0.5, 1.15 * max(harmonic(q_lo), harmonic(q_hi)))
         ax_res.axhline(0.0, color="gray", lw=0.8)
-        ax_fit.set_title("%s: cubic fits near the DFT images (solid = used by the method)" % STATE_LABELS[state],
+        ax_fit.set_title("%s: cubic fits near the images (solid = used by the method)" % STATE_LABELS[state],
                          fontsize=10)  # fmt: skip
         ax_full.set_title("%s: over the full fd grid, Q = %.2f..%.2f (walls in black)" % (STATE_LABELS[state], q_lo, q_hi),
                           fontsize=10)  # fmt: skip
         ax_res.set_title("%s: residual at every image" % STATE_LABELS[state], fontsize=10)
         ax_fit.set_ylabel("E (eV)")
         ax_full.set_ylabel("E (eV)")
-        ax_res.set_ylabel("fit - DFT (meV)")
+        ax_res.set_ylabel("fit - computed (meV)")
         for a in axes[row]:
             a.set_xlabel(r"Q (amu$^{1/2}$ $\AA$)")
             plots.style(a)
@@ -997,7 +1001,7 @@ def cubic_fit_figure(rep, name):
                  fontsize=13)  # fmt: skip
     fig.tight_layout()
     rep.out.save_fig(fig, name + "/cubic_fits.png", "Per well: the four cubic-fit options (a fixed or fitted; all "
-                     "images or the parabola's) against the DFT images, over the full fd grid, and their residuals.")  # fmt: skip
+                     "images or the parabola's) against the images, over the full fd grid, and their residuals.")  # fmt: skip
     rep.out.save_table(name + "/cubic_fits.csv", rows, "Per well and cubic fit: a, b, turnover, xi, the largest "
                        "first-order mixing 3|xi|(n+1)^1.5, the highest level where it stays <= 0.1, residuals.")  # fmt: skip
     return rows

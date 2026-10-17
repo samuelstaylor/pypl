@@ -102,6 +102,21 @@ validation/
 └── outputs/<script>/<run>/           every run's results (committed on vof-extensions); _archive/ = replaced runs; _legacy_flat/ = old flat files
 ```
 
+### Docs pages and naming (2026-10-16)
+
+- `doc/validation.rst` (*Validation and testing*): layers, terminology, datasets (with the method of each state's energies),
+  every pytest test and validation check with assertion / tolerance / why, scripts, metrics, statuses, outputs, reference
+  results, solver findings 1-7, how to extend. `doc/supporting_information.rst`: S1 units ... S12 metrics (every formula:
+  Ruhoff recurrences with a..e and F00, Hermite recurrence, Simpson, FD stencils with truncation terms, fits incl. spline
+  DOF / end conditions / tails, lineshape and sigma law, cubic PT, ISC, multi-mode path). Both in the index toctree; docs
+  build without warnings. Update both whenever a method, fit or test changes.
+- **Naming rule (user, 2026-10-16): never call the data points "DFT energies/images".** They are *computed energies* /
+  *images*; each `ccd_data.Dataset` has `energy_methods` {"gs","es"} and `energy_zero` (diamond: DFT (PBE) / Delta-SCF
+  constrained occupations (PBE); MgO: spin-flip TDDFT@DDH root 4 / spin-conserving TDDFT@DDH root 1, zero = 3A2 DDH
+  minimum, PBE0 with 0.34 exact exchange). `ccd_data.ENERGY_METHODS`, `energy_label(state)` give legend text; every
+  index.md / log.txt now has the Dataset block (diamond: log.txt only on the console side). CSV column `E_DFT_eV` is now
+  `E_eV`. Fixed: `ccd_data` read the old `PYPL_TESTING_DATASET`; now `PYPL_VALIDATION_DATASET` (old name still accepted).
+
 ### The package extension (`pypl/config_coord_1d_vof_solver.py`, `config_coord_1d_potential.py`, `isc.py`)
 
 Merged from `testing/pypl_ext/` on 2026-10-16. The user's requirement: **no existing PyPL function or

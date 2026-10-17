@@ -7,7 +7,7 @@
     python validation/plot_ccd_wavefunctions.py --wf-method fd --fd-fit spline --vof-method pypl fd
     python validation/plot_ccd_wavefunctions.py --n-levels 5 --well gs --density
 
-Left panel: the DFT images, the fitted wells and the lowest ``--n-levels`` wavefunctions of each well,
+Left panel: the computed energies (images), the fitted wells and the lowest ``--n-levels`` wavefunctions of each well,
 each on its own energy line, drawn as a dimgray fill behind the curves (the yujin_isc_fig1.py style).
 ``--wf-method`` picks where the wavefunctions come from:
 
@@ -193,14 +193,14 @@ def report_check(out, numerical, block, max_dev, tol, source):
 
 
 def draw_ccd(ax, ccd, args, params, levels):
-    """Fitted wells, DFT images and wavefunctions. Returns the (y_lo, y_hi) the diagram wants."""
+    """Fitted wells, computed images and wavefunctions. Returns the (y_lo, y_hi) the diagram wants."""
 
     delta_q = ccd["delta_q"]
     tp = {
         s: config_coord_1d_vof_solver.classical_turning_point(args.n_levels - 1, ccd["%s_phonon" % s]) for s in STATES
     }
     lo, hi = ccd_data.q_span(ccd, tp, 0.15)
-    # Reach every DFT image too: every fit but the parabola is made from all of them.
+    # Reach every image too: every fit but the parabola is made from all of them.
     q_all = np.concatenate([ccd_data.samples(ccd, s)[0] for s in STATES])
     q = np.linspace(min(lo, q_all.min() - 0.15), max(hi, q_all.max() + 0.15), 2001)
 
@@ -233,7 +233,7 @@ def draw_ccd(ax, ccd, args, params, levels):
             marker=STATE_MARKERS[state],
             ms=5,
             zorder=4,
-            label="%s DFT energy" % STATE_LABELS[state],
+            label=ccd_data.energy_label(state),
         )
     wf_label = r"$|\chi_v(Q)|^2$" if args.density else r"$\chi_v(Q)$"
     ax.fill_between(

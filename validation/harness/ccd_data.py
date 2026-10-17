@@ -1,7 +1,7 @@
 """The 1D configuration-coordinate diagrams the harness can run on.
 
 Every script works on one *dataset*, chosen with ``--dataset`` (or the environment variable
-``PYPL_TESTING_DATASET``; the default is ``nv_diamond``):
+``PYPL_VALIDATION_DATASET``; the default is ``nv_diamond``):
 
     nv_diamond   NV- in diamond, 3E -> 3A2, tutorial 002 (doc/tutorials/002_nv_diamond_1d_ccd)
     nv_mgo       NV- in MgO, 3E -> 1A1, WEST TDDFT-DDH (doc/tutorials/003_nv_mgo_isc)
@@ -16,9 +16,15 @@ has the GS at Q = 0 and the ES at delta_q, as in tutorial 002; MgO has 3E ("es")
 Q = delta_q, as in doc/tutorials/003_nv_mgo_isc/reference/ccd_nv_mgo.py. The solver methods take both minima, so every
 F_ij is the same in either orientation.
 
-``STATE_NAMES`` (plain text, for logs and CSV), ``STATE_LABELS`` (mathtext, for figures), ``STATE_COLORS`` and
-``STATE_MARKERS`` describe the states of the active dataset; ``use_dataset`` updates them in place, so every
-module that imported them follows.
+``STATE_NAMES`` (plain text, for logs and CSV), ``STATE_LABELS`` (mathtext, for figures), ``STATE_COLORS``,
+``STATE_MARKERS`` and ``ENERGY_METHODS`` describe the states of the active dataset; ``use_dataset`` updates them in
+place, so every module that imported them follows.
+
+Naming of the data points: every point of a PES is the total energy of one electronic state at one configuration
+(an *image*), computed by some electronic-structure method. The method differs between datasets and between the two
+states of one dataset (ground-state DFT, constrained-occupation DFT (Delta-SCF), spin-conserving or spin-flip TDDFT,
+BSE, ...), so figures and logs never call them "DFT energies". They say *computed energies* or *images*, and name the
+method of each state from ``Dataset.energy_methods`` (``ENERGY_METHODS``, ``energy_label``).
 """
 
 import json
@@ -91,24 +97,40 @@ class Dataset:
     state_colors: dict = None
     state_markers: dict = None
     cubic_images: str = None  # the images of the cubic fit, if not all of them (for labels)
+    # How each state's energies were computed, e.g. {"gs": "DFT (PBE)", "es": "Delta-SCF (PBE)"}, and the energy zero.
+    energy_methods: dict = None
+    energy_zero: str = ""
 
     def describe(self):
         """Printable lines: what the data is and which physical state plays which role."""
 
-        return [
-            "dataset: %s (%s), %s" % (self.name, self.title.replace("$^-$", "-"), self.transition),
-            "data: %s" % os.path.relpath(self.data_dir, REPO_ROOT).replace("\\", "/"),
-            "roles: 'ES' = %s (upper state, minimum at Q = %s), 'GS' = %s (lower state, minimum at Q = %s); "
-            "emission = ES -> GS = %s -> %s"
-            % (
-                self.state_names["es"],
-                "0" if self.es_at_zero else "delta_q",
-                self.state_names["gs"],
-                "delta_q" if self.es_at_zero else "0",
-                self.state_names["es"],
-                self.state_names["gs"],
-            ),
-        ] + list(self.notes)
+        return (
+            [
+                "dataset: %s (%s), %s" % (self.name, self.title.replace("$^-$", "-"), self.transition),
+                "data: %s" % os.path.relpath(self.data_dir, REPO_ROOT).replace("\\", "/"),
+                "roles: 'ES' = %s (upper state, minimum at Q = %s), 'GS' = %s (lower state, minimum at Q = %s); "
+                "emission = ES -> GS = %s -> %s"
+                % (
+                    self.state_names["es"],
+                    "0" if self.es_at_zero else "delta_q",
+                    self.state_names["gs"],
+                    "delta_q" if self.es_at_zero else "0",
+                    self.state_names["es"],
+                    self.state_names["gs"],
+                ),
+            ]
+            + [
+                "energies: %s = %s; %s = %s; zero = %s"
+                % (
+                    self.state_names["es"],
+                    (self.energy_methods or {}).get("es", "computed"),
+                    self.state_names["gs"],
+                    (self.energy_methods or {}).get("gs", "computed"),
+                    self.energy_zero or "the lower state's minimum",
+                )
+            ]
+            + list(self.notes)
+        )
 
 
 DATASETS = {
@@ -123,6 +145,11 @@ DATASETS = {
             "_build_nv_diamond",
             state_colors={"gs": "#DB4437", "es": "#4285F4"},
             state_markers={"gs": "o", "es": "s"},
+            energy_methods={
+                "gs": "DFT (PBE), 3A2",
+                "es": "Delta-SCF, constrained occupations (PBE), 3E",
+            },
+            energy_zero="the GS (3A2) minimum image",
         ),
         Dataset(
             "nv_mgo",
@@ -147,14 +174,19 @@ DATASETS = {
             state_colors={"gs": "#4285F4", "es": "#DB4437"},
             state_markers={"gs": "D", "es": "o"},
             cubic_images="images q = -0.10..+1.15",
+            energy_methods={
+                "gs": "spin-flip TDDFT@DDH (WEST, root 4)",
+                "es": "spin-conserving TDDFT@DDH (WEST, root 1)",
+            },
+            energy_zero="the 3A2 minimum, DFT with the DDH functional (PBE0, exact exchange 0.34)",
         ),
     )
 }
 DEFAULT_DATASET = "nv_diamond"
-ACTIVE = os.environ.get("PYPL_TESTING_DATASET") or DEFAULT_DATASET
+ACTIVE = os.environ.get("PYPL_VALIDATION_DATASET") or os.environ.get("PYPL_TESTING_DATASET") or DEFAULT_DATASET
 if ACTIVE not in DATASETS:
-    raise SystemExit("PYPL_TESTING_DATASET=%s is not a dataset; choose from %s" % (ACTIVE, ", ".join(DATASETS)))
-STATE_NAMES, STATE_LABELS, STATE_COLORS, STATE_MARKERS = {}, {}, {}, {}
+    raise SystemExit("PYPL_VALIDATION_DATASET=%s is not a dataset; choose from %s" % (ACTIVE, ", ".join(DATASETS)))
+STATE_NAMES, STATE_LABELS, STATE_COLORS, STATE_MARKERS, ENERGY_METHODS = {}, {}, {}, {}, {}
 # "ES -> GS" / "GS -> ES" for diamond, "3E -> 1A1" / "1A1 -> 3E" for MgO.
 DIRECTION_LABELS = {}
 
@@ -172,6 +204,7 @@ def use_dataset(name):
         (STATE_LABELS, ds.state_labels or ds.state_names),
         (STATE_COLORS, ds.state_colors),
         (STATE_MARKERS, ds.state_markers),
+        (ENERGY_METHODS, ds.energy_methods or {"gs": "computed", "es": "computed"}),
     ):
         target.clear()
         target.update(source)
@@ -188,6 +221,13 @@ def use_dataset(name):
 use_dataset(ACTIVE)
 
 
+def energy_label(state, mathtext=True):
+    """Legend text for the computed energies of ``state``, naming the method, e.g. '$^3E$ (spin-conserving TDDFT@DDH ...)'."""
+
+    name = (STATE_LABELS if mathtext else STATE_NAMES)[state]
+    return "%s energies, %s" % (name, ENERGY_METHODS[state])
+
+
 def active():
     """The active ``Dataset``."""
 
@@ -195,7 +235,7 @@ def active():
 
 
 def add_dataset_arg(parser):
-    """Add ``--dataset`` to ``parser`` (default: ``PYPL_TESTING_DATASET`` or nv_diamond)."""
+    """Add ``--dataset`` to ``parser`` (default: ``PYPL_VALIDATION_DATASET`` or nv_diamond)."""
 
     parser.add_argument(
         "--dataset",
@@ -225,7 +265,7 @@ def normalize(energy_axis, spectrum):
 
 
 def samples(ccd, state):
-    """``(Q, E)`` of the DFT images of ``"gs"`` or ``"es"``: Q in amu^0.5 A, E in eV relative to the GS minimum."""
+    """``(Q, E)`` of the images of ``"gs"`` or ``"es"``: Q in amu^0.5 A, total energy in eV relative to the energy zero."""
 
     return ccd["%s_1d_coord" % state], ccd["%s_energies" % state]
 
@@ -285,7 +325,7 @@ def _add_state(ccd, state, q, e, fit_index, path_q, cubic_index=None):
 
 
 def build_ccd(data_dir=None, verbose=True, dataset=None):
-    """Construct the 1D CCD of ``dataset`` (default: the active one) from its DFT output.
+    """Construct the 1D CCD of ``dataset`` (default: the active one) from its electronic-structure output.
 
     Returns a dict with the solver inputs ``delta_q``, ``gs_phonon``, ``es_phonon`` (meV), the
     Huang-Rhys factors ``gs_hrf`` / ``es_hrf``, the parabolas as ``gs_params`` / ``es_params``
