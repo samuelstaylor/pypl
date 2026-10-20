@@ -15,8 +15,7 @@
 #   Images (q of Image_<q>, inclusive) used by each fit, printed in every legend, note and index.md:
 #     parabola (harmonic wells of pypl / hermite / fd-parabola):  3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15 (12 each)
 #     cubic a Q^2 + b Q^3 + c (the perturbative correction):       q = -0.10..+1.15 for both (26 each)
-#     every other fit (splines, Morse, polyN):                     ALL images, 3E 33 (q = -1.00..+2.00),
-#       1A1 30 (sf Image_+2.00 is not a spin-flip run, so not a 1A1 point, and is the one image left out)
+#     every other fit (splines, Morse, polyN):                     ALL images, 3E 33, 1A1 31 (q = -1.00..+2.00)
 #   Harmonic: 3E 60.83 meV (S = 69.8), 1A1 31.55 meV (S = 36.2).
 
 [suite]

@@ -19,14 +19,14 @@ PyPL is a Python package for computing vibrationally resolved optical spectra of
 
 The tutorial and documentation are hosted on [GitHub Pages](https://miccompy.github.io/pypl/). The tutorials and their input data (`001_*`, `002_*`, `003_*`) are in `doc/tutorials/`:
 
-| Notebook | Content |
-| --- | --- |
-| `pypl_001.ipynb` | PL and absorption of NV⁻ in diamond from full phonons (displacement and force routes) |
-| `pypl_002.ipynb` | PL and absorption of NV⁻ in diamond in the 1D CCD model |
-| `pypl_003.ipynb` | 3E → 1A1 intersystem crossing of NV⁻ in MgO: harmonic vs anharmonic (smooth spline) vibrational overlap and ISC rate, from WEST TDDFT data |
-| `pypl_004.ipynb` | Cubic anharmonicity by first-order perturbation theory: corrected wavefunctions, Franck-Condon integrals and VOF, the regime of validity, and a supplementary derivation |
-| `pypl_004a.ipynb` | The same analysis for the strongly anharmonic NV⁻ in MgO (3E → 1A1): where and by how much perturbation theory fails |
-| `pypl_005.ipynb` | Running the test suite and the validation checks, and comparing potential fits and VOF methods |
+| Notebook          | Content                                                                                                                                                                  |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pypl_001.ipynb`  | PL and absorption of NV⁻ in diamond from full phonons (displacement and force routes)                                                                                    |
+| `pypl_002.ipynb`  | PL and absorption of NV⁻ in diamond in the 1D CCD model                                                                                                                  |
+| `pypl_003.ipynb`  | 3E → 1A1 intersystem crossing of NV⁻ in MgO: harmonic vs anharmonic (smooth spline) vibrational overlap and ISC rate, from WEST TDDFT data                               |
+| `pypl_004.ipynb`  | Cubic anharmonicity by first-order perturbation theory: corrected wavefunctions, Franck-Condon integrals and VOF, the regime of validity, and a supplementary derivation |
+| `pypl_004a.ipynb` | The same analysis for the strongly anharmonic NV⁻ in MgO (3E → 1A1): where and by how much perturbation theory fails                                                     |
+| `pypl_005.ipynb`  | Running the test suite and the validation checks, and comparing potential fits and VOF methods                                                                           |
 
 ## Installation
 
@@ -40,7 +40,7 @@ pytest -m "not slow"            # skip the slowest end-to-end test
 python validation/check_1d_ccd.py   # the 1D CCD regression checks of the validation suite
 ```
 
-`tests/test_legacy_tutorials.py` guarantees that the original API is unchanged: it reruns the computations of tutorials 001 and 002 and compares every array with a reference generated from the original code (branch `pypl-original`), and checks the numbers printed in the notebooks. `validation/` holds the method-comparison suite for the 1D CCD (`validation/README.md`, `validation/METHODS.md`). Everything that is tested, with references and tolerances, is documented in `doc/validation.rst`, and every formula and derivation in `doc/supporting_information.rst` (the *Validation and testing* and *Supporting information* pages of the documentation).
+`tests/test_legacy_tutorials.py` guarantees that the original API is unchanged: it reruns the computations of tutorials 001 and 002 and compares every array with a reference generated from the original code (branch `pypl-original`), and checks the numbers printed in the notebooks. `validation/` holds the method-comparison suite for the 1D CCD (`validation/README.md`, `validation/METHODS.md`). Everything that is tested, with references and tolerances, is documented in `doc/validation.rst`, and every formula and derivation in `doc/supporting_information.rst` (the _Validation and testing_ and _Supporting information_ pages of the documentation).
 
 Formatting is checked with `black --check --line-length 120 pypl tests validation`.
 
@@ -49,6 +49,8 @@ Formatting is checked with `black --check --line-length 120 pypl tests validatio
 Yu Jin (jinyuchem@uchicago.edu)
 
 Samuel S. Taylor (sstaylor@uchicago.edu)
+
+Vrindaa Somjit (vsomjit@anl.gov)
 
 Victor Yu (yuw@anl.gov)
 

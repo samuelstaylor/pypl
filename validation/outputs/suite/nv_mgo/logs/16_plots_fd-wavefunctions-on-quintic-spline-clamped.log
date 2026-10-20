@@ -7,34 +7,34 @@ $ python validation/plot_ccd_wavefunctions.py --wf-method fd --vof-method hermit
 # Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
 # E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
 # image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit (splines, Morse, polyN) ALL images
-# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 (not a spin-flip run, so not a 1A1 point)
+# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 31 sf images (q = -1.00..+2.00)
 Finite differences on fit spline5-clamped (quintic spline (clamped)):
-  1A1 well: quintic spline (degree 5, clamped ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C2 junction (slope jumps 5.11e-15 / 4.44e-16 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.63e-16 eV
+  1A1 well: quintic spline (degree 5, clamped ends, 31 knots), harmonic tails a = 0.119071 eV/(amu A^2), C2 junction (slope jumps 5.11e-15 / -1.22e-15 eV/(amu^0.5 A)); fitted to samples 1-31 of 31 (Q = -3.098..6.196); rms residual 4.22e-16 eV
   3E well: quintic spline (degree 5, clamped ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C2 junction (slope jumps 4.44e-16 / 1.78e-15 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 7.81e-16 eV
 
 Wavefunction check: <chi_i | chi_j> of the 3 drawn levels vs the solver's F_ij
   from the drawn finite-difference eigenstates (quintic spline (clamped)):
-     0.000000000  -0.000000001   0.000000012
-     0.000000000  -0.000000006   0.000000069
-     0.000000001  -0.000000024   0.000000264
+     0.000000000  -0.000000001   0.000000010
+     0.000000000  -0.000000006   0.000000061
+     0.000000001  -0.000000023   0.000000234
   solver fc_ints:
      0.000000000  -0.000000000   0.000000002
      0.000000000  -0.000000002   0.000000010
      0.000000001  -0.000000008   0.000000040
-  MISMATCH (max deviation 2.24e-07, tolerance 1e-08)
+  MISMATCH (max deviation 1.93e-07, tolerance 1e-08)
   fit spline5-clamped is anharmonic: a mismatch with the harmonic solver is expected; plotting anyway
 
 Vibrational levels (eV)
-  v = 0   GS  2.604669   ES  3.176056
-  v = 1   GS  2.647484   ES  3.248807
-  v = 2   GS  2.689522   ES  3.318038
+  v = 0   GS  2.604594   ES  3.176056
+  v = 1   GS  2.646969   ES  3.248807
+  v = 2   GS  2.687738   ES  3.318038
 
 Franck-Condon lineshapes via bulid_fc_lsp
   emission  Hermite (quadrature)                 closure 1.0000000000  sideband peak 3.7563 eV  centroid 1146.2 meV
-  emission  Finite difference [quintic spline (clamped)] closure 1.0000000000  sideband peak 3.1663 eV  centroid 555.7 meV
-    Finite difference [quintic spline (clamped)] vs Hermite (quadrature): max |difference| / peak = 4.82e+00
+  emission  Finite difference [quintic spline (clamped)] closure 1.0000000000  sideband peak 3.2063 eV  centroid 593.8 meV
+    Finite difference [quintic spline (clamped)] vs Hermite (quadrature): max |difference| / peak = 5.34e+00
   absorption Hermite (quadrature)                 closure 0.9999999998  sideband peak 7.3256 eV  centroid 4254.8 meV
-  absorption Finite difference [quintic spline (clamped)] closure 1.0000000000  sideband peak 5.3806 eV  centroid 2198.4 meV
-    Finite difference [quintic spline (clamped)] vs Hermite (quadrature): max |difference| / peak = 7.66e+00
+  absorption Finite difference [quintic spline (clamped)] closure 1.0000000000  sideband peak 5.3806 eV  centroid 2196.8 meV
+    Finite difference [quintic spline (clamped)] vs Hermite (quadrature): max |difference| / peak = 7.60e+00
 
 Outputs in validation\outputs\suite\nv_mgo\plot_ccd_wavefunctions\wf-fd_vof-hermite-fd_fit-spline5-clamped (see index.md)

@@ -120,10 +120,8 @@ GLOBAL_ENERGY_ZERO_EV = None
 #                  CONNECT_POINTS default)
 # ===========================================================================
 
-# Images to skip for every spin-flip state.  sf/Image_+2.00 was run without
-# spin flip (wbse.out: l_spin_flip = False, 6 roots; its summary.json is
-# byte-identical to sc/Image_+2.00), so its states 1-4 are NOT ms0/1B2/1B1/1A1.
-SF_EXCLUDE = ["Image_+2.00"]
+# Images to skip for every spin-flip state.
+SF_EXCLUDE = []
 
 STATES = [
     # -----------------------------------------------------------------------

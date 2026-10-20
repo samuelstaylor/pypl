@@ -1,4 +1,4 @@
-# 1D CCD with wavefunctions: wf-fd_vof-hermite-fd_fit-spline4-notaknot [NV- in MgO], started 2026-10-16T21:31:44
+# 1D CCD with wavefunctions: wf-fd_vof-hermite-fd_fit-spline4-notaknot [NV- in MgO], started 2026-10-18T00:07:48
 # command: python.exe C:\Users\sammy\Research\Galli\programs\pypl\validation\plot_ccd_wavefunctions.py --wf-method fd --vof-method hermite fd --dataset nv_mgo --temp 5.0 --sigma 20.0 --gamma 0.3 --no-zpl --order-es 160 --order-gs 100 --ene-range -500.0 10000.0 --resol 2101 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit spline4-notaknot --fd-npts 40001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --n-levels 3 --check-tol 1e-10 1e-08
 # dataset: nv_mgo (NV- in MgO), 3E -> 1A1 (WEST TDDFT-DDH)
 # data: doc/tutorials/003_nv_mgo_isc
@@ -7,10 +7,10 @@
 # Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
 # E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
 # image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit (splines, Morse, polyN) ALL images
-# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 (not a spin-flip run, so not a 1A1 point)
+# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 31 sf images (q = -1.00..+2.00)
   wrote validation\outputs\suite\nv_mgo\plot_ccd_wavefunctions\wf-fd_vof-hermite-fd_fit-spline4-notaknot\settings.json
 Finite differences on fit spline4-notaknot (quartic spline (not-a-knot)):
-  1A1 well: quartic spline (degree 4, not-a-knot ends, 27 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 4.54e+00 / -8.05e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 7.90e-16 eV
+  1A1 well: quartic spline (degree 4, not-a-knot ends, 28 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 4.54e+00 / -1.39e+00 eV/(amu^0.5 A)); fitted to samples 1-31 of 31 (Q = -3.098..6.196); rms residual 6.67e-16 eV
   3E well: quartic spline (degree 4, not-a-knot ends, 30 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 2.03e+00 / 4.22e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 8.92e-16 eV
 
 Wavefunction check: <chi_i | chi_j> of the 3 drawn levels vs the solver's F_ij
@@ -22,52 +22,52 @@ Wavefunction check: <chi_i | chi_j> of the 3 drawn levels vs the solver's F_ij
      0.000000000  -0.000000000   0.000000002
      0.000000000  -0.000000002   0.000000010
      0.000000001  -0.000000008   0.000000040
-  MISMATCH (max deviation 2.02e-07, tolerance 1e-08)
+  MISMATCH (max deviation 2.03e-07, tolerance 1e-08)
   fit spline4-notaknot is anharmonic: a mismatch with the harmonic solver is expected; plotting anyway
 
 Vibrational levels (eV)
-  v = 0   GS  2.604617   ES  3.176044
-  v = 1   GS  2.647138   ES  3.248697
-  v = 2   GS  2.688367   ES  3.317748
+  v = 0   GS  2.604618   ES  3.176044
+  v = 1   GS  2.647144   ES  3.248697
+  v = 2   GS  2.688388   ES  3.317748
   [3E -> 1A1, Hermite (quadrature)] method: compute_franck_condon_integrals_hermite, <chi_i(Q + dQ) | chi_j(Q)> of harmonic eigenfunctions
   [3E -> 1A1, Hermite (quadrature)] grid: 100001 points, Q = -14.2326..14.2326 amu^0.5 A, h = 2.847e-04 amu^0.5 A (from --npts), margin 6; composite Simpson
   [3E -> 1A1, Hermite (quadrature)] omega_i = hbar sqrt(2a / amu) = 60.83324 meV, 3E well [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
-  [3E -> 1A1, Hermite (quadrature)] omega_f = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
-  [3E -> 1A1, Hermite (quadrature)] F_ij built in 1.19 s
+  [3E -> 1A1, Hermite (quadrature)] omega_f = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 31)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 31 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [3E -> 1A1, Hermite (quadrature)] F_ij built in 1.56 s
   [3E -> 1A1, Hermite (quadrature)] Integral check: 1.0
   [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
   [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] fit: spline4-notaknot (quartic spline (not-a-knot))
   [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] potential (initial, 3E) [all 33 images (q = -1.00..+2.00)]: quartic spline (degree 4, not-a-knot ends, 30 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 2.03e+00 / 4.22e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 8.92e-16 eV
-  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] potential (final, 1A1) [all 30 images (q = -1.00..+1.50)]: quartic spline (degree 4, not-a-knot ends, 27 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 4.54e+00 / -8.05e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 7.90e-16 eV
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] potential (final, 1A1) [all 31 images (q = -1.00..+2.00)]: quartic spline (degree 4, not-a-knot ends, 28 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 4.54e+00 / -1.39e+00 eV/(amu^0.5 A)); fitted to samples 1-31 of 31 (Q = -3.098..6.196); rms residual 6.67e-16 eV
   [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A (from --fd-npts); 254 points per shortest wavelength
   [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
   [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
   [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
-  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] checks: |psi| at walls / peak = 7.32e-16, orthonormality = 3.11e-15, ladder |E_v - E_0 - v hbar w| = 2.53e+03 (i) / 2.74e+02 (f) meV
-  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] F_ij built in 14.56 s
-  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] Integral check: 0.9999999999991578
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] checks: |psi| at walls / peak = 7.32e-16, orthonormality = 3.33e-15, ladder |E_v - E_0 - v hbar w| = 2.53e+03 (i) / 9.14e+02 (f) meV
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] F_ij built in 10.59 s
+  [3E -> 1A1, Finite difference [quartic spline (not-a-knot)]] Integral check: 0.9999999999998354
   [1A1 -> 3E, Hermite (quadrature)] method: compute_franck_condon_integrals_hermite, <chi_i(Q + dQ) | chi_j(Q)> of harmonic eigenfunctions
   [1A1 -> 3E, Hermite (quadrature)] grid: 100001 points, Q = -14.2326..14.2326 amu^0.5 A, h = 2.847e-04 amu^0.5 A (from --npts), margin 6; composite Simpson
-  [1A1 -> 3E, Hermite (quadrature)] omega_i = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [1A1 -> 3E, Hermite (quadrature)] omega_i = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 31)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 31 (Q = 1.859..3.563); rms residual 1.05e-02 eV
   [1A1 -> 3E, Hermite (quadrature)] omega_f = hbar sqrt(2a / amu) = 60.83324 meV, 3E well [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
-  [1A1 -> 3E, Hermite (quadrature)] F_ij built in 2.24 s
+  [1A1 -> 3E, Hermite (quadrature)] F_ij built in 1.07 s
   [1A1 -> 3E, Hermite (quadrature)] Integral check: 0.9999999998249766
   [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
   [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] fit: spline4-notaknot (quartic spline (not-a-knot))
-  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] potential (initial, 1A1) [all 30 images (q = -1.00..+1.50)]: quartic spline (degree 4, not-a-knot ends, 27 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 4.54e+00 / -8.05e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 7.90e-16 eV
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] potential (initial, 1A1) [all 31 images (q = -1.00..+2.00)]: quartic spline (degree 4, not-a-knot ends, 28 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 4.54e+00 / -1.39e+00 eV/(amu^0.5 A)); fitted to samples 1-31 of 31 (Q = -3.098..6.196); rms residual 6.67e-16 eV
   [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] potential (final, 3E) [all 33 images (q = -1.00..+2.00)]: quartic spline (degree 4, not-a-knot ends, 30 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 2.03e+00 / 4.22e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 8.92e-16 eV
   [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A (from --fd-npts); 254 points per shortest wavelength
   [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
   [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
   [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
-  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] checks: |psi| at walls / peak = 6.81e-16, orthonormality = 3.55e-15, ladder |E_v - E_0 - v hbar w| = 2.74e+02 (i) / 2.53e+03 (f) meV
-  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] F_ij built in 28.73 s
-  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] Integral check: 0.9999999999999422
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] checks: |psi| at walls / peak = 6.81e-16, orthonormality = 3.55e-15, ladder |E_v - E_0 - v hbar w| = 9.14e+02 (i) / 2.53e+03 (f) meV
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] F_ij built in 11.82 s
+  [1A1 -> 3E, Finite difference [quartic spline (not-a-knot)]] Integral check: 0.999999999999941
 
 Franck-Condon lineshapes via bulid_fc_lsp
   emission  Hermite (quadrature)                 closure 1.0000000000  sideband peak 3.7563 eV  centroid 1146.2 meV
-  emission  Finite difference [quartic spline (not-a-knot)] closure 1.0000000000  sideband peak 3.1863 eV  centroid 580.7 meV
-    Finite difference [quartic spline (not-a-knot)] vs Hermite (quadrature): max |difference| / peak = 5.07e+00
+  emission  Finite difference [quartic spline (not-a-knot)] closure 1.0000000000  sideband peak 3.1863 eV  centroid 579.9 meV
+    Finite difference [quartic spline (not-a-knot)] vs Hermite (quadrature): max |difference| / peak = 5.13e+00
   absorption Hermite (quadrature)                 closure 0.9999999998  sideband peak 7.3256 eV  centroid 4254.8 meV
   absorption Finite difference [quartic spline (not-a-knot)] closure 1.0000000000  sideband peak 5.1356 eV  centroid 1869.7 meV
     Finite difference [quartic spline (not-a-knot)] vs Hermite (quadrature): max |difference| / peak = 8.95e+00

@@ -90,7 +90,7 @@ def mgo():
     out = {"delta_q": delta_q}
     for state, run, root, exclude, center, window in (
         ("es", "sc", 0, (), 0.0, (-0.10, 0.45)),
-        ("gs", "sf", 3, ("Image_+2.00",), delta_q, (0.60, 1.15)),
+        ("gs", "sf", 3, (), delta_q, (0.60, 1.15)),
     ):
         q_img, e = load(run, root, exclude)
         q = q_img * delta_q

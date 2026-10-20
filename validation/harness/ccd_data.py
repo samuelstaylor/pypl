@@ -66,13 +66,9 @@ MGO_STATES = {
     "gs": ("sf", 3, "1A1"),
     "es": ("sc", 0, "3E"),
 }
-# Every image with a summary.json and a QE XML is used by every fit, however far from the minimum, except:
-MGO_EXCLUDE = {
-    # sf/Image_+2.00 was run without spin flip (wbse.out: l_spin_flip = False; its summary.json is
-    # byte-identical to sc/Image_+2.00), so its root 4 is not 1A1: not a 1A1 data point at all.
-    "gs": ("Image_+2.00",),
-    "es": (),
-}
+# Every image with a summary.json and a QE XML is used by every fit, however far from the minimum. Images
+# listed here are left out of a state:
+MGO_EXCLUDE = {"gs": (), "es": ()}
 # Image windows (path coordinate q of Image_<q>, inclusive) of the two restricted fits. Every other fit
 # (splines, Morse, polyN, ...) uses every image.
 MGO_PARABOLA_WINDOW = {"es": (-0.10, 0.45), "gs": (0.60, 1.15)}  # harmonic parabola: 3E / 1A1
@@ -166,8 +162,7 @@ DATASETS = {
                 "image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; "
                 "cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit "
                 "(splines, Morse, polyN) ALL images",
-                "all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 "
-                "(not a spin-flip run, so not a 1A1 point)",
+                "all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 31 sf images (q = -1.00..+2.00)",
             ),
             es_at_zero=True,
             state_labels={"gs": r"$^1A_1$", "es": r"$^3E$"},

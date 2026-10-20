@@ -1,3 +1,3 @@
 direction,reference,test,fc_max,fc_at_text,fc_rms,fc_low,vof_max,vof_rms,zpl_weight_ref,zpl_weight,centroid_shift_mev,closure,integral,seconds,verdict
-emission,Hermite (quadrature),Finite difference [Morse],0.6391709032,"(77, 42)",0.101137285,0.3497614148,0.4949416012,0.07394489649,1.829540887e-21,2.57663083e-12,42.36722762,0.9999999998,0.9999999998,9.8223095,FAIL
-absorption,Hermite (quadrature),Finite difference [Morse],0.6391709032,"(42, 77)",0.101137285,0.3497614148,3.552579298,0.6050186117,1.829540887e-21,2.576630832e-12,-3047.901513,1,1,8.6897078,FAIL
+emission,Hermite (quadrature),Finite difference [Morse],0.5785486629,"(38, 14)",0.09941654261,0.5232749636,0.7667629796,0.144976499,1.829540887e-21,8.182642001e-12,-256.0335774,1,1,65.248998,FAIL
+absorption,Hermite (quadrature),Finite difference [Morse],0.5785486629,"(14, 38)",0.09941654261,0.5232749636,4.49300241,0.6666518705,1.829540887e-21,8.182641999e-12,-3250.590737,1,1,25.8073397,FAIL

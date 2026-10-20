@@ -1,3 +1,3 @@
 direction,reference,test,fc_max,fc_at_text,fc_rms,fc_low,vof_max,vof_rms,zpl_weight_ref,zpl_weight,centroid_shift_mev,closure,integral,seconds,verdict
-emission,Hermite (quadrature),Finite difference [polynomial deg. 2],0.5611771376,"(40, 27)",0.101924283,0.5544424513,2.176759208,0.2743834349,1.829540887e-21,0.05472913527,-1043.34557,1,1,36.6796194,FAIL
-absorption,Hermite (quadrature),Finite difference [polynomial deg. 2],0.5611771376,"(27, 40)",0.101924283,0.5544424513,7.619182921,0.8405309258,1.829540887e-21,0.05472913527,-4094.869266,1,1,29.1129163,FAIL
+emission,Hermite (quadrature),Finite difference [polynomial deg. 2],0.5426298843,"(19, 9)",0.1019849024,0.5426298843,2.066715031,0.2693635393,1.829540887e-21,0.03629733748,-1029.825626,1,1,95.5437019,FAIL
+absorption,Hermite (quadrature),Finite difference [polynomial deg. 2],0.5426298843,"(9, 19)",0.1019849024,0.5426298843,7.102036822,0.8140337854,1.829540887e-21,0.03629733748,-4071.127983,1,1,89.1537748,FAIL

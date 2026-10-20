@@ -18,7 +18,7 @@ wbse_control:
  trev_liouville_rel: 0.0001
  l_preconditioning: True
  l_pre_shift: False
- n_steps_write_restart: 50
+ n_steps_write_restart: 10
  n_exx_lowrank: 1294
  l_spin_flip: True
  l_spin_flip_kernel: True

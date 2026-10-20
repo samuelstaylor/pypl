@@ -1,6 +1,6 @@
 # VOF method comparison: hermite_vs_fd_fit-poly2 [NV- in MgO]
 
-Generated 2026-10-16T21:22:44 by `python C:\Users\sammy\Research\Galli\programs\pypl\validation\compare_vof.py --reference hermite --test fd --dataset nv_mgo --temp 5.0 --sigma 20.0 --gamma 0.3 --no-zpl --order-es 160 --order-gs 100 --ene-range -500.0 10000.0 --resol 2101 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit poly2 --fd-npts 40001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --tol-fc 1e-07 --tol-vof 1e-08`.
+Generated 2026-10-17T23:58:36 by `python C:\Users\sammy\Research\Galli\programs\pypl\validation\compare_vof.py --reference hermite --test fd --dataset nv_mgo --temp 5.0 --sigma 20.0 --gamma 0.3 --no-zpl --order-es 160 --order-gs 100 --ene-range -500.0 10000.0 --resol 2101 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit poly2 --fd-npts 40001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --tol-fc 1e-07 --tol-vof 1e-08`.
 
 **Dataset.**
 
@@ -11,14 +11,14 @@ Generated 2026-10-16T21:22:44 by `python C:\Users\sammy\Research\Galli\programs\
 - Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
 - E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
 - image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit (splines, Morse, polyN) ALL images
-- all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 (not a spin-flip run, so not a 1A1 point)
+- all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 31 sf images (q = -1.00..+2.00)
 
 **FAIL; Finite difference [polynomial deg. 2] anharmonic, so differences are physics, not error** (tolerances: max dF_ij <= 1e-07, max dVOF / peak <= 1e-08)
 
 | direction | test | reference | max dF_ij | at (i, j) | max dF_ij (i,j<30) | max dVOF / peak | rms dVOF / peak | F_ij time (s) | verdict |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| emission | Finite difference [polynomial deg. 2] | Hermite (quadrature) | 5.61e-01 | (40, 27) | 5.54e-01 | 2.18e+00 | 2.74e-01 | 36.68 | FAIL |
-| absorption | Finite difference [polynomial deg. 2] | Hermite (quadrature) | 5.61e-01 | (27, 40) | 5.54e-01 | 7.62e+00 | 8.41e-01 | 29.11 | FAIL |
+| emission | Finite difference [polynomial deg. 2] | Hermite (quadrature) | 5.43e-01 | (19, 9) | 5.43e-01 | 2.07e+00 | 2.69e-01 | 95.54 | FAIL |
+| absorption | Finite difference [polynomial deg. 2] | Hermite (quadrature) | 5.43e-01 | (9, 19) | 5.43e-01 | 7.10e+00 | 8.14e-01 | 89.15 | FAIL |
 
 ## Files
 

@@ -1,6 +1,6 @@
 # 1D CCD with wavefunctions: wf-fd_vof-hermite-fd_fit-spline5-clamped [NV- in MgO]
 
-Generated 2026-10-16T21:29:00 by `python C:\Users\sammy\Research\Galli\programs\pypl\validation\plot_ccd_wavefunctions.py --wf-method fd --vof-method hermite fd --dataset nv_mgo --temp 5.0 --sigma 20.0 --gamma 0.3 --no-zpl --order-es 160 --order-gs 100 --ene-range -500.0 10000.0 --resol 2101 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit spline5-clamped --fd-npts 40001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --n-levels 3 --check-tol 1e-10 1e-08`.
+Generated 2026-10-18T00:05:50 by `python C:\Users\sammy\Research\Galli\programs\pypl\validation\plot_ccd_wavefunctions.py --wf-method fd --vof-method hermite fd --dataset nv_mgo --temp 5.0 --sigma 20.0 --gamma 0.3 --no-zpl --order-es 160 --order-gs 100 --ene-range -500.0 10000.0 --resol 2101 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit spline5-clamped --fd-npts 40001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --n-levels 3 --check-tol 1e-10 1e-08`.
 
 **Dataset.**
 
@@ -11,15 +11,15 @@ Generated 2026-10-16T21:29:00 by `python C:\Users\sammy\Research\Galli\programs\
 - Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
 - E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
 - image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit (splines, Morse, polyN) ALL images
-- all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 (not a spin-flip run, so not a 1A1 point)
+- all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 31 sf images (q = -1.00..+2.00)
 
 Wavefunctions: FD wavefunctions on the quintic spline (clamped). VOF methods: hermite, fd.
 
 Fit **spline5-clamped** (quintic spline (clamped)):
-- 1A1 well: quintic spline (degree 5, clamped ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C2 junction (slope jumps 5.11e-15 / 4.44e-16 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.63e-16 eV
+- 1A1 well: quintic spline (degree 5, clamped ends, 31 knots), harmonic tails a = 0.119071 eV/(amu A^2), C2 junction (slope jumps 5.11e-15 / -1.22e-15 eV/(amu^0.5 A)); fitted to samples 1-31 of 31 (Q = -3.098..6.196); rms residual 4.22e-16 eV
 - 3E well: quintic spline (degree 5, clamped ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C2 junction (slope jumps 4.44e-16 / 1.78e-15 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 7.81e-16 eV
 
-Wavefunction check: max |<chi_i|chi_j> - F_ij| = 2.24e-07 (tolerance 1e-08); mismatch expected, the fit is anharmonic.
+Wavefunction check: max |<chi_i|chi_j> - F_ij| = 1.93e-07 (tolerance 1e-08); mismatch expected, the fit is anharmonic.
 
 ## Files
 

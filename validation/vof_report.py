@@ -18,7 +18,9 @@ headline numbers and every file with a one-line description. The sections are:
     04_fc_matrix        the Franck-Condon matrix of each method and its error against the reference
     05_vof_methods      VOF of every F_ij method on the harmonic wells (the like-for-like test)
     06_vof_fits         VOF of the finite-difference method on every fit, against the harmonic reference
-    07_cubic_perturbation  the first-order cubic correction against the exact solution of the same cubic
+    07_cubic_perturbation  the first-order cubic correction against the exact solution of the same cubic, or,
+                        where the cubic turns over inside the grid, against the harmonic reference and fd on
+                        the bounded polynomial fits (b -> 0 scaling on the scaled cubics that stay bounded)
 
 The harmonic methods (``pypl``, ``hermite``) only know the parabola near each minimum, so in
 sections 03 and 06 every non-parabola difference is the anharmonicity of that fit, not an error.
@@ -55,7 +57,8 @@ SECTIONS = {
     "05_vof_methods": "VOF of every F_ij method on the harmonic wells: the like-for-like test.",
     "06_vof_fits": "VOF of the finite-difference method on each fit, against the harmonic reference.",
     "07_cubic_perturbation": "The first-order cubic anharmonic correction (method cubic): the cubic fits, its "
-    "validation against the exact solution of the same cubic, wavefunctions, F_ij and VOF.",
+    "validation against the exact solution of the same cubic (where one exists on the grid), wavefunctions, F_ij "
+    "and VOF.",
 }
 # Defaults of the report settings (each one a command-line option, see parse_args).
 SHOWN_LEVELS = (0, 1, 2, 5, 10, 20, 30, 40)  # levels drawn individually (clipped to the basis; the last is added)
@@ -63,6 +66,8 @@ CONVERGENCE_NPTS = (2001, 4001, 8001, 16001, 32001)
 CONVERGENCE_STENCILS = (3, 5)
 CUBIC_SPECS = ("cubic", "cubic-near", "cubic-free", "cubic-near-free")
 CUBIC_SCALES = (1.0, 0.5, 0.25, 0.125, 0.0625)
+MIN_EXACT_SCALES = 3  # b scales with an exact solution needed for the slopes; smaller ones are added by halving
+SMALLEST_SCALE = 2.0**-12
 
 # Short legend labels of the methods in the report's figures.
 REPORT_LABELS = {
@@ -802,11 +807,7 @@ def solve_well(rep, state, spec):
     """FD eigenstates of one well on its own physical grid: ``(q, energies in eV, psi)``."""
 
     n = rep.order(state)
-    center = ccd_data.center(rep.ccd, state)
-    span = rep.turning_point(state, n - 1) + rep.params.fd_margin
-    h = getattr(rep.params, "fd_h", None)
-    npts = int(np.ceil(2 * span / h)) + 1 if h else rep.params.fd_npts
-    q = np.linspace(center - span, center + span, npts)
+    q = well_grid(rep, state)
     pot = fits.make_potential(rep.ccd, state, spec)
     shift = getattr(rep.params, "fd_shift", None)
     extra = {} if shift is None else {"shift": shift}
@@ -1257,8 +1258,59 @@ def cubic_potential(ccd, state, spec, scale=1.0):
     return lambda q: p["a"] * (q - center) ** 2 + scale * p["b"] * (q - center) ** 3 + p["c"]
 
 
-def cubic_solve(rep, direction, scale=1.0, orders=None):
-    """Perturbative and exact (fd) solvers of ``direction`` on the cubic wells, b scaled by ``scale``."""
+def cubic_exact_reason(rep, scale=1.0):
+    """None if both cubic wells with b x ``scale`` are bound on the fd grid of the VOF solves, else why not.
+
+    The turnover of a(Q-Q0)^2 + s b(Q-Q0)^3 is at Q0 - 2a/(3 s b), so it moves out as 1/s.
+    """
+
+    lo, hi = rep.fd_q_range()
+    for state in STATES:
+        p = fits.make_potential(rep.ccd, state, rep.params.cubic_fit).params
+        center = ccd_data.center(rep.ccd, state)
+        turnover = center + (p["turnover"] - center) / scale if scale else np.inf
+        if lo < turnover < hi:
+            return "the %s cubic%s turns over at Q = %.2f, inside the grid %.2f..%.2f: no bound states in the box" % (
+                STATE_NAMES[state],
+                "" if scale == 1 else " with b x %s" % fraction_label(scale),
+                turnover,
+                lo,
+                hi,
+            )
+    return None
+
+
+def cubic_exact_scales(rep):
+    """The b scales of the b -> 0 scan whose cubic has an exact solution, and the skipped ones with the reason.
+
+    Scales whose turnover lies inside the grid are dropped; if fewer than ``MIN_EXACT_SCALES`` remain, smaller
+    scales are added by halving the smallest one, so the slopes can always be fitted.
+    """
+
+    exact = [s for s in rep.cubic_scales if cubic_exact_reason(rep, s) is None]
+    skipped = {s: cubic_exact_reason(rep, s) for s in rep.cubic_scales if s not in exact}
+    s = min(rep.cubic_scales)
+    while len(exact) < MIN_EXACT_SCALES and s > SMALLEST_SCALE:
+        s /= 2
+        if cubic_exact_reason(rep, s) is None:
+            exact.append(s)
+    return sorted(exact, reverse=True), skipped
+
+
+def well_grid(rep, state):
+    """The physical grid of one well's fd solve in ``solve_well``."""
+
+    n = rep.order(state)
+    center = ccd_data.center(rep.ccd, state)
+    span = rep.turning_point(state, n - 1) + rep.params.fd_margin
+    h = getattr(rep.params, "fd_h", None)
+    npts = int(np.ceil(2 * span / h)) + 1 if h else rep.params.fd_npts
+    return np.linspace(center - span, center + span, npts)
+
+
+def cubic_solve(rep, direction, scale=1.0, orders=None, exact=True):
+    """Perturbative, exact (fd; None unless ``exact``) and harmonic solvers of ``direction`` on the cubic wells,
+    b scaled by ``scale``."""
 
     ccd, spec = rep.ccd, rep.params.cubic_fit
     initial, final = direction_states(direction)
@@ -1277,16 +1329,18 @@ def cubic_solve(rep, direction, scale=1.0, orders=None):
             normalize=rep.params.cubic_normalize,
             **quadrature_kwargs(rep.params),
         )
-    fd = config_coord_1d_vof_solver(ccd["%s_phonon" % initial], ccd["%s_phonon" % final], ccd["delta_q"])
-    fd.compute_franck_condon_integrals_fd(
-        ni,
-        nf,
-        cubic_potential(ccd, initial, spec, scale),
-        cubic_potential(ccd, final, spec, scale),
-        q_i=q_i,
-        q_f=q_f,
-        **fd_kwargs(rep.params),
-    )
+    fd = None
+    if exact:
+        fd = config_coord_1d_vof_solver(ccd["%s_phonon" % initial], ccd["%s_phonon" % final], ccd["delta_q"])
+        fd.compute_franck_condon_integrals_fd(
+            ni,
+            nf,
+            cubic_potential(ccd, initial, spec, scale),
+            cubic_potential(ccd, final, spec, scale),
+            q_i=q_i,
+            q_f=q_f,
+            **fd_kwargs(rep.params),
+        )
     harmonic = config_coord_1d_vof_solver(ccd["%s_phonon" % initial], ccd["%s_phonon" % final], ccd["delta_q"])
     harmonic.compute_franck_condon_integrals_hermite(ni, nf, **quadrature_kwargs(rep.params))
     return pt, fd, harmonic
@@ -1392,15 +1446,36 @@ def cubic_fit_figure(rep, name):
     return rows
 
 
+def scan_note(scales, skipped, breakdown):
+    """Sentence on the b scales left out of the scan (turnover inside the grid), or "" if none were."""
+
+    if not skipped:
+        return ""
+    return (
+        " The cubic with b x %s turns over inside the fd grid and has no exact solution, so the scan uses b x %s, and "
+        "(c) shows the exact eigenstates at b x %s, with the mixing at the fitted b dotted."
+        % (", ".join(fraction_label(s) for s in skipped), ", ".join(fraction_label(s) for s in scales),
+           fraction_label(breakdown))
+    )  # fmt: skip
+
+
 def cubic_validation_figure(rep, name):
     """b -> 0 scaling against the exact solution, the norms, and where first order breaks down."""
 
     plt, ccd = rep.plt, rep.ccd
     block = 8
-    scan = []
-    for scale in rep.cubic_scales:
+    scan, solved = [], {}
+    scales, skipped = cubic_exact_scales(rep)
+    for scale, reason in skipped.items():
+        rep.out.log("  b x %s left out of the b -> 0 scan: %s" % (fraction_label(scale), reason))
+    added = [s for s in scales if s not in rep.cubic_scales]
+    if added:
+        rep.out.log("  b scales added so the scan has %d exact points: %s"
+                    % (MIN_EXACT_SCALES, ", ".join(fraction_label(s) for s in added)))  # fmt: skip
+    for scale in scales:
         small_pt, small_fd, small_h = cubic_solve(rep, "emission", scale, orders=(12, 12))
         pt, fd, harmonic = cubic_solve(rep, "emission", scale)
+        solved[scale] = (pt, fd)
         ls_pt, ls_fd, ls_h = lineshape(rep, pt), lineshape(rep, fd), lineshape(rep, harmonic)
         peak = np.max(ls_fd)
         scan.append(
@@ -1418,9 +1493,12 @@ def cubic_validation_figure(rep, name):
             "  b x %-6g dF(PT-exact) %.2e  dF(harmonic-exact) %.2e  dVOF(PT-exact) %.2e  dVOF(harmonic-exact) %.2e"
             % (scale, *[scan[-1][k] for k in list(scan[-1])[3:]])
         )
-    zero_pt, _, zero_h = cubic_solve(rep, "emission", 0.0)
+    zero_pt, _, zero_h = cubic_solve(rep, "emission", 0.0, exact=False)
     b0_dev = float(np.max(np.abs(zero_pt.fc_ints - zero_h.fc_ints)))
-    full_pt, full_fd, _ = cubic_solve(rep, "emission", 1.0)
+    full_pt = solved[1.0][0] if 1.0 in solved else cubic_solve(rep, "emission", 1.0, exact=False)[0]
+    # Panel (c) needs exact eigenstates: at the fitted b if they exist, else at the largest scale that has them.
+    breakdown = max(scales)
+    breakdown_pt, breakdown_fd = solved[breakdown]
 
     fig, axes = new_figure(plt, 1, 3, 3.9)
     axes = axes[0]
@@ -1470,15 +1548,19 @@ def cubic_validation_figure(rep, name):
     ax.set_title("Norms")
 
     ax = axes[2]
-    h = grid_spacing(full_fd.fd_grid)
-    for role, xi, psi_fd, state in (
-        ("initial", full_pt.cubic_xi_i, full_fd.fd_wavefunctions_i, "es"),
-        ("final", full_pt.cubic_xi_f, full_fd.fd_wavefunctions_f, "gs"),
+    h = grid_spacing(breakdown_fd.fd_grid)
+    at = "" if breakdown == 1 else r", $b \times %s$" % fraction_label(breakdown)
+    for role, xi, xi_fit, psi_fd, state in (
+        ("initial", breakdown_pt.cubic_xi_i, full_pt.cubic_xi_i, breakdown_fd.fd_wavefunctions_i, "es"),
+        ("final", breakdown_pt.cubic_xi_f, full_pt.cubic_xi_f, breakdown_fd.fd_wavefunctions_f, "gs"),
     ):
         color = plots.STATE_COLORS[state]
         n_levels = len(psi_fd)
         mixing = 3 * abs(xi) * np.arange(1, n_levels + 1) ** 1.5
-        x = full_fd.fd_grid
+        if breakdown != 1:
+            ax.semilogy(np.arange(n_levels), 3 * abs(xi_fit) * np.arange(1, n_levels + 1) ** 1.5, ":", color=color,
+                        lw=1.0, label=r"%s: $3|\xi|(n+1)^{3/2}$, fitted $b$" % STATE_LABELS[state])  # fmt: skip
+        x = breakdown_fd.fd_grid
         center = -ccd["delta_q"] if role == "initial" else 0.0
         coeffs = config_coord_1d_vof_solver.cubic_correction_coefficients(n_levels, xi)
         chi = config_coord_1d_vof_solver.harmonic_wavefunctions(x, n_levels + 2, ccd["%s_phonon" % state], center)
@@ -1491,15 +1573,15 @@ def cubic_validation_figure(rep, name):
             "-",
             color=color,
             lw=1.0,
-            label=r"%s: $3|\xi|(n+1)^{3/2}$" % STATE_LABELS[state],
+            label=r"%s: $3|\xi|(n+1)^{3/2}$%s" % (STATE_LABELS[state], at),
         )
         ax.semilogy(np.arange(n_levels), np.maximum(infidelity, 1e-16), "o", ms=2.5, color=color,
-                    label="%s: infidelity" % STATE_LABELS[state])  # fmt: skip
+                    label="%s: infidelity%s" % (STATE_LABELS[state], at))  # fmt: skip
     ax.axhline(0.1, color="0.4", ls="--", lw=0.8, label="0.1 (warning threshold)")
     ax.set_xlabel("Vibrational level $n$")
     integer_ticks(ax)
     ax.set_ylabel("Mixing, infidelity")
-    ax.set_title("Breakdown of first order")
+    ax.set_title("Breakdown of first order" if breakdown == 1 else "Breakdown" + at)
     for a, letter in zip(axes, "abc"):
         plots.style(a)
         a.yaxis.set_minor_locator(matplotlib.ticker.NullLocator())
@@ -1515,78 +1597,122 @@ def cubic_validation_figure(rep, name):
         "anharmonic effect (harmonic vs exact) as b (slope 1); at b = 0, max |F_PT - F_Hermite| = %.1e. (b) norm - 1 of "
         "the corrected states vs the predicted sum of squared PT coefficients - 1. (c) the first-order mixing "
         "3|xi|(n+1)^1.5 and the infidelity against the exact eigenstates per level: first order breaks down where "
-        "the mixing passes 0.1 (dashed)." % (block, b0_dev),
+        "the mixing passes 0.1 (dashed).%s" % (block, b0_dev, scan_note(scales, skipped, breakdown)),
     )
     rep.out.save_table(name + "/validation_b_scaling.csv", scan, "The b-scaling scan behind validation.png.")
     return scan, b0_dev, full_pt
 
 
 def cubic_wavefunction_figures(rep, name):
-    """Harmonic, first-order corrected and exact (fd on the cubic) wavefunctions, per well."""
+    """Harmonic, first-order corrected and exact (fd on the cubic) wavefunctions, per well.
+
+    A well whose cubic turns over inside its grid has no exact states; it shows harmonic and PT, and PT - harmonic.
+    """
 
     ccd = rep.ccd
     purple = plots.METHOD_COLORS["cubic"]
     for state in STATES:
         n = rep.order(state)
         phonon, center = ccd["%s_phonon" % state], ccd_data.center(ccd, state)
-        q, _, psi_fd = solve_well(rep, state, rep.params.cubic_fit)
-        b = fits.make_potential(ccd, state, rep.params.cubic_fit).params["b"]
-        xi = config_coord_1d_vof_solver.anharmonic_strength(b, phonon)
+        pot = fits.make_potential(ccd, state, rep.params.cubic_fit)
+        q = well_grid(rep, state)
+        exact = not q[0] < pot.params["turnover"] < q[-1]
+        if exact:
+            q, _, psi_fd = solve_well(rep, state, rep.params.cubic_fit)
+        else:
+            rep.out.log(
+                "  %s wavefunctions: the cubic turns over at Q = %.2f, inside the well's grid %.2f..%.2f; no exact "
+                "states, PT is shown against the harmonic states" % (STATE_NAMES[state], pot.params["turnover"], q[0],
+                                                                       q[-1])
+            )  # fmt: skip
+        xi = config_coord_1d_vof_solver.anharmonic_strength(pot.params["b"], phonon)
         chi = config_coord_1d_vof_solver.harmonic_wavefunctions(q, n + 2, phonon, center)
         psi_pt = config_coord_1d_vof_solver.cubic_correction_coefficients(n, xi) @ chi
         shown = rep.levels(n)
         rows = []
         for v in range(n):
-            rows.append(
-                {
-                    "state": STATE_NAMES[state],
-                    "v": v,
-                    "mixing": 3 * abs(xi) * (v + 1) ** 1.5,
-                    "max_abs_pt_minus_exact": float(np.max(np.abs(psi_pt[v] - psi_fd[v]))),
-                    "max_abs_harmonic_minus_exact": float(np.max(np.abs(chi[v] - psi_fd[v]))),
-                }
-            )
+            row = {"state": STATE_NAMES[state], "v": v, "mixing": 3 * abs(xi) * (v + 1) ** 1.5}
+            if exact:
+                row["max_abs_pt_minus_exact"] = float(np.max(np.abs(psi_pt[v] - psi_fd[v])))
+                row["max_abs_harmonic_minus_exact"] = float(np.max(np.abs(chi[v] - psi_fd[v])))
+            else:
+                row["max_abs_pt_minus_harmonic"] = float(np.max(np.abs(psi_pt[v] - chi[v])))
+                row["max_abs_harmonic"] = float(np.max(np.abs(chi[v])))
+            rows.append(row)
         for r in rows:
             if r["v"] in shown:
                 rep.out.detail(
-                    "  %s v = %2d: mixing %.3g, max |PT - exact| %.1e, max |harmonic - exact| %.1e"
-                    % (STATE_NAMES[state], r["v"], r["mixing"], r["max_abs_pt_minus_exact"],
-                       r["max_abs_harmonic_minus_exact"])
-                )  # fmt: skip
+                    "  %s v = %2d: mixing %.3g, " % (STATE_NAMES[state], r["v"], r["mixing"])
+                    + (
+                        "max |PT - exact| %.1e, max |harmonic - exact| %.1e"
+                        % (r["max_abs_pt_minus_exact"], r["max_abs_harmonic_minus_exact"])
+                        if exact
+                        else "max |PT - harmonic| %.1e (max |harmonic| %.2f)"
+                        % (r["max_abs_pt_minus_harmonic"], r["max_abs_harmonic"])
+                    )
+                )
+        if exact:
+            left = lambda v: [
+                (q, chi[v], dict(color="0.7", lw=2.6, label="harmonic")),
+                (q, psi_fd[v], dict(color="black", lw=1.0, label="exact (FD on the cubic)")),
+                (q, psi_pt[v], dict(color=purple, ls="--", lw=1.0, label="first-order PT")),
+            ]
+            right = lambda v: [
+                (q, chi[v] - psi_fd[v], dict(color="0.55", lw=0.9, label="harmonic %s exact" % MINUS)),
+                (q, psi_pt[v] - psi_fd[v], dict(color=purple, lw=0.9, label="PT %s exact" % MINUS)),
+            ]
+            titles = (r"$\psi_v$", "Difference from exact")
+            description = (
+                "harmonic, first-order corrected and exact (FD on the same cubic) wavefunctions for selected levels "
+                "(left) and their differences from exact"
+            )
+        else:
+            left = lambda v: [
+                (q, chi[v], dict(color="0.7", lw=2.6, label="harmonic")),
+                (q, psi_pt[v], dict(color=purple, ls="--", lw=1.0, label="first-order PT")),
+            ]
+            right = lambda v: [(q, psi_pt[v] - chi[v], dict(color=purple, lw=0.9, label="PT %s harmonic" % MINUS))]
+            titles = (r"$\psi_v$", "Correction (PT %s harmonic)" % MINUS)
+            description = (
+                "harmonic and first-order corrected wavefunctions for selected levels (left) and the correction PT - "
+                "harmonic; the cubic turns over at Q = %.2f, inside the grid, so there are no exact states to compare "
+                "with" % pot.params["turnover"]
+            )
         fig = wavefunction_rows_figure(
             rep,
             state,
             shown,
             lambda v: np.abs(q - center) < rep.turning_point(state, v) + 0.45,
-            lambda v: [
-                (q, chi[v], dict(color="0.7", lw=2.6, label="harmonic")),
-                (q, psi_fd[v], dict(color="black", lw=1.0, label="exact (FD on the cubic)")),
-                (q, psi_pt[v], dict(color=purple, ls="--", lw=1.0, label="first-order PT")),
-            ],
-            lambda v: [
-                (q, chi[v] - psi_fd[v], dict(color="0.55", lw=0.9, label="harmonic %s exact" % MINUS)),
-                (q, psi_pt[v] - psi_fd[v], dict(color=purple, lw=0.9, label="PT %s exact" % MINUS)),
-            ],
-            (r"$\psi_v$", "Difference from exact"),
+            left,
+            right,
+            titles,
             r"%s well: cubic correction, $\xi = %s$" % (STATE_LABELS[state], sci_tex(xi)),
         )
         rep.out.save_fig(
             fig,
             name + "/wavefunctions_%s.png" % state,
-            "%s, %s: harmonic, first-order corrected and exact (FD on the same cubic) wavefunctions for selected levels "
-            "(left) and their differences from exact (right, each row scaled by the power of ten on its axis). The "
-            "mixing 3|xi|(n+1)^1.5 and the maxima per level are in cubic_wavefunctions_%s.csv."
-            % (STATE_NAMES[state], fits.label(rep.params.cubic_fit), state),
+            "%s, %s: %s (right, each row scaled by the power of ten on its axis). The mixing 3|xi|(n+1)^1.5 and the "
+            "maxima per level are in cubic_wavefunctions_%s.csv."
+            % (STATE_NAMES[state], fits.label(rep.params.cubic_fit), description, state),
         )
         rep.out.save_table(
             name + "/cubic_wavefunctions_%s.csv" % state,
             rows,
-            "%s: per level, the first-order mixing and max |PT - exact| and |harmonic - exact|." % STATE_NAMES[state],
+            "%s: per level, the first-order mixing and %s."
+            % (
+                STATE_NAMES[state],
+                "max |PT - exact| and |harmonic - exact|" if exact else "max |PT - harmonic| (no exact states)",
+            ),
         )
 
 
 def section_cubic(rep):
-    """The first-order cubic anharmonic correction (method ``cubic``): fits, validation, wavefunctions, F_ij, VOF."""
+    """The first-order cubic anharmonic correction (method ``cubic``): fits, validation, wavefunctions, F_ij, VOF.
+
+    The VOF and F_ij reference is the exact (fd) solution of the same cubic. If the cubic turns over inside the fd
+    grid there is none; the reference is then the harmonic VOF, and fd on every bounded polynomial fit is shown
+    alongside the PT as the anharmonic polynomial wells that do have exact solutions.
+    """
 
     name = "07_cubic_perturbation"
     rep.out.section(name, SECTIONS[name])
@@ -1595,37 +1721,75 @@ def section_cubic(rep):
         "  cubic fits drawn: %s; b scales: %s"
         % (", ".join(rep.cubic_specs), ", ".join("%g" % s for s in rep.cubic_scales))
     )
+    no_exact = cubic_exact_reason(rep)
+    polys = [s for s in rep.bounded if fits.parse_spec(s)[0] == "polynomial"]
+    if no_exact:
+        rep.out.log("  no exact solution of the cubic: %s" % no_exact)
+        rep.out.log("  VOF / F_ij reference: the harmonic %s; also compared: fd on %s"
+                    % (method_label(rep.reference), ", ".join(polys) or "no bounded polynomial fit"))  # fmt: skip
     fit_rows = cubic_fit_figure(rep, name)
     scan, b0_dev, _ = cubic_validation_figure(rep, name)
     cubic_wavefunction_figures(rep, name)
 
-    exact_params = dataclasses.replace(rep.params, fd_fit=rep.params.cubic_fit)
+    if no_exact:
+        ref_name, ref_column = "harmonic reference", "VOF harmonic (%s)" % method_label(rep.reference)
+        tests = [("cubic", rep.params, method_label("cubic"))]
+        tests += [("fd", dataclasses.replace(rep.params, fd_fit=s), "FD on %s" % fits.label(s)) for s in polys]
+    else:
+        ref_name, ref_column = "exact cubic solution", "VOF exact (fd on the cubic)"
+        tests = [("cubic", rep.params, method_label("cubic")),
+                 (rep.reference, rep.params, method_label(rep.reference) + ", harmonic")]  # fmt: skip
     comparison, rows = {}, []
     for direction in DIRECTIONS:
-        exact = compute_vof(rep.ccd, direction, "fd", exact_params, log=rep.out.detail)
-        exact.label = "Exact (FD on the cubic)"
+        if no_exact:
+            ref = compute_vof(rep.ccd, direction, rep.reference, rep.params, log=rep.out.detail)
+            ref.label = method_label(rep.reference) + ", harmonic"
+        else:
+            ref = compute_vof(rep.ccd, direction, "fd", dataclasses.replace(rep.params, fd_fit=rep.params.cubic_fit),
+                              log=rep.out.detail)  # fmt: skip
+            ref.label = "Exact (FD on the cubic)"
         tested = []
-        for method, params in (("cubic", rep.params), (rep.reference, rep.params)):
+        for method, params, label in tests:
             tst = compute_vof(rep.ccd, direction, method, params, log=rep.out.detail)
-            tst.label = method_label(method) + (", harmonic" if method == rep.reference else "")
-            stats = compare_results(exact, tst, rep.tol_fc, rep.tol_vof)
+            tst.label = label
+            stats = compare_results(ref, tst, rep.tol_fc, rep.tol_vof)
             tested.append((tst, stats))
             rows.append(stats)
-        comparison[direction] = (exact, tested)
-        columns = {"E_minus_EZPL_meV": exact.axis, "VOF exact (fd on the cubic)": exact.lineshape}
+        comparison[direction] = (ref, tested)
+        columns = {"E_minus_EZPL_meV": ref.axis, ref_column: ref.lineshape}
         columns.update({"VOF %s" % t.label: t.lineshape for t, _ in tested})
-        rep.out.save_csv(name + "/vof_%s.csv" % direction, columns, "%s: VOF of the exact cubic solution, the "
-                         "first-order correction and the harmonic reference." % direction)  # fmt: skip
-    rep.out.save_fig(plots.vof_comparison_figure(rep.plt, comparison, rep.params, None,
-                                                 "VOF on the cubic wells, reference: exact FD"),
-                     name + "/vof_cubic.png", "Per direction: the exact VOF on the cubic wells (FD), the first-order "
-                     "correction and the harmonic reference, with signed and absolute differences relative to the "
-                     "exact peak.")  # fmt: skip
-    rep.out.save_fig(integer_maps(plots.fc_error_figure(rep.plt, comparison, r"$F_{ij}$ error vs the exact cubic solution")),
-                     name + "/fc_error_maps.png", "log10 |F_ij - F_ij(exact cubic)| of the first-order correction and "
-                     "of the harmonic reference.")  # fmt: skip
+        rep.out.save_csv(name + "/vof_%s.csv" % direction, columns, "%s: VOF of the %s and of %s." % (
+            direction, ref_name, ", ".join(t.label for t, _ in tested)))  # fmt: skip
+    if no_exact:
+        rep.out.save_fig(plots.vof_comparison_figure(rep.plt, comparison, rep.params, None,
+                                                     "VOF of the first-order cubic correction, reference: harmonic"),
+                         name + "/vof_cubic.png", "Per direction: the first-order cubic correction and FD on the "
+                         "bounded polynomial fits (%s) against the harmonic VOF, with signed and absolute differences "
+                         "relative to the harmonic peak. The cubic has no exact solution (%s)."
+                         % (", ".join(polys) or "none", no_exact))  # fmt: skip
+        rep.out.save_fig(integer_maps(plots.fc_error_figure(rep.plt, comparison, r"$F_{ij}$ difference from harmonic")),
+                         name + "/fc_error_maps.png", "log10 |F_ij - F_ij(harmonic)| of the first-order correction "
+                         "and of FD on the bounded polynomial fits.")  # fmt: skip
+    else:
+        rep.out.save_fig(plots.vof_comparison_figure(rep.plt, comparison, rep.params, None,
+                                                     "VOF on the cubic wells, reference: exact FD"),
+                         name + "/vof_cubic.png", "Per direction: the exact VOF on the cubic wells (FD), the "
+                         "first-order correction and the harmonic reference, with signed and absolute differences "
+                         "relative to the exact peak.")  # fmt: skip
+        rep.out.save_fig(integer_maps(plots.fc_error_figure(rep.plt, comparison,
+                                                            r"$F_{ij}$ error vs the exact cubic solution")),
+                         name + "/fc_error_maps.png", "log10 |F_ij - F_ij(exact cubic)| of the first-order correction "
+                         "and of the harmonic reference.")  # fmt: skip
     rep.out.save_table(name + "/summary.csv", [{k: r[k] for k in CSV_KEYS} for r in rows], "F_ij and VOF differences "
-                       "from the exact cubic solution, per method and direction.")  # fmt: skip
+                       "from the %s, per method and direction." % ref_name)  # fmt: skip
+    closure = []
+    for direction in DIRECTIONS:
+        ref, tested = comparison[direction]
+        for res in [ref] + [t for t, _ in tested]:
+            closure.append({"direction": direction, "method": res.label,
+                            "sum_F0j2": float(np.sum(res.solver.fc_ints[0] ** 2)), "centroid_meV": res.centroid_mev})  # fmt: skip
+    rep.out.save_table(name + "/closure.csv", closure, "Per direction and method: sum_j F_0j^2 (1 for a complete "
+                       "orthonormal basis; first-order PT exceeds it where it breaks down) and the VOF centroid.")  # fmt: skip
 
     used = [r for r in fit_rows if r["used_by_method"]]
     columns = [("state", "well", "%s"), ("label", "cubic fit", "%s"), ("b", "b (eV/amu^1.5 A^3)", "%+.5f"),
@@ -1633,26 +1797,42 @@ def section_cubic(rep):
                ("turnover_q", "turnover Q", "%.1f")]  # fmt: skip
     for line in text_table(fit_rows, columns):
         rep.out.log("  " + line)
-    vof_columns = [("direction", "direction", "%s"), ("test", "vs exact (fd on the cubic)", "%s"),
+    vof_columns = [("direction", "direction", "%s"),
+                   ("test", "vs harmonic" if no_exact else "vs exact (fd on the cubic)", "%s"),
                    ("fc_max", "max dF_ij", "%.2e"), ("fc_low", "max dF_ij (i,j<30)", "%.2e"),
                    ("vof_max", "max dVOF / peak", "%.2e")]  # fmt: skip
     for line in text_table(rows, vof_columns):
+        rep.out.log("  " + line)
+    closure_columns = [("direction", "direction", "%s"), ("method", "method", "%s"),
+                       ("sum_F0j2", "sum_j F_0j^2", "%.4f"), ("centroid_meV", "VOF centroid (meV)", "%.1f")]  # fmt: skip
+    for line in text_table(closure, closure_columns):
         rep.out.log("  " + line)
     slopes = {}
     s = np.log([r["b_scale"] for r in scan])
     for key in ("dF_pt_vs_exact_block", "dVOF_pt_vs_exact", "dF_harmonic_vs_exact_block"):
         slopes[key] = float(np.polyfit(s, np.log([r[key] for r in scan]), 1)[0]) if len(s) > 1 else float("nan")
-    rep.out.log("  b -> 0: PT error slope %.2f (F_ij, i,j<8) / %.2f (VOF), effect slope %.2f; at b = 0 |F_PT - "
-                "F_hermite| = %.1e" % (slopes["dF_pt_vs_exact_block"], slopes["dVOF_pt_vs_exact"],
-                                       slopes["dF_harmonic_vs_exact_block"], b0_dev))  # fmt: skip
+    scales = ", ".join(fraction_label(r["b_scale"]) for r in scan)
+    rep.out.log("  b -> 0 (b x %s): PT error slope %.2f (F_ij, i,j<8) / %.2f (VOF), effect slope %.2f; at b = 0 "
+                "|F_PT - F_hermite| = %.1e" % (scales, slopes["dF_pt_vs_exact_block"], slopes["dVOF_pt_vs_exact"],
+                                               slopes["dF_harmonic_vs_exact_block"], b0_dev))  # fmt: skip
     rep.headline += ["## First-order cubic correction (%s)" % fits.label(rep.params.cubic_fit), ""]
+    if no_exact:
+        rep.headline += [
+            "**No exact solution of the fitted cubic:** %s. The VOF and F_ij below are compared with the harmonic "
+            "VOF, alongside FD on the bounded polynomial fits (%s); the b -> 0 validation uses the scaled cubics "
+            "that stay bound on the grid." % (no_exact, ", ".join(polys) or "none"),
+            "",
+        ]
     rep.headline += markdown_table(used, columns) + [""] + markdown_table(rows, vof_columns) + [""]
+    rep.headline += markdown_table(closure, closure_columns) + [""]
+    valid = " / ".join("%d (%s)" % (r["n_valid"], r["state"]) for r in used)
     rep.headline += [
-        "b -> 0 validation: the PT error falls as b^%.2f (F_ij, i, j < 8) and b^%.2f (VOF), the anharmonic effect as "
-        "b^%.2f; at b = 0 the method equals the Hermite route to %.1e. The mixing 3|xi|(n+1)^1.5 exceeds 0.1 above "
-        "n = %s, so the high-level F_ij are not perturbative; the VOF is, because the intensity sits in low levels."
-        % (slopes["dF_pt_vs_exact_block"], slopes["dVOF_pt_vs_exact"], slopes["dF_harmonic_vs_exact_block"], b0_dev,
-           " / ".join("%d (%s)" % (r["n_valid"], r["state"]) for r in used)),
+        "b -> 0 validation (b x %s): the PT error falls as b^%.2f (F_ij, i, j < 8) and b^%.2f (VOF), the anharmonic "
+        "effect as b^%.2f; at b = 0 the method equals the Hermite route to %.1e. The mixing 3|xi|(n+1)^1.5 exceeds "
+        "0.1 above n = %s, so the F_ij of higher levels are not perturbative; sum_j F_0j^2 in the closure table "
+        "departs from 1 when the levels carrying the intensity are among them."
+        % (scales, slopes["dF_pt_vs_exact_block"], slopes["dVOF_pt_vs_exact"], slopes["dF_harmonic_vs_exact_block"],
+           b0_dev, valid),
         "",
     ]  # fmt: skip
 
@@ -1848,26 +2028,10 @@ def main():
     section_wavefunctions(rep)
     methods_ok = section_methods(rep)
     section_vof_fits(rep)
-    cubic_skipped = None
     if not args.skip_cubic:
-        # Section 07 validates first-order PT against the exact (fd) solution of the same cubic, which exists only
-        # if the cubic is a bound well on the grid (its turnover outside it).
-        try:
-            fits.check_bounded(ccd, params.cubic_fit, fd_q_range(ccd, params))
-        except ValueError as err:
-            cubic_skipped = "the %s fit has no exact solution to compare with: %s" % (params.cubic_fit, err)
-            out.log("\n07_cubic_perturbation skipped: %s" % cubic_skipped)
-            out.save_json(
-                "07_cubic_perturbation/skipped.json",
-                {"cubic_fit": params.cubic_fit, "reason": cubic_skipped},
-                "Why this section was skipped (the cubic fit is unbounded on the fd grid).",
-            )
-        else:
-            section_cubic(rep)
+        section_cubic(rep)
 
     verdict = "PASS" if methods_ok else "FAIL"
-    if cubic_skipped:
-        out.add_summary("**Section 07 skipped:** %s." % cubic_skipped, "")
     out.add_summary(
         "CCD: delta_q = %.6f amu^0.5 A, GS hbar w = %.5f meV, ES hbar w = %.5f meV. %s."
         % (ccd["delta_q"], ccd["gs_phonon"], ccd["es_phonon"], "; ".join(params.describe())),

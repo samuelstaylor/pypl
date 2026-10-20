@@ -7,7 +7,7 @@ $ python validation/compare_vof.py --reference hermite --test cubic --dataset nv
 # Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
 # E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
 # image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit (splines, Morse, polyN) ALL images
-# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 (not a spin-flip run, so not a 1A1 point)
+# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 31 sf images (q = -1.00..+2.00)
 Comparing VOFs: Hermite (quadrature) (reference) vs Hermite + cubic PT [cubic (a fitted, images q = -0.10..+1.15)]
   lineshape: T = 5 K, sigma = [20.0, 20.0] meV, ZPL Gaussian (no Lorentzian ZPL); lines at harmonic ladders (bulid_fc_lsp)
   lineshape axis: -500..10000 meV from the ZPL, 2101 points, step 5 meV
@@ -15,8 +15,8 @@ Comparing VOFs: Hermite (quadrature) (reference) vs Hermite + cubic PT [cubic (a
 
 direction   test                                                            reference             max dF_ij  at (i, j)  max dF_ij (i,j<30)  max dVOF / peak  rms dVOF / peak  F_ij time (s)  verdict
 ----------  --------------------------------------------------------------  --------------------  ---------  ---------  ------------------  ---------------  ---------------  -------------  -------
-emission    Hermite + cubic PT [cubic (a fitted, images q = -0.10..+1.15)]  Hermite (quadrature)  4.76e+02   (158, 98)  1.18e+01            9.77e+00         1.66e+00         1.44           FAIL   
-absorption  Hermite + cubic PT [cubic (a fitted, images q = -0.10..+1.15)]  Hermite (quadrature)  4.76e+02   (98, 158)  1.18e+01            8.63e+00         2.31e+00         1.54           FAIL   
+emission    Hermite + cubic PT [cubic (a fitted, images q = -0.10..+1.15)]  Hermite (quadrature)  4.76e+02   (158, 98)  1.18e+01            9.77e+00         1.66e+00         1.92           FAIL   
+absorption  Hermite + cubic PT [cubic (a fitted, images q = -0.10..+1.15)]  Hermite (quadrature)  4.76e+02   (98, 158)  1.18e+01            8.63e+00         2.31e+00         8.11           FAIL   
 
 FAIL: the lineshapes differ.
 NOTE: Hermite + cubic PT [cubic (a fitted, images q = -0.10..+1.15)] solve(s) an anharmonic problem, not the harmonic wells pypl / hermite use; differences from them are the anharmonicity, not an error. For a like-for-like test use the default methods and --fd-fit parabola.

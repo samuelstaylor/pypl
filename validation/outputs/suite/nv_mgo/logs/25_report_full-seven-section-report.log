@@ -7,7 +7,7 @@ $ python validation/vof_report.py --reference hermite --dataset nv_mgo --temp 5.
 # Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
 # E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
 # image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit (splines, Morse, polyN) ALL images
-# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 (not a spin-flip run, so not a 1A1 point)
+# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 31 sf images (q = -1.00..+2.00)
 1D CCD VOF report: delta_q = 3.097879 amu^0.5 A, GS 31.55114 meV, ES 60.83324 meV
   lineshape: T = 5 K, sigma = [20.0, 20.0] meV, ZPL Gaussian (no Lorentzian ZPL); lines at harmonic ladders (bulid_fc_lsp)
   lineshape axis: -500..10000 meV from the ZPL, 2101 points, step 5 meV
@@ -19,18 +19,18 @@ $ python validation/vof_report.py --reference hermite --dataset nv_mgo --temp 5.
 [01_potential_fits] 12 fits of the computed images
   well  fit                                    images       rms (meV)  max |res| (meV)  hbar w at min (meV)  dV at right turning pt (meV)  V left wall (eV)  V right wall (eV)  bounded
   ----  -------------------------------------  -----------  ---------  ---------------  -------------------  ----------------------------  ----------------  -----------------  -------
-  1A1   parabola (near min.)                   18-29 of 30  649.989    3130.185         31.551               0                             13.98             8.657              True   
-  1A1   polynomial deg. 2                      1-30 of 30   351.233    822.661          45.715               5.76e+03                      22.2              18.52              True   
-  1A1   polynomial deg. 4                      1-30 of 30   137.435    485.585          32.863               1.44e+04                      56.52             52.81              True   
-  1A1   polynomial deg. 6                      1-30 of 30   58.335     126.697          54.448               -1.35e+05                     -211.1            -747.9             False  
-  1A1   polynomial deg. 8                      1-30 of 30   35.961     92.829           29.457               -3.52e+03                     -1702             -872.1             False  
-  1A1   Morse                                  1-30 of 30   174.164    407.489          26.959               -1.96e+03                     53.41             4.104              True   
-  1A1   cubic spline (natural)                 1-30 of 30   0.000      0.000            40.696               537                           17.11             9.194              True   
-  1A1   cubic spline (not-a-knot)              1-30 of 30   0.000      0.000            40.852               537                           17.11             9.194              True   
-  1A1   cubic spline (clamped)                 1-30 of 30   0.000      0.000            40.441               537                           17.11             9.194              True   
-  1A1   quartic spline (not-a-knot)            1-30 of 30   0.000      0.000            41.658               537                           17.11             9.194              True   
-  1A1   quintic spline (clamped)               1-30 of 30   0.000      0.000            42.045               537                           17.11             9.194              True   
-  1A1   cubic smoothing spline (rms 0.05 meV)  1-30 of 30   0.050      0.132            40.708               537                           17.11             9.194              True   
+  1A1   parabola (near min.)                   18-29 of 31  761.062    3130.185         31.551               0                             13.98             8.657              True   
+  1A1   polynomial deg. 2                      1-31 of 31   347.882    888.154          45.026               5.33e+03                      21.85             17.82              True   
+  1A1   polynomial deg. 4                      1-31 of 31   136.574    446.649          30.199               1.18e+04                      54.33             45.58              True   
+  1A1   polynomial deg. 6                      1-31 of 31   74.492     178.312          50.584               -1.87e+04                     -96.93            -174               False  
+  1A1   polynomial deg. 8                      1-31 of 31   35.428     93.619           32.845               -1.62e+05                     -1917             -2214              False  
+  1A1   Morse                                  1-31 of 31   281.723    580.309          42.427               2.67e+03                      30.34             11.63              True   
+  1A1   cubic spline (natural)                 1-31 of 31   0.000      0.000            40.871               2.3e+03                       17.11             10.95              True   
+  1A1   cubic spline (not-a-knot)              1-31 of 31   0.000      0.000            40.828               2.3e+03                       17.11             10.95              True   
+  1A1   cubic spline (clamped)                 1-31 of 31   0.000      0.000            41.061               2.3e+03                       17.11             10.95              True   
+  1A1   quartic spline (not-a-knot)            1-31 of 31   0.000      0.000            41.653               2.3e+03                       17.11             10.95              True   
+  1A1   quintic spline (clamped)               1-31 of 31   0.000      0.000            42.139               2.3e+03                       17.11             10.95              True   
+  1A1   cubic smoothing spline (rms 0.05 meV)  1-31 of 31   0.050      0.125            38.980               2.3e+03                       17.11             10.95              True   
   3E    parabola (near min.)                   4-15 of 33   3474.907   13840.022        60.833               0                             22.92             49.51              True   
   3E    polynomial deg. 2                      1-33 of 33   763.899    2281.609         36.829               -7.39e+03                     14.47             16.32              True   
   3E    polynomial deg. 4                      1-33 of 33   189.518    635.517          61.253               -7.92e+03                     71.45             40.14              True   
@@ -47,10 +47,10 @@ $ python validation/vof_report.py --reference hermite --dataset nv_mgo --temp 5.
 [02_fd_grid] grid visualization and convergence scan
   direction   well  points  h          pts/wavelength  |psi| at walls  ladder err (meV)  F_ij time (s)
   ----------  ----  ------  ---------  --------------  --------------  ----------------  -------------
-  emission    3E    40001   4.229e-04  218             6.4e-16         2.3e-05           30.7         
-  emission    1A1   40001   4.229e-04  383             6.4e-16         7.9e-07           30.7         
-  absorption  1A1   40001   4.229e-04  383             4.7e-16         7.9e-07           33.0         
-  absorption  3E    40001   4.229e-04  218             4.7e-16         2.3e-05           33.0         
+  emission    3E    40001   4.229e-04  218             6.4e-16         2.3e-05           9.8          
+  emission    1A1   40001   4.229e-04  383             6.4e-16         7.9e-07           9.8          
+  absorption  1A1   40001   4.229e-04  383             4.7e-16         7.9e-07           10.0         
+  absorption  3E    40001   4.229e-04  218             4.7e-16         2.3e-05           10.0         
   convergence scan (emission, parabola wells): stencils [3, 5], grid points [2001, 4001, 8001, 16001, 32001]; reference Hermite quadrature, 100001 points
   3-point stencil: F_ij error slope 2.00, ladder error slope 2.00 (expected 2)
   5-point stencil: F_ij error slope 3.99, ladder error slope 3.99 (expected 4)
@@ -59,15 +59,15 @@ $ python validation/vof_report.py --reference hermite --dataset nv_mgo --temp 5.
   well  fd on fit                              max infidelity  max dpsi / max chi  max ladder dev (meV)
   ----  -------------------------------------  --------------  ------------------  --------------------
   1A1   parabola (near min.)                   1.33e-15        5.46e-09            3.98e-07            
-  1A1   polynomial deg. 2                      1.00e+00        1.90e+00            1.4e+03             
-  1A1   polynomial deg. 4                      1.00e+00        1.86e+00            955                 
-  1A1   Morse                                  9.99e-01        1.95e+00            886                 
-  1A1   cubic spline (natural)                 9.98e-01        1.88e+00            254                 
-  1A1   cubic spline (not-a-knot)              9.99e-01        1.87e+00            252                 
-  1A1   cubic spline (clamped)                 1.00e+00        1.90e+00            248                 
-  1A1   quartic spline (not-a-knot)            9.99e-01        1.87e+00            274                 
-  1A1   quintic spline (clamped)               9.99e-01        1.90e+00            248                 
-  1A1   cubic smoothing spline (rms 0.05 meV)  9.99e-01        1.87e+00            252                 
+  1A1   polynomial deg. 2                      9.98e-01        1.98e+00            1.33e+03            
+  1A1   polynomial deg. 4                      9.99e-01        1.85e+00            845                 
+  1A1   Morse                                  1.00e+00        1.91e+00            999                 
+  1A1   cubic spline (natural)                 1.00e+00        1.87e+00            905                 
+  1A1   cubic spline (not-a-knot)              9.99e-01        1.87e+00            898                 
+  1A1   cubic spline (clamped)                 9.98e-01        1.87e+00            929                 
+  1A1   quartic spline (not-a-knot)            9.99e-01        1.87e+00            914                 
+  1A1   quintic spline (clamped)               9.95e-01        1.87e+00            945                 
+  1A1   cubic smoothing spline (rms 0.05 meV)  9.98e-01        1.87e+00            902                 
   3E    parabola (near min.)                   2.66e-15        5.95e-08            9.05e-06            
   3E    polynomial deg. 2                      9.99e-01        1.73e+00            3.61e+03            
   3E    polynomial deg. 4                      1.00e+00        1.86e+00            2.6e+03             
@@ -82,37 +82,73 @@ $ python validation/vof_report.py --reference hermite --dataset nv_mgo --temp 5.
 [04_fc_matrix, 05_vof_methods] every method on the parabola wells, reference hermite
   direction   test                       reference           max dF_ij  at (i, j)  max dF_ij (i,j<30)  max dVOF / peak  rms dVOF / peak  F_ij time (s)  verdict
   ----------  -------------------------  ------------------  ---------  ---------  ------------------  ---------------  ---------------  -------------  -------
-  emission    PyPL (Ruhoff recurrences)  Hermite quadrature  5.10e+26   (159, 99)  5.65e-05            1.98e-15         1.57e-16         0.05           FAIL   
-  emission    FD                         Hermite quadrature  1.03e-08   (159, 95)  1.97e-10            1.92e-10         3.36e-11         11.05          OK     
+  emission    PyPL (Ruhoff recurrences)  Hermite quadrature  5.10e+26   (159, 99)  5.65e-05            1.98e-15         1.57e-16         0.04           FAIL   
+  emission    FD                         Hermite quadrature  1.03e-08   (159, 95)  1.97e-10            1.92e-10         3.36e-11         10.58          OK     
   absorption  PyPL (Ruhoff recurrences)  Hermite quadrature  2.68e+27   (99, 159)  1.26e-05            9.62e-15         1.89e-15         0.04           FAIL   
-  absorption  FD                         Hermite quadrature  1.03e-08   (95, 159)  1.97e-10            1.95e-09         6.05e-10         13.03          OK     
+  absorption  FD                         Hermite quadrature  1.03e-08   (95, 159)  1.97e-10            1.95e-09         6.05e-10         11.09          OK     
 
 [06_vof_fits] fd on every bounded fit vs hermite (harmonic)
   direction   fd on fit                              max dF_ij  max dVOF / peak  F_00^2   centroid shift (meV)
   ----------  -------------------------------------  ---------  ---------------  -------  --------------------
   emission    parabola (near min.)                   1.03e-08   1.92e-10         0.00000  0.00                
-  emission    polynomial deg. 2                      5.61e-01   2.18e+00         0.05473  -1043.35            
-  emission    polynomial deg. 4                      6.45e-01   7.46e-01         0.00000  -186.04             
-  emission    Morse                                  6.39e-01   4.95e-01         0.00000  42.37               
-  emission    cubic spline (natural)                 8.64e-01   5.70e+00         0.00000  -572.47             
-  emission    cubic spline (not-a-knot)              7.76e-01   5.09e+00         0.00000  -565.85             
-  emission    cubic spline (clamped)                 8.14e-01   5.32e+00         0.00000  -584.05             
-  emission    quartic spline (not-a-knot)            7.73e-01   5.07e+00         0.00000  -565.57             
-  emission    quintic spline (clamped)               7.03e-01   4.82e+00         0.00000  -590.54             
-  emission    cubic smoothing spline (rms 0.05 meV)  7.79e-01   5.11e+00         0.00000  -566.01             
+  emission    polynomial deg. 2                      5.43e-01   2.07e+00         0.03630  -1029.83            
+  emission    polynomial deg. 4                      6.55e-01   6.50e-01         0.00000  -163.89             
+  emission    Morse                                  5.79e-01   7.67e-01         0.00000  -256.03             
+  emission    cubic spline (natural)                 7.63e-01   5.03e+00         0.00000  -565.04             
+  emission    cubic spline (not-a-knot)              7.95e-01   5.19e+00         0.00000  -567.08             
+  emission    cubic spline (clamped)                 7.52e-01   4.97e+00         0.00000  -556.37             
+  emission    quartic spline (not-a-knot)            7.85e-01   5.13e+00         0.00000  -566.33             
+  emission    quintic spline (clamped)               8.13e-01   5.34e+00         0.00000  -552.48             
+  emission    cubic smoothing spline (rms 0.05 meV)  7.76e-01   5.09e+00         0.00000  -565.83             
   absorption  parabola (near min.)                   1.03e-08   1.95e-09         0.00000  0.00                
-  absorption  polynomial deg. 2                      5.61e-01   7.62e+00         0.05473  -4094.87            
-  absorption  polynomial deg. 4                      6.45e-01   6.02e+00         0.00000  -2563.50            
-  absorption  Morse                                  6.39e-01   3.55e+00         0.00000  -3047.90            
-  absorption  cubic spline (natural)                 8.64e-01   1.05e+01         0.00000  -2379.71            
-  absorption  cubic spline (not-a-knot)              7.76e-01   9.58e+00         0.00000  -2382.17            
-  absorption  cubic spline (clamped)                 8.14e-01   9.28e+00         0.00000  -2173.41            
-  absorption  quartic spline (not-a-knot)            7.73e-01   8.95e+00         0.00000  -2385.15            
-  absorption  quintic spline (clamped)               7.03e-01   7.66e+00         0.00000  -2056.47            
-  absorption  cubic smoothing spline (rms 0.05 meV)  7.79e-01   9.58e+00         0.00000  -2382.17            
+  absorption  polynomial deg. 2                      5.43e-01   7.10e+00         0.03630  -4071.13            
+  absorption  polynomial deg. 4                      6.55e-01   5.83e+00         0.00000  -2580.22            
+  absorption  Morse                                  5.79e-01   4.49e+00         0.00000  -3250.59            
+  absorption  cubic spline (natural)                 7.63e-01   1.05e+01         0.00000  -2380.11            
+  absorption  cubic spline (not-a-knot)              7.95e-01   9.58e+00         0.00000  -2382.12            
+  absorption  cubic spline (clamped)                 7.52e-01   9.20e+00         0.00000  -2175.30            
+  absorption  quartic spline (not-a-knot)            7.85e-01   8.95e+00         0.00000  -2385.14            
+  absorption  quintic spline (clamped)               8.13e-01   7.60e+00         0.00000  -2058.07            
+  absorption  cubic smoothing spline (rms 0.05 meV)  7.76e-01   9.58e+00         0.00000  -2382.17            
 
-07_cubic_perturbation skipped: the cubic fit has no exact solution to compare with: the 1A1 cubic turns over at Q = -1.70, inside the grid -6.68..10.23: no bound states in the box
+[07_cubic_perturbation] first-order cubic correction, cubic (a fixed, images q = -0.10..+1.15)
+  cubic fits drawn: cubic, cubic-near, cubic-free, cubic-near-free; b scales: 1, 0.5, 0.25, 0.125, 0.0625
+  no exact solution of the cubic: the 1A1 cubic turns over at Q = -1.70, inside the grid -6.68..10.23: no bound states in the box
+  VOF / F_ij reference: the harmonic Hermite quadrature; also compared: fd on poly2, poly4
+  b x 1 left out of the b -> 0 scan: the 1A1 cubic turns over at Q = -1.70, inside the grid -6.68..10.23: no bound states in the box
+  b x 1/2 left out of the b -> 0 scan: the 1A1 cubic with b x 1/2 turns over at Q = -6.50, inside the grid -6.68..10.23: no bound states in the box
+  1A1 wavefunctions: the cubic turns over at Q = -1.70, inside the well's grid -4.04..10.23; no exact states, PT is shown against the harmonic states
+  3E wavefunctions: the cubic turns over at Q = 3.24, inside the well's grid -6.68..6.68; no exact states, PT is shown against the harmonic states
+  well  cubic fit                                  b (eV/amu^1.5 A^3)  xi          max mixing  n_valid  turnover Q
+  ----  -----------------------------------------  ------------------  ----------  ----------  -------  ----------
+  1A1   cubic (a fixed, images q = -0.10..+1.15)   +0.01654            +8.938e-03  26.8        1        -1.7      
+  1A1   cubic (a fixed, near-min images)           +0.00334            +1.804e-03  5.41        5        -20.7     
+  1A1   cubic (a fitted, images q = -0.10..+1.15)  +0.03062            +1.655e-02  49.6        0        -0.5      
+  1A1   cubic (a fitted, near-min images)          +0.08903            +4.811e-02  144         -1       1.4       
+  3E    cubic (a fixed, images q = -0.10..+1.15)   -0.09114            -9.541e-03  57.9        1        3.2       
+  3E    cubic (a fixed, near-min images)           -0.00358            -3.743e-04  2.27        18       82.5      
+  3E    cubic (a fitted, images q = -0.10..+1.15)  -0.13547            -1.418e-02  86.1        0        2.9       
+  3E    cubic (a fitted, near-min images)          -0.13391            -1.402e-02  85.1        0        3.1       
+  direction   vs harmonic              max dF_ij  max dF_ij (i,j<30)  max dVOF / peak
+  ----------  -----------------------  ---------  ------------------  ---------------
+  emission    First-order cubic PT     1.73e+02   4.48e+00            3.86e+00       
+  emission    FD on polynomial deg. 2  5.43e-01   5.43e-01            2.07e+00       
+  emission    FD on polynomial deg. 4  6.55e-01   4.46e-01            6.50e-01       
+  absorption  First-order cubic PT     1.73e+02   4.48e+00            4.79e+00       
+  absorption  FD on polynomial deg. 2  5.43e-01   5.43e-01            7.10e+00       
+  absorption  FD on polynomial deg. 4  6.55e-01   4.46e-01            5.83e+00       
+  direction   method                        sum_j F_0j^2  VOF centroid (meV)
+  ----------  ----------------------------  ------------  ------------------
+  emission    Hermite quadrature, harmonic  1.0000        1146.2            
+  emission    First-order cubic PT          4.5164        1112.4            
+  emission    FD on polynomial deg. 2       1.0000        116.4             
+  emission    FD on polynomial deg. 4       1.0000        982.3             
+  absorption  Hermite quadrature, harmonic  1.0000        4254.8            
+  absorption  First-order cubic PT          4.9502        4102.7            
+  absorption  FD on polynomial deg. 2       1.0000        183.7             
+  absorption  FD on polynomial deg. 4       1.0000        1674.6            
+  b -> 0 (b x 1/4, 1/8, 1/16): PT error slope 2.24 (F_ij, i,j<8) / 1.93 (VOF), effect slope 1.23; at b = 0 |F_PT - F_hermite| = 5.0e-16
 
-Method test (05): FAIL. Report finished in 565 s.
+Method test (05): FAIL. Report finished in 623 s.
 
 Outputs in validation\outputs\suite\nv_mgo\vof_report\default (see index.md)

@@ -10,4 +10,3 @@ along the 1D configuration coordinate between the 3E and 1A1 equilibrium structu
 - NOTES.md, MANIFEST.tsv: how and from where the data were collected
 
 Image_<q> is the structure Q = q dQ on the linear path from the 3E (q = 0) to the 1A1 (q = 1) structure.
-sf/Image_+2.00 was run without spin flip and is not used.

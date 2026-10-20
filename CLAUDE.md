@@ -282,7 +282,15 @@ tables:
    turnover, max mixing, n_valid); `validation.png` (b scaled 1..1/16: PT-vs-exact error slope 2, effect slope 1,
    F_ij block i, j < 8 and VOF; norms vs 1 + sum c^2; mixing and infidelity per level vs exact eigenstates);
    `wavefunctions_<state>.png` (harmonic / PT / exact fd-on-cubic + differences); `fc_error_maps.png` and
-   `vof_cubic.png` against the exact cubic VOF; `summary.csv`, `validation_b_scaling.csv`.
+   `vof_cubic.png` against the exact cubic VOF; `summary.csv`, `validation_b_scaling.csv`, `closure.csv` (sum_j
+   F_0j^2, centroid per method). **No exact cubic (2026-10-17, MgO):** section 07 always runs. When the fitted cubic
+   turns over inside `fd_q_range` (`cubic_exact_reason`), the following changes:
+   - VOF / F_ij reference = harmonic `rep.reference`, tested = cubic PT + fd on every bounded `polyN` in `rep.bounded`.
+   - The b-scan keeps only bounded scales (`cubic_exact_scales`, turnover moves as 1/s; halves below the smallest
+     until `MIN_EXACT_SCALES` = 3).
+   - Panel (c) shows the largest exact scale, with the fitted-b mixing dotted.
+   - Wells without exact states show harmonic / PT / PT - harmonic (per-well check on `well_grid`).
+   - `skipped.json` is gone; `--skip-cubic` still skips the section.
 
 Shared VOF flags (`harness.methods.add_vof_args`): `--temp --sigma --gamma --no-zpl --order-es --order-gs
 --ene-range --resol --npts --fd-npts --fd-stencil --fd-margin --fd-fit`. The old `--vof-temp`,
@@ -396,7 +404,7 @@ run cleanly, and black is clean on every testing file.
 from `doc/nv_mgo_west/` on 2026-10-16; the transfer tarball was removed, it is in commit 7ed4613).** Collector layout: `{sc,sf}/Image_<q>/summary.json` (`plep.eigenval`, Ry), `qe/Image_<q>/data-file-schema.xml`
 (34 images, from sc), `<state>/Image_<q>/inputs/` (logs), `reference/` (`ccd_nv_mgo.py` = the user's spec and the
 reference for colours / labels; `sf_note.md`). `doc/tutorials/003_nv_mgo_isc/ccd_nv_mgo.py` is the user's plot script, edited to read
-this layout (qe/ XMLs, local summary.json, script-relative paths, UTF-8 stdout, `SF_EXCLUDE = ["Image_+2.00"]`).
+this layout (qe/ XMLs, local summary.json, script-relative paths, UTF-8 stdout, `SF_EXCLUDE = []`).
 - E_state = qe etot + eigenval[root] x 13.605693 (3E: sc root 1; 1A1: sf root 4), zero = 3A2 (qe) minimum excluding
   Image_-1.00, exactly as ccd_nv_mgo.py. dQ = 3.097879 (Mg107 O108 N1, 216 atoms); every image is an exact linear
   interpolation of Image_+0.00 -> +1.00. ZPL 3E -> 1A1 = 554.4 meV (3E min 3.1376 eV, 1A1 min 2.5832 eV).
@@ -406,8 +414,8 @@ this layout (qe/ XMLs, local summary.json, script-relative paths, UTF-8 stdout, 
   is orientation independent (checked: fd = hermite with 3E left).
 - **Image windows the user specified (2026-10-16)**, q of Image_<q>, inclusive: parabola 3E -0.10..+0.45, 1A1
   +0.60..+1.15 (12 each); cubic fit (perturbative correction) -0.10..+1.15 for both (26 each; `ccd["<s>_cubic_index"]`);
-  **every other fit (splines, Morse, polyN) uses ALL images** (3E 33, 1A1 30). The only image never used: sf
-  Image_+2.00 (not a spin-flip run: wbse.out l_spin_flip = False, summary byte-identical to sc's). `fits.images()` /
+  **every other fit (splines, Morse, polyN) uses ALL images** (3E 33, 1A1 31). sf Image_+2.00 was re-run as a real
+  spin-flip run on 2026-10-18 (the first copy had l_spin_flip = False); every image is now used. `fits.images()` /
   `fits.state_label()` / `ccd_data.image_note()` print the images in every legend, note, CSV and index.md.
 - Harmonic (these parabolas): 3E 60.83 meV (S = 69.8), 1A1 31.55 meV (S = 36.2). sum F_0j^2 = 1 - 1e-6 at j = 55
   (emission) / 135 (absorption), hence `run_all_nv_mgo.toml`: 160 ES x 100 GS, axis -500..10000 meV at 5 meV,
@@ -418,36 +426,34 @@ this layout (qe/ XMLs, local summary.json, script-relative paths, UTF-8 stdout, 
   (likely a crossing / spin contamination; it sits where 3E v = 0 lives). sf ms0 is 0.15-0.17 eV above 3A2. XML_DIFFER
   images have identical SCF energies in sc and sf pw.out, so qe/ is exact for sf. `inputs/pwscf.xml` are nscf outputs
   with etot = 0: never read them.
-- **Tutorial `doc/tutorials/pypl_003.ipynb`** (created 2026-10-16, executed, 34 cells; built and run by a scratch runner
+- **Tutorial `doc/tutorials/pypl_003.ipynb`** (created 2026-10-16, executed, 43 cells since 2026-10-19; built and run by a scratch runner
   through jupyter_client because nbformat / nbclient are not installed; the `python3` kernelspec runs plain `python`,
   so put `C:\Python312` first on PATH). 3E -> 1A1 of NV- in MgO: harmonic VOF (PyPL Ruhoff, 60.8332 / 31.5511 meV,
   100 x 100, sigma [6, 8], gamma 0.3, 5 K, axis 0..2000 meV) vs smooth not-a-knot spline VOF (fd 40001 points +
   `build_fc_lsp_from_levels`), then Gamma = 4 pi / hbar |lambda_perp|^2 F(Delta) with lambda_perp(QDET) = 204.9925 GHz only
   (the user asked not to show the DFT lambda). Results at Delta_ad = 554.41 meV: harmonic F = 2.70e-7 /meV, Gamma 3.71
-  MHz, tau 270 ns, FC shift 1145 meV; spline F = 3.97e-5 /meV, Gamma 545 MHz, tau 1.83 ns, FC shift 660 meV (x147).
-  **The spline VOF is a single narrow peak: 92.5 % of |F_0j|^2 goes to 1A1 j = 18, 19, states with much of their weight in
+  MHz, tau 270 ns, FC shift 1145 meV; spline F = 4.04e-5 /meV, Gamma 555 MHz, tau 1.80 ns, FC shift 660 meV (x150).
+  **The spline VOF is a single narrow peak: 92.4 % of |F_0j|^2 goes to 1A1 j = 18, 19, states with much of their weight in
   a 37 meV pocket of the sf root 4 near q ~ 0 (local min Q = -0.13, barrier Q = +0.25).** So the spline rate hinges on
   whether that shoulder is the true 1A1 PES; the notebook says so. 0-0 lines with ZPE: harmonic 579.3, spline 571.4 meV
   (F is evaluated from each VOF's own 0-0 line, as in the user's ISC script). Since the merge it uses only the package API
   (needs `pip install -e .`), is in `doc/tutorial.rst`, and was re-executed with identical results.
 - **Recommended spline for MgO: `spline3-notaknot-smooth`** (user asked for smooth PESs, 2026-10-16). Clamped is
   wrong here: forcing the harmonic tail slope at the end images (3E Q = 6.2: +5.49 vs data +1.65) opens a 0.26-0.60 eV
-  well with no data in the 3E gap Q = 4.65-6.20 and moves the 3E -> 1A1 VOF by 38-51 % of the peak. Smooth tails are
-  C2, identical to not-a-knot inside the data, and move the VOF by 0.2 % (centroid 580.3 meV from the ZPL). In the
-  dense images every spline cross-validates to ~2 meV. Its plot was added to the existing suite as
-  `plot_ccd_wavefunctions/wf-fd_vof-hermite-fd_fit-spline3-notaknot-smooth/` (index.md has an "Added after this run"
-  section); `run_all_nv_mgo.toml` now includes it. 80/80 checks.
-- **Latest suites (2026-10-16 evening, new figure style):** diamond `outputs/suite/default/` 30 steps 432 s, 17 pass/ok,
-  13 differ, 0 fail; MgO `outputs/suite/nv_mgo/` 25 steps 1529 s, 13 pass/ok, 10 differ, 2 FAIL = the expected PyPL
-  Ruhoff instability (dF 2.7e27, dVOF 1e-14; fd vs hermite dF 1.03e-8 OK). Tutorial 005 section 6 reads both suites'
-  index.md / CSVs / figures (figures downscaled + palette-compressed by `show()`; notebook ~2 MB).
-- **Earlier suite result (outputs/suite/nv_mgo/, 2026-10-16, 23 steps, 1053 s):** checks 75/75; fd vs hermite like for like
-  dF 1.03e-8, dVOF 2e-9 (OK); pypl vs hermite dVOF 1e-14 but dF 2.7e27 (FAIL, finding 6); report FAIL only from pypl;
-  section 07 skipped (no exact cubic). Skipped fits: poly6, poly8 (1A1 unbounded), cubic and the exact-fd checks of
-  cubic PT (1A1 cubic turns over at Q = -1.70, cubic-free at -0.50; 3E at 3.24). Emission (3E -> 1A1) centroid shift
-  vs harmonic (centroid ~1146 meV): splines -566..-591 meV, poly4 -186, Morse +42, poly2 -1043, cubic PT -34 (a fixed)
-  / +20 (a fitted). Absorption shifts -2.1..-4.1 eV. The harmonic wells are far from the data over dQ (parabola rms over
-  all images: 1A1 0.9 eV, 3E 5.6 eV with the old windows), so the anharmonic fits dominate.
+  well with no data in the 3E gap Q = 4.65-6.20 and moves the 3E -> 1A1 VOF by 31 % (cubic) / 42 % (quintic) of the
+  peak. Smooth tails are C2 and identical to not-a-knot inside the data; with the sf +2.00 image every end image is
+  >= 3.2 eV above its minimum, so smooth vs harmonic tails differ only above 1A1 v ~ 87 (VOF equal to 1e-12, centroid
+  579.2 meV from the ZPL). In the dense images every spline cross-validates to ~2 meV.
+- **Latest suites:** diamond `outputs/suite/default/` (2026-10-16) 30 steps 432 s, 17 pass/ok, 13 differ, 0 fail.
+  MgO `outputs/suite/nv_mgo/` (2026-10-18, with the spin-flip sf/Image_+2.00; 2026-10-17 run archived) 25 steps
+  1807 s, 13 pass/ok, 10 differ, 2 FAIL = the expected PyPL Ruhoff instability (dF 2.7e27, dVOF 1e-14; fd vs hermite
+  dF 1.03e-8, dVOF 1.95e-9 OK). Section 07 ran: b-scan b x 1/4, 1/8, 1/16, slopes 2.24 / 1.93 (PT error), effect
+  1.23; PT sum F_0j^2 4.52 / 4.95. Emission centroid shift vs harmonic (1146.2 meV): poly2 -1030, splines
+  -552 (quintic clamped) .. -567 (not-a-knot), Morse -256, poly4 -164, cubic PT -34 (a fixed) / +20 (a fitted);
+  closure centroids PT 1112, fd poly4 982, poly2 116 meV. 1A1 rms over all images: parabola 761, poly2 348, poly4 137,
+  Morse 282 meV; poly6 / poly8 1A1 unbounded (skipped), as are cubic and the exact-fd cubic checks (1A1 cubic turns
+  over at Q = -1.70, cubic-free at -0.50). Tutorial 005 section 6 reads both suites' index.md / CSVs / figures
+  (figures downscaled + palette-compressed by `show()`; notebook ~2 MB).
 
 **Next steps:**
 1. DONE (2026-10-16): `config_coord_1d_vof_solver.build_fc_lsp_from_levels(eneaxis, temp, sigma, zpl_lorentzian, gamma,
@@ -477,7 +483,13 @@ this layout (qe/ XMLs, local summary.json, script-relative paths, UTF-8 stdout, 
 `doc/tutorials/pypl_001.ipynb` (NV-center absorption/PL from full phonons, both the displacement and force routes) and `pypl_002.ipynb` (1D CCD) are the executable reference for the intended API usage; their input data lives in `doc/tutorials/001_*` and `002_*` and is real QE/Phonopy output.
 
 Added 2026-10-16 (all in `doc/tutorial.rst`, executed and stored with outputs; nbsphinx does not re-run them):
-- `pypl_003.ipynb`: 3E -> 1A1 ISC of NV- in MgO; data in `doc/tutorials/003_nv_mgo_isc/` (moved from `doc/nv_mgo_west/`, README.md added in the 001/002 style; the transfer tarball was dropped).
+- `pypl_003.ipynb`: 3E -> 1A1 ISC of NV- in MgO (section 3 has an eigenstate figure before the VOF plot: v = 0-2 of each
+  state + the 1A1 level of largest overlap on harmonic | spline wells, and |F_0v'|^2 sticks vs Delta; 2026-10-17).
+  Section 4 (2026-10-19, 43 cells now; ISC is section 5): generalized Huang-Rhys factors S_cl (relaxation energy / hw),
+  S_E (energy moment = sum rule (<chi_0|H|chi_0> - eps_0) / hw), S_n (mean quantum number), S_DW (-ln F_00^2), hw = FD
+  fundamental, notebook function `generalized_huang_rhys` (not in the package), extra FD solves 220 x 160 on parabolas and
+  splines. Parabola 36.22 / 69.83 (S_E = S + 0.112 zero-point term), spline S_E 15.57 (1A1) / 22.24 (3E), S_n 18.36 /
+  30.78, S_DW 47.75 / 47.29; S_E hw = VOF centroid (1146.2 / 662.2 meV). Plus a weights-vs-Poisson figure. Data in `doc/tutorials/003_nv_mgo_isc/` (moved from `doc/nv_mgo_west/`, README.md added in the 001/002 style; the transfer tarball was dropped).
 - `pypl_004.ipynb`: cubic perturbation theory on NV- diamond. Fits (a fixed), xi and n_valid, PT vs harmonic vs exact-fd
   wavefunctions (GS infidelity n=0: 5e-6 -> 2.5e-10), VOF (PT captures 99.1 % of the exact cubic effect), validity:
   b-scaling slopes 1.99 / 1.00, a universal infidelity-vs-mu_n plot on model wells (xi 1e-3..1e-2; harmonic ~mu^2, PT ~mu^3),

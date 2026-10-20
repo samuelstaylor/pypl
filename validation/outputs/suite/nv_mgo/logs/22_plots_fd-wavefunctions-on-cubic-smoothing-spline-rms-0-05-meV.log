@@ -7,16 +7,16 @@ $ python validation/plot_ccd_wavefunctions.py --wf-method fd --vof-method hermit
 # Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
 # E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
 # image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit (splines, Morse, polyN) ALL images
-# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 (not a spin-flip run, so not a 1A1 point)
+# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 31 sf images (q = -1.00..+2.00)
 Finite differences on fit spline3-s0.05 (cubic smoothing spline (rms 0.05 meV)):
-  1A1 well: cubic spline (degree 3, smoothing to rms <= 5e-05 eV, 26 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.92e+00 / -7.86e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 5.00e-05 eV
+  1A1 well: cubic spline (degree 3, smoothing to rms <= 5e-05 eV, 27 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.92e+00 / -1.32e+00 eV/(amu^0.5 A)); fitted to samples 1-31 of 31 (Q = -3.098..6.196); rms residual 5.00e-05 eV
   3E well: cubic spline (degree 3, smoothing to rms <= 5e-05 eV, 30 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.76e+00 / 3.83e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 5.00e-05 eV
 
 Wavefunction check: <chi_i | chi_j> of the 3 drawn levels vs the solver's F_ij
   from the drawn finite-difference eigenstates (cubic smoothing spline (rms 0.05 meV)):
      0.000000000  -0.000000001   0.000000011
      0.000000000  -0.000000006   0.000000063
-     0.000000001  -0.000000023   0.000000244
+     0.000000001  -0.000000023   0.000000243
   solver fc_ints:
      0.000000000  -0.000000000   0.000000002
      0.000000000  -0.000000002   0.000000010
@@ -25,14 +25,14 @@ Wavefunction check: <chi_i | chi_j> of the 3 drawn levels vs the solver's F_ij
   fit spline3-s0.05 is anharmonic: a mismatch with the harmonic solver is expected; plotting anyway
 
 Vibrational levels (eV)
-  v = 0   GS  2.604618   ES  3.176061
-  v = 1   GS  2.647147   ES  3.248710
-  v = 2   GS  2.688388   ES  3.317921
+  v = 0   GS  2.604617   ES  3.176061
+  v = 1   GS  2.647143   ES  3.248710
+  v = 2   GS  2.688365   ES  3.317921
 
 Franck-Condon lineshapes via bulid_fc_lsp
   emission  Hermite (quadrature)                 closure 1.0000000000  sideband peak 3.7563 eV  centroid 1146.2 meV
-  emission  Finite difference [cubic smoothing spline (rms 0.05 meV)] closure 1.0000000000  sideband peak 3.1863 eV  centroid 580.2 meV
-    Finite difference [cubic smoothing spline (rms 0.05 meV)] vs Hermite (quadrature): max |difference| / peak = 5.11e+00
+  emission  Finite difference [cubic smoothing spline (rms 0.05 meV)] closure 1.0000000000  sideband peak 3.1863 eV  centroid 580.4 meV
+    Finite difference [cubic smoothing spline (rms 0.05 meV)] vs Hermite (quadrature): max |difference| / peak = 5.09e+00
   absorption Hermite (quadrature)                 closure 0.9999999998  sideband peak 7.3256 eV  centroid 4254.8 meV
   absorption Finite difference [cubic smoothing spline (rms 0.05 meV)] closure 1.0000000000  sideband peak 5.1356 eV  centroid 1872.7 meV
     Finite difference [cubic smoothing spline (rms 0.05 meV)] vs Hermite (quadrature): max |difference| / peak = 9.58e+00

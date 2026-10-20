@@ -64,10 +64,9 @@ so F_ij is the same in either orientation (`check_1d_ccd.py` checks fd = hermite
 | --- | --- | --- |
 | parabola (the harmonic wells) | q = −0.10 … +0.45 (12) | q = +0.60 … +1.15 (12) |
 | cubic a Q² + b Q³ + c (the perturbative correction) | q = −0.10 … +1.15 (26) | q = −0.10 … +1.15 (26) |
-| every other fit (splines, Morse, polyN) | all 33 (q = −1.00 … +2.00) | all 30 (q = −1.00 … +1.50) |
+| every other fit (splines, Morse, polyN) | all 33 (q = −1.00 … +2.00) | all 31 (q = −1.00 … +2.00) |
 
-The one image never used is `sf/Image_+2.00`, which was not a spin-flip run, so its root 4 is not 1A1. With
-these parabolas the harmonic wells are 3E 60.83 meV (S = 69.8) and 1A1 31.55 meV (S = 36.2). `validation/run_all_nv_mgo.toml` holds the settings the MgO
+With these parabolas the harmonic wells are 3E 60.83 meV (S = 69.8) and 1A1 31.55 meV (S = 36.2). `validation/run_all_nv_mgo.toml` holds the settings the MgO
 Huang-Rhys factors need: basis, a −0.5 … 10 eV axis, constant σ, and `hermite` as the reference.
 
 ### What a "method" is
@@ -243,113 +242,97 @@ leading coefficient is positive. Least squares does not enforce that, and here t
 out negative (GS p₄ = −0.018, p₈ = −0.42), so V → −∞ at large |Q|. Over the short sampled range the top-order
 term contributes only a few meV, so its sign is set by small softening and noise.
 
-**Spline options.** `--fd-fit spline` with:
+**Spline fits.** A spline passes through every image (rms 0) as piecewise polynomials of degree K that join
+with continuous derivatives up to V^(K−1). Three choices define it: the degree, the end condition (which fixes the
+K − 1 coefficients the images leave free) and the tails beyond the last images (§5.1).
 
-| flag | values |
-| --- | --- |
-| `--spline-order` | 2, 3, 4, 5 |
-| `--spline-bc` | `natural`, `not-a-knot`, `clamped` |
-| `--spline-smoothing RMS_meV` | smoothing target |
-| `--spline-tails` | `harmonic` (default), `smooth` |
+| choice | spec | flag | values |
+| --- | --- | --- | --- |
+| degree K | `splineK` | `--spline-order` | 2, 3 (default), 4, 5 |
+| end condition | `-natural`, `-notaknot`, `-clamped` | `--spline-bc` | default natural (odd K), not-a-knot (even K) |
+| smoothing | `-sRMS` (meV) | `--spline-smoothing` | passes within RMS of the images instead of through them |
+| tails | `-smooth` | `--spline-tails` | `harmonic` (default), `smooth` |
 
-You can also name the variant directly in `--fd-fit`, e.g. `spline5-clamped`. The end conditions:
-- **natural:** V'' = 0 at the end images. Odd orders only.
-- **not-a-knot:** no conditions imposed. Any order.
-- **clamped:** slope (and for order 5, curvature) matched to the harmonic tails, a smooth join. Odd orders only.
+Example: `--fd-fit spline3-notaknot-smooth`. The end conditions:
+- **natural:** V″ = 0 at both end images (odd K). A well is not flat there, so this softens the end; on diamond
+  the first GS image is only 0.14 amu^½ Å from the minimum, which lowers ħω to 56.4 meV (others ~58.9).
+- **not-a-knot:** the two end intervals on each side share one polynomial. Nothing is imposed at the ends, so
+  their shape comes from the data. Any K.
+- **clamped:** the end slope (for K = 5 also V″) is set to the harmonic tail's, 2a(Q_e − Q₀) (odd K). This
+  forces a slope taken from the minimum onto the end image, and it is often wrong there (§5.1).
 
-All six variants tested give the same physics to within a few percent of each other. They differ only in
-ħω at the minimum, where the natural cubic is the outlier: it forces V'' = 0 at the first GS image, just
-0.14 amu^½ Å from the minimum.
+On diamond all variants agree to a few percent of the VOF peak.
 
 **Line positions of an anharmonic fit.** `bulid_fc_lsp` places line ij at j ħω_f − i ħω_i, the harmonic
 ladder, whatever potential produced F_ij. `config_coord_1d_vof_solver.build_fc_lsp_from_levels(...)` builds the
 same sum (same Gaussian, Lorentzian ZPL and Boltzmann weights) with each line at the actual level energies,
 E_ij = (E^f_j − E^f_0) − (E^i_i − E^i_0), by default the `fd_energies_*` of the last fd solve. With harmonic
 ladders it equals `bulid_fc_lsp` exactly (checked at 300 K); `bulid_fc_lsp` itself is unchanged. Use it whenever the
-VOF's energy axis matters, e.g. an ISC rate F(Δ): on NV⁻ in MgO the smooth-spline ¹A₁ ladder is 373 meV at v = 10
+VOF's energy axis matters, e.g. an ISC rate F(Δ): on NV⁻ in MgO the smooth-spline ¹A₁ ladder is 374 meV at v = 10
 against 315.5 meV harmonic. `doc/tutorials/pypl_003.ipynb` uses it.
 
 ### 5.1 Spline tails: `harmonic` or `smooth`
 
-**The problem.** A spline is only defined between the first and last image. The finite-difference grid is
-wider, because the highest vibrational levels reach past the data, so every spline needs a *tail* on each
-side. What the tail is, and how it joins the spline, is a modelling choice with no data behind it.
+A spline ends at the outermost images, but the FD grid and the high levels extend past them, so each side needs
+a tail.
 
-**The two options.**
-
-| tails | beyond the end image Q_e | junction at Q_e | depends on |
+| tails | beyond the end image Q_e | join at Q_e | taken from |
 | --- | --- | --- | --- |
-| `harmonic` (default) | a (Q − Q₀)² + const, a from the near-minimum parabola | C0: value only, a slope kink (C1 / C2 only with `-clamped`) | the parabola fit |
-| `smooth` (`-smooth`) | V(Q_e) + V′(Q_e)(Q − Q_e) + ½ V″(Q_e)(Q − Q_e)² | C2: value, slope and curvature continuous | the spline's own ends, i.e. the data |
+| `harmonic` (default) | a(Q − Q₀)² + const | value only: a slope kink | the near-minimum parabola |
+| `smooth` (`-smooth`) | V(Q_e) + V′(Q_e)(Q − Q_e) + ½V″(Q_e)(Q − Q_e)² | value, slope and curvature (C²) | the spline's own end |
 
-The `smooth` tail is the second-order Taylor expansion of the spline at its end image. It is the unique
-quadratic that continues the curve with no jump in V, V′ or V″, so the potential is C² everywhere: inside the
-data (a cubic spline is C² by construction) and across both junctions. That is the property an electronic-structure
-PES has, smooth and twice differentiable. And because the tail adapts to the spline, not the reverse, **the spline
-inside the data is untouched**: identical to the same spline with harmonic tails, to 0.0 eV.
+The smooth tail is the spline's second-order Taylor expansion at its end image: the only quadratic that
+continues it without a jump in V, V′ or V″. The spline inside the data is unchanged.
 
-**Why not `clamped`?** `clamped` also makes the junction smooth (C¹ for a cubic, C² for a quintic), but it does
-so the other way round: it forces the spline's end slope to equal the harmonic tail's, 2a (Q_e − Q₀). That
-slope comes from the parabola near the minimum, far from the end image, and it is usually wrong there:
+**`spline3-notaknot-smooth`, the recommended fit.** Every piece of it comes from the computed energies:
+- *cubic:* C² inside the data, like a real PES;
+- *not-a-knot:* no condition imposed at the end images;
+- *smooth tails:* C² across the junctions, continuing the data's own end slope and curvature.
 
-| end image (NV⁻ in MgO) | slope of the data | slope `clamped` forces |
+The result is C² everywhere with no input from the parabola fit. Use `spline4-notaknot-smooth` or
+`spline3-s0.05-smooth` as robustness checks, and `harmonic` tails only to reproduce earlier results.
+
+**Why not `clamped`.** Clamped also makes the join smooth, but by bending the spline to the parabola's slope
+instead of continuing the data's:
+
+| end image (NV⁻ in MgO) | slope of the data (eV/(amu^½ Å)) | slope `clamped` forces |
 | --- | --- | --- |
-| ³E, Q = 6.20 | +1.65 eV/(amu^½ Å) | +5.49 |
+| ³E, Q = 6.20 | +1.65 | +5.49 |
 | ³E, Q = −3.10 | −4.50 | −2.74 |
-| ¹A₁, Q = 4.65 | +1.16 | +0.37 |
+| ¹A₁, Q = 6.20 | +2.24 | +0.74 |
 
-To meet the steeper slope at Q = 6.20, the ³E spline swings down across its widest data gap (Q = 4.65–6.20)
-and opens a well 0.26 eV (cubic) to 0.60 eV (quintic) deep that no image supports. A clamped spline is smooth,
-but smooth *and wrong* inside the data. So `-smooth` cannot be combined with `-clamped`; the two are opposite
-answers to the same question.
+To reach +5.49 at Q = 6.20, the ³E spline dips across its widest data gap (Q = 4.65–6.20) into a well
+0.26 eV (cubic) to 0.60 eV (quintic) deep that no image supports. Hence `-smooth` cannot be combined with
+`-clamped`.
 
-**Validity condition.** A smooth tail is a parabola with curvature ½ V″(Q_e). It rises, so the well stays bound,
-only if V″ > 0 at both end images. The fit reports this: `bounded` is False otherwise, `describe()` gives the
-end curvatures with an `UNBOUNDED` reason, and `fd` / `run_all.py` refuse the fit. Measured end curvatures, all
-positive:
+**Validity.** A smooth tail rises, and the well stays bound, only if V″ > 0 at both end images. Otherwise
+`bounded` is False, `describe()` gives the reason and `fd` / `run_all.py` refuse the fit. Measured end curvatures:
 
 | dataset | state | V″ at the two end images (eV/(amu Å²)) |
 | --- | --- | --- |
 | NV⁻ in MgO | ³E | +2.024 (Q = −3.10), +0.805 (Q = 6.20) |
-| NV⁻ in MgO | ¹A₁ | +0.179 (Q = −3.10), +0.875 (Q = 4.65) |
+| NV⁻ in MgO | ¹A₁ | +0.179 (Q = −3.10), +0.699 (Q = 6.20) |
 | NV⁻ in diamond | GS | +0.859, +0.898 |
 | NV⁻ in diamond | ES | +0.968, +1.071 |
 
-**Run it.** Any spline can take smooth tails, except `-clamped`:
+**Run it.**
 
 ```bash
-python validation/plot_ccd_wavefunctions.py --dataset nv_mgo --wf-method fd --vof-method hermite fd \
-    --fd-fit spline3-notaknot-smooth                              # the spec suffix -smooth
-python validation/compare_vof.py --dataset nv_mgo --reference hermite --test fd \
-    --fd-fit spline --spline-bc not-a-knot --spline-tails smooth  # the same fit from flags
+python validation/compare_vof.py --dataset nv_mgo --reference hermite --test fd --fd-fit spline3-notaknot-smooth
+# the same fit from flags: --fd-fit spline --spline-bc not-a-knot --spline-tails smooth
 ```
 
-In a suite config, add `tails = "smooth"` to a `[[fd.splines]]` entry (as `run_all_nv_mgo.toml` does).
-In code: `config_coord_1d_potential.fit_spline(..., tails="smooth")`. Canonical names add `-smooth`:
-`spline3-notaknot-smooth`, `spline3-natural-smooth`, `spline3-s0.05-smooth`, ...
-
-**Reading the output.** The fit's description line names the tails and states the junction values, e.g.
-`cubic spline (degree 3, not-a-knot ends, 28 knots), smooth C2 Taylor tails from the spline's own ends
-(V' = -3.397 / +1.160, V'' = +0.179 / +0.875 at Q = -3.098 / 4.647)`. `params["junction"]` is `C2`, and the
-slope and curvature jumps are zero. Legends call it `cubic spline (not-a-knot, smooth C2 tails)`.
+In a suite config, add `tails = "smooth"` to a `[[fd.splines]]` entry (as `run_all_nv_mgo.toml` does). In code:
+`config_coord_1d_potential.fit_spline(..., bc="not-a-knot", tails="smooth")`. The fit's description gives the
+junction values, e.g. `smooth C2 Taylor tails from the spline's own ends (V' = -3.397 / +2.244, V'' = +0.179 /
++0.699 at Q = -3.098 / 6.196)`, and `params["junction"]` is `C2`.
 
 **Measured effect.**
-- *NV⁻ in MgO, 3E → 1A1:* `spline3-notaknot-smooth` changes the VOF by 0.2% of its peak relative to
-  `spline3-notaknot` (centroid 580.3 meV from the ZPL, −566 meV from harmonic). Its ¹A₁ ladder differs only
-  from v ≈ 30 (1027.5 vs 1004.5 meV), above the end image at 0.84 eV, where 5 K emission puts no weight.
-  `clamped` changes the same VOF by 38–51%.
-- *NV⁻ in diamond:* the tails matter more, because the images span only Q = −0.14 … 0.83 and the 50–60 levels
-  reach far into them. Smooth tails change the VOF by 2.0% of the peak relative to harmonic tails (centroid
-  −2.4 meV in emission, −4.0 meV in absorption). With them, the not-a-knot spline is within 0.19% of the
-  harmonic reference, versus ~2% with harmonic tails. **Most of the ~2% "spline vs harmonic" difference
-  of the harmonic-tailed splines on diamond (section 5) is therefore the slope kink of the harmonic tail, not
-  anharmonicity of the data.**
-
-**When to use it.** Whenever the PES should be smooth everywhere, which is always for an electronic-structure
-surface, and in particular whenever levels reach beyond the data. The recommended spline is
-**`spline3-notaknot-smooth`**: not-a-knot imposes nothing at the end images (the end shape comes from the data),
-and the smooth tails add nothing artificial at the junctions. Report `spline4-notaknot-smooth` or
-`spline3-s0.05-smooth` as robustness checks. Use `harmonic` tails only to reproduce results computed with them.
+- *NV⁻ in MgO:* every end image lies ≥ 3.2 eV above its minimum, so the tails hold only ¹A₁ levels above
+  v ≈ 87. Smooth and harmonic tails give the same VOF to 1e-12 of the peak; `clamped` moves it by 31–42%.
+- *NV⁻ in diamond:* the images span only Q = −0.14 … 0.83, so most levels reach into the tails. Smooth tails
+  put the not-a-knot spline 0.19% of the peak from harmonic, against ~2% with harmonic tails: **that ~2% is the
+  tails' slope kink, not anharmonicity of the data.**
 
 **Wavefunctions.** FD on the parabola reproduces the Hermite functions to an infidelity of about 1e-15. FD
 on the spline changes them by 8e-4 (GS) and 8e-5 (ES); that change is the real anharmonicity of the computed PES.
@@ -482,13 +465,36 @@ python validation/plot_ccd_wavefunctions.py --wf-method cubic --vof-method pypl 
 
 Flags: `--cubic-points {all,parabola}`, `--cubic-free-a`, `--cubic-normalize`. Report section
 `07_cubic_perturbation/` has the fits, the validation figure, the wavefunctions (harmonic, PT and exact),
-the F_ij error maps and the VOF against the exact solution.
+the F_ij error maps, the VOF against the exact solution and `closure.csv` (Σⱼ F₀ⱼ² and the VOF centroid of
+each method).
+
+If the fitted cubic turns over inside the fd grid (NV⁻ in MgO), it has no exact solution, and the section
+changes as follows:
+- **VOF and F_ij:** compared with the harmonic VOF, next to fd on every bounded polynomial fit (`polyN`).
+- **b → 0 scan:** uses only the scales b × s whose turnover, at Q₀ − 2a/(3sb), lies outside the grid.
+  If fewer than three remain, smaller scales are added by halving.
+- **Panel (c) of `validation.png`:** shows the exact eigenstates at the largest such scale, with the mixing
+  at the fitted b dotted.
+- **Wavefunctions:** a well without exact states shows harmonic, PT and PT − harmonic.
 
 In `wavefunctions_<state>.png`:
 - **PT − exact** is ψ̃ₙ minus the exact eigenstate of the same cubic: the error of the correction.
 - **harmonic − exact** is the full anharmonic effect.
 
 The PT curves there are not renormalized, so at high n part of PT − exact is just excess norm.
+
+On NV⁻ in MgO (suite `nv_mgo`, report section 07):
+
+| quantity | value |
+| --- | --- |
+| b → 0 scan | b × 1/4, 1/8, 1/16 (b × 1, 1/2 turn over inside the grid) |
+| PT error vs exact on those scales | b^2.24 (F_ij), b^1.93 (VOF): the expansion itself is correct |
+| size of the effect | b^1.23 |
+| Σⱼ F₀ⱼ² at the fitted b | 4.52 (emission), 4.95 (absorption), instead of 1 |
+| VOF centroid (emission) | PT 1112, harmonic 1146, fd on poly4 982, fd on poly2 116 meV |
+
+So the PT expansion is correctly implemented, but at the fitted b it is far outside its range of validity
+(n_valid = 1).
 
 **When to use.** As a cheap, analytic estimate of cubic anharmonicity when the important levels stay below
 `n_valid`: low temperature, small b. Otherwise use `fd --fd-fit cubic`, which solves the same potential

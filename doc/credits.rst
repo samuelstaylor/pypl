@@ -40,6 +40,7 @@ Developers
 
   - Yu Jin (Flatiron Institute and University of Chicago)
   - Samuel S. Taylor (University of Chicago)
+  - Vrindaa Somjit (Argonne National Laboratory)
   - Victor Yu (Argonne National Laboratory)
   - Marco Govoni (University of Modena and Reggio Emilia)
   - Giulia Galli (University of Chicago and Argonne National Laboratory)

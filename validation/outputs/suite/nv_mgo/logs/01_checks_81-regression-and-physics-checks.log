@@ -83,7 +83,7 @@ Large Huang-Rhys factors and the NV- in MgO dataset
   PASS  hermite F_ij finite with 200 levels (no 2^n n! overflow) 
   PASS  hermite closure of row 0, S ~ 50               got  1  expected  1  (tol 1e-10)
   PASS  MgO delta_q (ccd_nv_mgo.py: 3.097879)          got  3.09788  expected  3.09788  (tol 1e-06 amu^0.5 A)
-  PASS  MgO images: every one, 30 x 1A1 (no sf +2.00), 33 x 3E 
+  PASS  MgO images: every one, 31 x 1A1, 33 x 3E       
   PASS  MgO 3E minimum at Q = 0, 1A1 at Q = delta_q    
   PASS  MgO 3E lowest image at Q = 0 (q = +0.00)       
   PASS  MgO 1A1 lowest image at Q = delta_q (q = +1.00) got  3.09788  expected  3.09788  (tol 1e-12)
@@ -94,7 +94,7 @@ Large Huang-Rhys factors and the NV- in MgO dataset
   PASS  MgO cubic-fit images: q = -0.10..+1.15 for both (26 each) 
   PASS  MgO spline / Morse / polyN use every image     
   PASS  smooth-tail spline = not-a-knot spline inside the data 
-  PASS  smooth tails are C2 at both end images         max jump 8.8e-05
+  PASS  smooth tails are C2 at both end images         max jump 7.0e-05
   PASS  smooth tails bounded on MgO (V'' > 0 at every end) 
   PASS  clamped + smooth tails is rejected             
   PASS  spline_spec(3, not-a-knot, tails=smooth) is canonical 

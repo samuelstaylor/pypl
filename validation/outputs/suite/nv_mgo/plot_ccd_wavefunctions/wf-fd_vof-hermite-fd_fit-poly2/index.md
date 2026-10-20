@@ -1,6 +1,6 @@
 # 1D CCD with wavefunctions: wf-fd_vof-hermite-fd_fit-poly2 [NV- in MgO]
 
-Generated 2026-10-16T21:30:41 by `python C:\Users\sammy\Research\Galli\programs\pypl\validation\plot_ccd_wavefunctions.py --wf-method fd --vof-method hermite fd --dataset nv_mgo --temp 5.0 --sigma 20.0 --gamma 0.3 --no-zpl --order-es 160 --order-gs 100 --ene-range -500.0 10000.0 --resol 2101 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit poly2 --fd-npts 40001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --n-levels 3 --check-tol 1e-10 1e-08`.
+Generated 2026-10-18T00:06:51 by `python C:\Users\sammy\Research\Galli\programs\pypl\validation\plot_ccd_wavefunctions.py --wf-method fd --vof-method hermite fd --dataset nv_mgo --temp 5.0 --sigma 20.0 --gamma 0.3 --no-zpl --order-es 160 --order-gs 100 --ene-range -500.0 10000.0 --resol 2101 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit poly2 --fd-npts 40001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --n-levels 3 --check-tol 1e-10 1e-08`.
 
 **Dataset.**
 
@@ -11,15 +11,15 @@ Generated 2026-10-16T21:30:41 by `python C:\Users\sammy\Research\Galli\programs\
 - Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
 - E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
 - image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit (splines, Morse, polyN) ALL images
-- all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 (not a spin-flip run, so not a 1A1 point)
+- all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 31 sf images (q = -1.00..+2.00)
 
 Wavefunctions: FD wavefunctions on the polynomial deg. 2. VOF methods: hermite, fd.
 
 Fit **poly2** (polynomial deg. 2):
-- 1A1 well: degree-2 polynomial in (Q - 3.097879), coefficients (highest first) [0.25, 0.4436, 2.63]; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.51e-01 eV
+- 1A1 well: degree-2 polynomial in (Q - 3.097879), coefficients (highest first) [0.2425, 0.4033, 2.598]; fitted to samples 1-31 of 31 (Q = -3.098..6.196); rms residual 3.48e-01 eV
 - 3E well: degree-2 polynomial in (Q - 0.000000), coefficients (highest first) [0.1622, -0.4672, 4.109]; fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 7.64e-01 eV
 
-Wavefunction check: max |<chi_i|chi_j> - F_ij| = 5.13e-01 (tolerance 1e-08); mismatch expected, the fit is anharmonic.
+Wavefunction check: max |<chi_i|chi_j> - F_ij| = 4.77e-01 (tolerance 1e-08); mismatch expected, the fit is anharmonic.
 
 ## Files
 

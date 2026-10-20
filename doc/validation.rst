@@ -130,8 +130,7 @@ Datasets
      - 3.097879
    * - Images
      - GS 15, ES 11 (:math:`q = -0.2 \dots 1.2`)
-     - :math:`^3E` 33, :math:`^1A_1` 30 (:math:`q = -1.0 \dots 2.0`; ``sf/Image_+2.00`` is not a spin-flip run and is
-       not used)
+     - :math:`^3E` 33, :math:`^1A_1` 31 (:math:`q = -1.0 \dots 2.0`)
    * - Parabola images
      - GS 1-5, ES 5-11
      - :math:`^3E` :math:`q = -0.10 \dots 0.45`, :math:`^1A_1` :math:`q = 0.60 \dots 1.15` (12 each)
@@ -314,7 +313,7 @@ converts Ry to eV and rejects a file without ``plep/eigenval``. The MgO CCD repr
 the image counts, the minima, :math:`E(^3E) = 3.1376` eV, the adiabatic gap 554.4 meV and the parabola phonon
 energies 60.8332 / 31.5511 meV; row 0 of the Ruhoff recurrence equals Hermite at :math:`S \approx 36`-70 (1e-12);
 fd = Hermite in the MgO orientation (1e-7); and (``slow``) the headline numbers of tutorial 003: :math:`F(\Delta)`
-2.70e-7 / 3.97e-5 meV\ :sup:`-1`, :math:`\Gamma` 3.711 / 545.1 MHz, peaks 1145 / 660 meV (0.5 %).
+2.70e-7 / 4.04e-5 meV\ :sup:`-1`, :math:`\Gamma` 3.711 / 554.9 MHz, peaks 1145 / 660 meV (0.5 %).
 
 
 The validation checks (``validation/check_1d_ccd.py``)
@@ -398,7 +397,9 @@ Scripts
      - ``plot_ccd_wavefunctions/wf-<m>_vof-<ms>[_fit-X]/``
    * - ``vof_report.py``
      - Seven sections: (1) potential fits, (2) the finite-difference grid and its convergence, (3) wavefunctions,
-       (4) :math:`F_{ij}` error maps, (5) VOF by method, (6) VOF by fit, (7) cubic perturbation theory.
+       (4) :math:`F_{ij}` error maps, (5) VOF by method, (6) VOF by fit, (7) cubic perturbation theory against the
+       exact solution of the same cubic; where the cubic turns over inside the grid, against the harmonic VOF and fd
+       on the bounded polynomial fits, with the :math:`b \to 0` scan on the scaled cubics that stay bound.
      - ``vof_report/<tag>/``
    * - ``run_all.py``
      - Every method, fit and variant from one TOML configuration (``run_all.toml``, ``run_all_nv_mgo.toml``); each
@@ -548,7 +549,11 @@ The finite-difference errors fall as :math:`h^2` (3-point) and :math:`h^4` (5-po
 
 NV\ :sup:`-` in MgO, 160 :math:`\times` 100 levels, constant 20 meV broadening, ``hermite`` reference: fd vs hermite
 1.0e-8 in :math:`F_{ij}` and 2e-9 in the VOF; pypl vs hermite 1e-14 in the 5 K VOF but up to 1e27 in :math:`F_{ij}`
-(finding 6); the smooth-spline VOF peaks about 580 meV below the harmonic one (Tutorial 003).
+(finding 6); the smooth-spline VOF peaks about 580 meV below the harmonic one (Tutorial 003). Cubic perturbation
+theory has no exact reference there (the fitted cubics turn over inside the grid). On the scaled cubics that stay bound
+(:math:`b \times` 1/4, 1/8, 1/16), the PT error still falls as :math:`b^{2.24}` (:math:`F_{ij}`) and
+:math:`b^{1.93}` (VOF). At the fitted :math:`b`, :math:`\sum_j F_{0j}^2` = 4.52 (emission) and 4.95 (absorption)
+instead of 1: first order fails where the intensity is.
 
 
 Findings about ``config_coord_1d_solver``

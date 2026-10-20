@@ -302,8 +302,8 @@ def check_datasets(c):
     mgo = quiet(ccd_data.build_ccd, dataset="nv_mgo")
     c.close("MgO delta_q (ccd_nv_mgo.py: 3.097879)", mgo["delta_q"], 3.097879, TOL["mgo_delta_q"], " amu^0.5 A")
     c.check(
-        "MgO images: every one, 30 x 1A1 (no sf +2.00), 33 x 3E",
-        (mgo["n_gs_images"], mgo["n_es_images"]) == (30, 33),
+        "MgO images: every one, 31 x 1A1, 33 x 3E",
+        (mgo["n_gs_images"], mgo["n_es_images"]) == (31, 33),
     )
     q_gs, e_gs = ccd_data.samples(mgo, "gs")
     q_es, e_es = ccd_data.samples(mgo, "es")

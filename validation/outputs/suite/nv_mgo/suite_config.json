@@ -128,8 +128,8 @@
     "spline3-s0.05"
   ],
   "skipped_fits": {
-    "poly6": "fit poly6 of the 1A1 images is unbounded below and has no bound states (degree-6 polynomial in (Q - 3.097879), coefficients (highest first) [-0.001825, -0.02173, -0.05884, 0.06404, 0.3992, 0.1359, 2.56]; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 5.83e-02 eV; UNBOUNDED: leading coefficient p_6 = -0.00182 < 0, so V -> -inf as |Q| -> inf)",
-    "poly8": "fit poly8 of the 1A1 images is unbounded below and has no bound states (degree-8 polynomial in (Q - 3.097879), coefficients (highest first) [-0.0001022, -0.0008933, 0.0008298, 0.02173, 0.04825, 0.02966, 0.104, 0.0004844, 2.598]; fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 3.60e-02 eV; UNBOUNDED: leading coefficient p_8 = -0.000102 < 0, so V -> -inf as |Q| -> inf)",
+    "poly6": "fit poly6 of the 1A1 images is unbounded below and has no bound states (degree-6 polynomial in (Q - 3.097879), coefficients (highest first) [-0.0008008, -0.007423, 0.003104, 0.125, 0.2614, -0.06736, 2.552]; fitted to samples 1-31 of 31 (Q = -3.098..6.196); rms residual 7.45e-02 eV; UNBOUNDED: leading coefficient p_6 = -0.000801 < 0, so V -> -inf as |Q| -> inf)",
+    "poly8": "fit poly8 of the 1A1 images is unbounded below and has no bound states (degree-8 polynomial in (Q - 3.097879), coefficients (highest first) [-0.0001339, -0.001447, -0.002626, 0.01323, 0.04633, 0.0526, 0.1302, 0.001863, 2.595]; fitted to samples 1-31 of 31 (Q = -3.098..6.196); rms residual 3.54e-02 eV; UNBOUNDED: leading coefficient p_8 = -0.000134 < 0, so V -> -inf as |Q| -> inf)",
     "cubic": "the 1A1 cubic turns over at Q = -1.70, inside the grid -6.68..10.23: no bound states in the box",
     "cubic (exact fd check of cubic PT)": "the 1A1 cubic turns over at Q = -1.70, inside the grid -6.68..10.23: no bound states in the box",
     "cubic-free (exact fd check of cubic PT)": "the 1A1 cubic turns over at Q = -0.50, inside the grid -6.68..10.23: no bound states in the box"

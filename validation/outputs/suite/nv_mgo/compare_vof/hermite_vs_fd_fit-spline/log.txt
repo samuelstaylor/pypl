@@ -1,4 +1,4 @@
-# VOF method comparison: hermite_vs_fd_fit-spline [NV- in MgO], started 2026-10-16T21:19:30
+# VOF method comparison: hermite_vs_fd_fit-spline [NV- in MgO], started 2026-10-17T23:50:53
 # command: python.exe C:\Users\sammy\Research\Galli\programs\pypl\validation\compare_vof.py --reference hermite --test fd --dataset nv_mgo --temp 5.0 --sigma 20.0 --gamma 0.3 --no-zpl --order-es 160 --order-gs 100 --ene-range -500.0 10000.0 --resol 2101 --line-positions harmonic --npts 100001 --hermite-margin 6.0 --fd-stencil 5 --fd-margin 2.0 --fd-fit spline --fd-npts 40001 --cubic-warn 0.1 --dpi 300 --fig-format png --font-size 9.0 --tol-fc 1e-07 --tol-vof 1e-08
 # dataset: nv_mgo (NV- in MgO), 3E -> 1A1 (WEST TDDFT-DDH)
 # data: doc/tutorials/003_nv_mgo_isc
@@ -7,7 +7,7 @@
 # Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
 # E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
 # image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit (splines, Morse, polyN) ALL images
-# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 (not a spin-flip run, so not a 1A1 point)
+# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 31 sf images (q = -1.00..+2.00)
   wrote validation\outputs\suite\nv_mgo\compare_vof\hermite_vs_fd_fit-spline\settings.json
 Comparing VOFs: Hermite (quadrature) (reference) vs Finite difference [cubic spline (natural)]
   lineshape: T = 5 K, sigma = [20.0, 20.0] meV, ZPL Gaussian (no Lorentzian ZPL); lines at harmonic ladders (bulid_fc_lsp)
@@ -18,40 +18,40 @@ Comparing VOFs: Hermite (quadrature) (reference) vs Finite difference [cubic spl
   [3E -> 1A1, Hermite (quadrature)] method: compute_franck_condon_integrals_hermite, <chi_i(Q + dQ) | chi_j(Q)> of harmonic eigenfunctions
   [3E -> 1A1, Hermite (quadrature)] grid: 100001 points, Q = -14.2326..14.2326 amu^0.5 A, h = 2.847e-04 amu^0.5 A (from --npts), margin 6; composite Simpson
   [3E -> 1A1, Hermite (quadrature)] omega_i = hbar sqrt(2a / amu) = 60.83324 meV, 3E well [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
-  [3E -> 1A1, Hermite (quadrature)] omega_f = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
-  [3E -> 1A1, Hermite (quadrature)] F_ij built in 1.38 s
+  [3E -> 1A1, Hermite (quadrature)] omega_f = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 31)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 31 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [3E -> 1A1, Hermite (quadrature)] F_ij built in 2.48 s
   [3E -> 1A1, Hermite (quadrature)] Integral check: 1.0
   [3E -> 1A1, Finite difference [cubic spline (natural)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
   [3E -> 1A1, Finite difference [cubic spline (natural)]] fit: spline (cubic spline (natural))
   [3E -> 1A1, Finite difference [cubic spline (natural)]] potential (initial, 3E) [all 33 images (q = -1.00..+2.00)]: cubic spline (degree 3, natural ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.04e+00 / 4.16e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 5.19e-16 eV
-  [3E -> 1A1, Finite difference [cubic spline (natural)]] potential (final, 1A1) [all 30 images (q = -1.00..+1.50)]: cubic spline (degree 3, natural ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.86e+00 / -5.45e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 2.69e-16 eV
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] potential (final, 1A1) [all 31 images (q = -1.00..+2.00)]: cubic spline (degree 3, natural ends, 31 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.86e+00 / -1.20e+00 eV/(amu^0.5 A)); fitted to samples 1-31 of 31 (Q = -3.098..6.196); rms residual 3.38e-16 eV
   [3E -> 1A1, Finite difference [cubic spline (natural)]] grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A (from --fd-npts); 253 points per shortest wavelength
   [3E -> 1A1, Finite difference [cubic spline (natural)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
   [3E -> 1A1, Finite difference [cubic spline (natural)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
   [3E -> 1A1, Finite difference [cubic spline (natural)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
-  [3E -> 1A1, Finite difference [cubic spline (natural)]] checks: |psi| at walls / peak = 5.87e-16, orthonormality = 2.89e-15, ladder |E_v - E_0 - v hbar w| = 2.52e+03 (i) / 2.54e+02 (f) meV
-  [3E -> 1A1, Finite difference [cubic spline (natural)]] F_ij built in 16.47 s
-  [3E -> 1A1, Finite difference [cubic spline (natural)]] Integral check: 0.9999999999816194
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] checks: |psi| at walls / peak = 5.87e-16, orthonormality = 4.44e-15, ladder |E_v - E_0 - v hbar w| = 2.52e+03 (i) / 9.05e+02 (f) meV
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] F_ij built in 64.99 s
+  [3E -> 1A1, Finite difference [cubic spline (natural)]] Integral check: 0.9999999999953296
   wrote validation\outputs\suite\nv_mgo\compare_vof\hermite_vs_fd_fit-spline\data\vof_emission.csv
 
 ====================================================================================================
   [1A1 -> 3E, Hermite (quadrature)] method: compute_franck_condon_integrals_hermite, <chi_i(Q + dQ) | chi_j(Q)> of harmonic eigenfunctions
   [1A1 -> 3E, Hermite (quadrature)] grid: 100001 points, Q = -14.2326..14.2326 amu^0.5 A, h = 2.847e-04 amu^0.5 A (from --npts), margin 6; composite Simpson
-  [1A1 -> 3E, Hermite (quadrature)] omega_i = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms residual 1.05e-02 eV
+  [1A1 -> 3E, Hermite (quadrature)] omega_i = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 31)]: parabola a (Q - 3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 31 (Q = 1.859..3.563); rms residual 1.05e-02 eV
   [1A1 -> 3E, Hermite (quadrature)] omega_f = hbar sqrt(2a / amu) = 60.83324 meV, 3E well [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q - 0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms residual 1.89e-02 eV
-  [1A1 -> 3E, Hermite (quadrature)] F_ij built in 1.26 s
+  [1A1 -> 3E, Hermite (quadrature)] F_ij built in 1.66 s
   [1A1 -> 3E, Hermite (quadrature)] Integral check: 0.9999999998249766
   [1A1 -> 3E, Finite difference [cubic spline (natural)]] method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
   [1A1 -> 3E, Finite difference [cubic spline (natural)]] fit: spline (cubic spline (natural))
-  [1A1 -> 3E, Finite difference [cubic spline (natural)]] potential (initial, 1A1) [all 30 images (q = -1.00..+1.50)]: cubic spline (degree 3, natural ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.86e+00 / -5.45e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 2.69e-16 eV
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] potential (initial, 1A1) [all 31 images (q = -1.00..+2.00)]: cubic spline (degree 3, natural ends, 31 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.86e+00 / -1.20e+00 eV/(amu^0.5 A)); fitted to samples 1-31 of 31 (Q = -3.098..6.196); rms residual 3.38e-16 eV
   [1A1 -> 3E, Finite difference [cubic spline (natural)]] potential (final, 3E) [all 33 images (q = -1.00..+2.00)]: cubic spline (degree 3, natural ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.04e+00 / 4.16e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 5.19e-16 eV
   [1A1 -> 3E, Finite difference [cubic spline (natural)]] grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A (from --fd-npts); 253 points per shortest wavelength
   [1A1 -> 3E, Finite difference [cubic spline (natural)]] padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
   [1A1 -> 3E, Finite difference [cubic spline (natural)]] stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
   [1A1 -> 3E, Finite difference [cubic spline (natural)]] eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
-  [1A1 -> 3E, Finite difference [cubic spline (natural)]] checks: |psi| at walls / peak = 4.50e-16, orthonormality = 3.11e-15, ladder |E_v - E_0 - v hbar w| = 2.54e+02 (i) / 2.52e+03 (f) meV
-  [1A1 -> 3E, Finite difference [cubic spline (natural)]] F_ij built in 12.98 s
-  [1A1 -> 3E, Finite difference [cubic spline (natural)]] Integral check: 0.9999999999993413
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] checks: |psi| at walls / peak = 5.93e-16, orthonormality = 5.77e-15, ladder |E_v - E_0 - v hbar w| = 9.05e+02 (i) / 2.52e+03 (f) meV
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] F_ij built in 14.69 s
+  [1A1 -> 3E, Finite difference [cubic spline (natural)]] Integral check: 0.9999999999993701
   wrote validation\outputs\suite\nv_mgo\compare_vof\hermite_vs_fd_fit-spline\data\vof_absorption.csv
 emission: omega_i = 60.83324 meV, omega_f = 31.55114 meV, dQ = 3.097879 amu^0.5 A, ni x nf = 160 x 100
 lineshape: T = 5 K, sigma = [20.0, 20.0] meV, ZPL Gaussian (no Lorentzian ZPL); lines at harmonic ladders
@@ -65,10 +65,10 @@ grid: 100001 points, Q = -14.2326..14.2326 amu^0.5 A, h = 2.847e-04 amu^0.5 A (f
 omega_i = hbar sqrt(2a / amu) = 60.83324 meV, 3E well [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q -
     0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms
     residual 1.89e-02 eV
-omega_f = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q -
-    3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms
+omega_f = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 31)]: parabola a (Q -
+    3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 31 (Q = 1.859..3.563); rms
     residual 1.05e-02 eV
-F_ij built in 1.38 s
+F_ij built in 2.48 s
 Integral check: 1.0
 
 [Finite difference [cubic spline (natural)]]
@@ -77,18 +77,18 @@ fit: spline (cubic spline (natural))
 potential (initial, 3E) [all 33 images (q = -1.00..+2.00)]: cubic spline (degree 3, natural ends, 33 knots), harmonic
     tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.04e+00 / 4.16e+00 eV/(amu^0.5 A)); fitted to samples
     1-33 of 33 (Q = -3.098..6.196); rms residual 5.19e-16 eV
-potential (final, 1A1) [all 30 images (q = -1.00..+1.50)]: cubic spline (degree 3, natural ends, 30 knots), harmonic
-    tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.86e+00 / -5.45e-01 eV/(amu^0.5 A)); fitted to samples
-    1-30 of 30 (Q = -3.098..4.647); rms residual 2.69e-16 eV
+potential (final, 1A1) [all 31 images (q = -1.00..+2.00)]: cubic spline (degree 3, natural ends, 31 knots), harmonic
+    tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.86e+00 / -1.20e+00 eV/(amu^0.5 A)); fitted to samples
+    1-31 of 31 (Q = -3.098..6.196); rms residual 3.38e-16 eV
 grid: 40001 points, frame x = Q - Q_f, x = -9.7798..7.1347 (Q = -6.6819..10.2326 amu^0.5 A), h = 4.2286e-04 amu^0.5 A
     (from --fd-npts); 253 points per shortest wavelength
 padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 159 (4.6819) and v = 99 (5.1347)
 stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
 eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 160 and 100 states
-checks: |psi| at walls / peak = 5.87e-16, orthonormality = 2.89e-15, ladder |E_v - E_0 - v hbar w| = 2.52e+03 (i) /
-    2.54e+02 (f) meV
-F_ij built in 16.47 s
-Integral check: 0.9999999999816194
+checks: |psi| at walls / peak = 5.87e-16, orthonormality = 4.44e-15, ladder |E_v - E_0 - v hbar w| = 2.52e+03 (i) /
+    9.05e+02 (f) meV
+F_ij built in 64.99 s
+Integral check: 0.9999999999953296
 absorption: omega_i = 31.55114 meV, omega_f = 60.83324 meV, dQ = 3.097879 amu^0.5 A, ni x nf = 100 x 160
 lineshape: T = 5 K, sigma = [20.0, 20.0] meV, ZPL Gaussian (no Lorentzian ZPL); lines at harmonic ladders
     (bulid_fc_lsp)
@@ -98,21 +98,21 @@ lineshape axis: -500..10000 meV from the ZPL, 2101 points, step 5 meV
 method: compute_franck_condon_integrals_hermite, <chi_i(Q + dQ) | chi_j(Q)> of harmonic eigenfunctions
 grid: 100001 points, Q = -14.2326..14.2326 amu^0.5 A, h = 2.847e-04 amu^0.5 A (from --npts), margin 6; composite
     Simpson
-omega_i = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 30)]: parabola a (Q -
-    3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 30 (Q = 1.859..3.563); rms
+omega_i = hbar sqrt(2a / amu) = 31.55114 meV, 1A1 well [images q = +0.60..+1.15 (12 of 31)]: parabola a (Q -
+    3.097879)^2 + c, a = 0.119071 eV/(amu A^2), c = 2.595544 eV; fitted to samples 18-29 of 31 (Q = 1.859..3.563); rms
     residual 1.05e-02 eV
 omega_f = hbar sqrt(2a / amu) = 60.83324 meV, 3E well [images q = -0.10..+0.45 (12 of 33)]: parabola a (Q -
     0.000000)^2 + c, a = 0.442649 eV/(amu A^2), c = 3.160211 eV; fitted to samples 4-15 of 33 (Q = -0.310..1.394); rms
     residual 1.89e-02 eV
-F_ij built in 1.26 s
+F_ij built in 1.66 s
 Integral check: 0.9999999998249766
 
 [Finite difference [cubic spline (natural)]]
 method: compute_franck_condon_integrals_fd, H = -(hbar^2/2) d^2/dQ^2 + V(Q), hbar^2/2 = 2.090080e-03 eV amu A^2
 fit: spline (cubic spline (natural))
-potential (initial, 1A1) [all 30 images (q = -1.00..+1.50)]: cubic spline (degree 3, natural ends, 30 knots), harmonic
-    tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.86e+00 / -5.45e-01 eV/(amu^0.5 A)); fitted to samples
-    1-30 of 30 (Q = -3.098..4.647); rms residual 2.69e-16 eV
+potential (initial, 1A1) [all 31 images (q = -1.00..+2.00)]: cubic spline (degree 3, natural ends, 31 knots), harmonic
+    tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.86e+00 / -1.20e+00 eV/(amu^0.5 A)); fitted to samples
+    1-31 of 31 (Q = -3.098..6.196); rms residual 3.38e-16 eV
 potential (final, 3E) [all 33 images (q = -1.00..+2.00)]: cubic spline (degree 3, natural ends, 33 knots), harmonic
     tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.04e+00 / 4.16e+00 eV/(amu^0.5 A)); fitted to samples
     1-33 of 33 (Q = -3.098..6.196); rms residual 5.19e-16 eV
@@ -121,18 +121,18 @@ grid: 40001 points, frame x = -(Q - Q_f), x = -10.2326..6.6819 (Q = -6.6819..10.
 padding: 2.00 amu^0.5 A beyond the harmonic turning points of v = 99 (5.1347) and v = 159 (4.6819)
 stencil: 5-point central, O(h^4): (-1, 16, -30, 16, -1) / (12 h^2); hard walls
 eigensolver: scipy.sparse.linalg.eigsh, shift-invert at min(V) - 1 eV, lowest 100 and 160 states
-checks: |psi| at walls / peak = 4.50e-16, orthonormality = 3.11e-15, ladder |E_v - E_0 - v hbar w| = 2.54e+02 (i) /
+checks: |psi| at walls / peak = 5.93e-16, orthonormality = 5.77e-15, ladder |E_v - E_0 - v hbar w| = 9.05e+02 (i) /
     2.52e+03 (f) meV
-F_ij built in 12.98 s
-Integral check: 0.9999999999993413
+F_ij built in 14.69 s
+Integral check: 0.9999999999993701
   wrote validation\outputs\suite\nv_mgo\compare_vof\hermite_vs_fd_fit-spline\figures\vof_comparison.png
   wrote validation\outputs\suite\nv_mgo\compare_vof\hermite_vs_fd_fit-spline\figures\fc_error_maps.png
   wrote validation\outputs\suite\nv_mgo\compare_vof\hermite_vs_fd_fit-spline\data\summary.csv
 
 direction   test                                        reference             max dF_ij  at (i, j)  max dF_ij (i,j<30)  max dVOF / peak  rms dVOF / peak  F_ij time (s)  verdict
 ----------  ------------------------------------------  --------------------  ---------  ---------  ------------------  ---------------  ---------------  -------------  -------
-emission    Finite difference [cubic spline (natural)]  Hermite (quadrature)  8.64e-01   (0, 18)    8.64e-01            5.70e+00         3.88e-01         16.47          FAIL   
-absorption  Finite difference [cubic spline (natural)]  Hermite (quadrature)  8.64e-01   (18, 0)    8.64e-01            1.05e+01         8.99e-01         12.98          FAIL   
+emission    Finite difference [cubic spline (natural)]  Hermite (quadrature)  7.63e-01   (0, 18)    7.63e-01            5.03e+00         3.74e-01         64.99          FAIL   
+absorption  Finite difference [cubic spline (natural)]  Hermite (quadrature)  7.63e-01   (18, 0)    7.63e-01            1.05e+01         8.98e-01         14.69          FAIL   
 
 FAIL: the lineshapes differ.
 NOTE: Finite difference [cubic spline (natural)] solve(s) an anharmonic problem, not the harmonic wells pypl / hermite use; differences from them are the anharmonicity, not an error. For a like-for-like test use the default methods and --fd-fit parabola.

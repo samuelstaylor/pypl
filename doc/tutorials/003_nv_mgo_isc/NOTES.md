@@ -85,16 +85,16 @@ DDH here means PBE0 form with the exact-exchange fraction set to α = 1/ε∞ (e
 | `overlap_thr` | `0.001` (×41) | `0.001` (×61) |
 | `chi_kernel` | `CHI` (×41) | `CHI` (×61) |
 | `wbse_calculation` | `D` (×32), `d` (×2) | `D` (×19), `d` (×12) |
-| `n_liouville_eigen` | `6` (×34) | `10` (×30), `6` (×1) |
-| `n_liouville_times` | `8` (×34) | `4` (×30), `8` (×1) |
+| `n_liouville_eigen` | `6` (×34) | `10` (×31) |
+| `n_liouville_times` | `8` (×34) | `4` (×31) |
 | `n_liouville_maxiter` | `1000` (×34) | `1000` (×31) |
 | `trev_liouville` | `1e-06` (×34) | `1e-06` (×31) |
 | `trev_liouville_rel` | `0.0001` (×34) | `0.0001` (×31) |
 | `l_preconditioning` | `True` (×34) | `True` (×31) |
 | `l_pre_shift` | `False` (×34) | `False` (×31) |
 | `spin_excitation` | `S` (×34) | `S` (×31) |
-| `l_spin_flip` | `False` (×34) | `True` (×30), `False` (×1) |
-| `l_spin_flip_kernel` | `False` (×34) | `True` (×30), `False` (×1) |
+| `l_spin_flip` | `False` (×34) | `True` (×31) |
+| `l_spin_flip_kernel` | `False` (×34) | `True` (×31) |
 | `l_spin_flip_alda0` | `False` (×34) | `False` (×31) |
 | `spin_flip_cut` | `0.001` (×34) | `0.001` (×31) |
 | `n_exx_lowrank` | `1294` (×34) | `1294` (×31) |
@@ -108,10 +108,8 @@ Input-file variants: restarted runs use `wbse_calculation: d` (and some `n_steps
 
 - **SAME_SUMMARY_REALPATH**: none
 - **MISSING_XML**: none
-- **SF_NOT_SPIN_FLIP**:
-  - sf Image_+2.00: wbse.out reports l_spin_flip : False, n_eig=6; states 1-4 are NOT ms0/1B2/1B1/1A1
-- **IDENTICAL_SUMMARY_CONTENT**:
-  - sc+sf Image_+2.00: different real files but byte-identical summary.json
+- **SF_NOT_SPIN_FLIP**: none
+- **IDENTICAL_SUMMARY_CONTENT**: none
 - **MISSING_SUMMARY**:
   - sc Image_+1.20: QE XML present but no west.wbse.save/summary.json
 - **XML_DIFFER**:

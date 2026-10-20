@@ -25,7 +25,7 @@ def test_parse_west_summary(tmp_path):
 
 def test_mgo_ccd(mgo):
     assert mgo["delta_q"] == pytest.approx(3.097879, abs=1e-6)
-    assert (len(mgo["es"]["q"]), len(mgo["gs"]["q"])) == (33, 30)
+    assert (len(mgo["es"]["q"]), len(mgo["gs"]["q"])) == (33, 31)
     es, gs = mgo["es"], mgo["gs"]
     assert es["q_image"][np.argmin(es["e"])] == 0.0 and gs["q_image"][np.argmin(gs["e"])] == 1.0
     assert es["e"].min() == pytest.approx(3.1376, abs=5e-5)
@@ -79,9 +79,9 @@ def test_tutorial_003_isc_numbers(mgo):
     delta = 554.41449
     f_harm, f_spl = np.interp(delta, axis, harm.fc_lineshape), np.interp(delta, axis, spl.fc_lineshape)
     assert f_harm == pytest.approx(2.70e-7, rel=5e-3)
-    assert f_spl == pytest.approx(3.97e-5, rel=5e-3)
+    assert f_spl == pytest.approx(4.04e-5, rel=5e-3)
     assert compute_isc_rate(204.9925, f_harm) / 1e6 == pytest.approx(3.711, rel=5e-3)
-    assert compute_isc_rate(204.9925, f_spl) / 1e6 == pytest.approx(545.1, rel=5e-3)
+    assert compute_isc_rate(204.9925, f_spl) / 1e6 == pytest.approx(554.9, rel=5e-3)
     assert axis[np.argmax(harm.fc_lineshape)] == pytest.approx(1145, abs=2)
     assert axis[np.argmax(spl.fc_lineshape)] == pytest.approx(660, abs=2)
 

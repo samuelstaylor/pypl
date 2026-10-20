@@ -7,8 +7,8 @@ $ python validation/plot_ccd_wavefunctions.py --wf-method cubic --vof-method her
 # Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
 # E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
 # image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit (splines, Morse, polyN) ALL images
-# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 (not a spin-flip run, so not a 1A1 point)
-  1A1 well: cubic a (Q - 3.097879)^2 + b (Q - 3.097879)^3 + c, a = 0.165233 eV/(amu A^2) (fitted), b = +0.030620 eV/(amu^1.5 A^3), c = 2.581809 eV, turnover at Q = -0.50; fitted to samples 4-29 of 30 (Q = -0.310..3.563); rms residual 2.84e-02 eV; unbounded beyond the turnover at Q = -0.50 (perturbative or in-box use only); xi = +1.655e-02
+# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 31 sf images (q = -1.00..+2.00)
+  1A1 well: cubic a (Q - 3.097879)^2 + b (Q - 3.097879)^3 + c, a = 0.165233 eV/(amu A^2) (fitted), b = +0.030620 eV/(amu^1.5 A^3), c = 2.581809 eV, turnover at Q = -0.50; fitted to samples 4-29 of 31 (Q = -0.310..3.563); rms residual 2.84e-02 eV; unbounded beyond the turnover at Q = -0.50 (perturbative or in-box use only); xi = +1.655e-02
   3E well: cubic a (Q - 0.000000)^2 + b (Q - 0.000000)^3 + c, a = 0.595212 eV/(amu A^2) (fitted), b = -0.135468 eV/(amu^1.5 A^3), c = 3.159444 eV, turnover at Q = 2.93; fitted to samples 4-29 of 33 (Q = -0.310..3.563); rms residual 3.31e-02 eV; unbounded beyond the turnover at Q = 2.93 (perturbative or in-box use only); xi = -1.418e-02
 
 Wavefunction check: <chi_i | chi_j> of the 3 drawn levels vs the solver's F_ij

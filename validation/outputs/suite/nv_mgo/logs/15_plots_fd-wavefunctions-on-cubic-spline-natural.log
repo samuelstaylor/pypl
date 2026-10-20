@@ -7,34 +7,34 @@ $ python validation/plot_ccd_wavefunctions.py --wf-method fd --vof-method hermit
 # Q = q delta_q, q from Image_<q>, as in reference/ccd_nv_mgo.py: 3E minimum at Q = 0, 1A1 minimum at Q = delta_q
 # E = QE total energy (qe/) + WEST root (3E: sc root 1, 1A1: sf root 4) x 13.605693 eV/Ry, relative to the 3A2 (QE) minimum, as in ccd_nv_mgo.py
 # image windows (q of Image_<q>, inclusive): parabola 3E q = -0.10..+0.45, 1A1 q = +0.60..+1.15; cubic a Q^2 + b Q^3 + c (perturbative correction) q = -0.10..+1.15 for both; every other fit (splines, Morse, polyN) ALL images
-# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 30 sf images except Image_+2.00 (not a spin-flip run, so not a 1A1 point)
+# all images: 3E all 33 sc images (q = -1.00..+2.00), 1A1 all 31 sf images (q = -1.00..+2.00)
 Finite differences on fit spline (cubic spline (natural)):
-  1A1 well: cubic spline (degree 3, natural ends, 30 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.86e+00 / -5.45e-01 eV/(amu^0.5 A)); fitted to samples 1-30 of 30 (Q = -3.098..4.647); rms residual 2.69e-16 eV
+  1A1 well: cubic spline (degree 3, natural ends, 31 knots), harmonic tails a = 0.119071 eV/(amu A^2), C0 junction (slope jumps 1.86e+00 / -1.20e+00 eV/(amu^0.5 A)); fitted to samples 1-31 of 31 (Q = -3.098..6.196); rms residual 3.38e-16 eV
   3E well: cubic spline (degree 3, natural ends, 33 knots), harmonic tails a = 0.442649 eV/(amu A^2), C0 junction (slope jumps 1.04e+00 / 4.16e+00 eV/(amu^0.5 A)); fitted to samples 1-33 of 33 (Q = -3.098..6.196); rms residual 5.19e-16 eV
 
 Wavefunction check: <chi_i | chi_j> of the 3 drawn levels vs the solver's F_ij
   from the drawn finite-difference eigenstates (cubic spline (natural)):
      0.000000000  -0.000000001   0.000000011
-     0.000000000  -0.000000006   0.000000066
-     0.000000001  -0.000000023   0.000000252
+     0.000000000  -0.000000006   0.000000063
+     0.000000001  -0.000000023   0.000000243
   solver fc_ints:
      0.000000000  -0.000000000   0.000000002
      0.000000000  -0.000000002   0.000000010
      0.000000001  -0.000000008   0.000000040
-  MISMATCH (max deviation 2.11e-07, tolerance 1e-08)
+  MISMATCH (max deviation 2.03e-07, tolerance 1e-08)
   fit spline is anharmonic: a mismatch with the harmonic solver is expected; plotting anyway
 
 Vibrational levels (eV)
-  v = 0   GS  2.604636   ES  3.176064
-  v = 1   GS  2.647273   ES  3.248764
-  v = 2   GS  2.688827   ES  3.318032
+  v = 0   GS  2.604615   ES  3.176064
+  v = 1   GS  2.647128   ES  3.248764
+  v = 2   GS  2.688323   ES  3.318032
 
 Franck-Condon lineshapes via bulid_fc_lsp
   emission  Hermite (quadrature)                 closure 1.0000000000  sideband peak 3.7563 eV  centroid 1146.2 meV
-  emission  Finite difference [cubic spline (natural)] closure 1.0000000000  sideband peak 3.1813 eV  centroid 573.8 meV
-    Finite difference [cubic spline (natural)] vs Hermite (quadrature): max |difference| / peak = 5.70e+00
+  emission  Finite difference [cubic spline (natural)] closure 1.0000000000  sideband peak 3.1863 eV  centroid 581.2 meV
+    Finite difference [cubic spline (natural)] vs Hermite (quadrature): max |difference| / peak = 5.03e+00
   absorption Hermite (quadrature)                 closure 0.9999999998  sideband peak 7.3256 eV  centroid 4254.8 meV
-  absorption Finite difference [cubic spline (natural)] closure 1.0000000000  sideband peak 5.1356 eV  centroid 1875.1 meV
+  absorption Finite difference [cubic spline (natural)] closure 1.0000000000  sideband peak 5.1356 eV  centroid 1874.7 meV
     Finite difference [cubic spline (natural)] vs Hermite (quadrature): max |difference| / peak = 1.05e+01
 
 Outputs in validation\outputs\suite\nv_mgo\plot_ccd_wavefunctions\wf-fd_vof-hermite-fd_fit-spline (see index.md)
